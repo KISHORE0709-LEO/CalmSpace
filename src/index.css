@@ -7,7 +7,7 @@
 @layer base {
   :root {
     /* CalmSpace palette — HSL */
-    --background: 217 100% 98%;        /* #F7FAFF */
+    --background: 48 100% 97%;         /* warm soft yellow tint */
     --foreground: 217 28% 17%;         /* #1F2A37 */
 
     --card: 0 0% 100%;
