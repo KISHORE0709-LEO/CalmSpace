@@ -10,7 +10,7 @@
     --background: 48 100% 97%;         /* warm soft yellow tint */
     --foreground: 217 28% 17%;         /* #1F2A37 */
 
-    --card: 0 0% 100%;
+    --card: 48 100% 99%;               /* near-white with warm yellow tint */
     --card-foreground: 217 28% 17%;
 
     --popover: 0 0% 100%;
