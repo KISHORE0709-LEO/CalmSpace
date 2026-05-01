@@ -55,9 +55,6 @@ const Home = () => {
 
         <div className="container relative z-10 pt-32 pb-20">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-bold mb-6 shadow-pop-sm border-2 border-foreground">
-              <Sparkles className="w-3.5 h-3.5" /> Built with care for autistic minds
-            </span>
             <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.02] mb-6 tracking-tight">
               Understanding feelings.
               <span className="block text-primary drop-shadow-sm">Supporting every moment.</span>
