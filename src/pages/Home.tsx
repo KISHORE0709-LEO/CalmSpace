@@ -41,87 +41,43 @@ const Home = () => {
       <PublicNav />
 
       {/* Hero */}
-      <section className="relative pt-32 pb-20 bg-gradient-hero overflow-hidden">
-        <div className="absolute inset-0 -z-10 opacity-60">
-          <div className="absolute top-20 -left-20 w-96 h-96 rounded-full bg-accent-soft blur-3xl" />
-          <div className="absolute bottom-0 -right-20 w-96 h-96 rounded-full bg-primary-soft blur-3xl" />
-        </div>
-        <div className="container grid lg:grid-cols-2 gap-12 items-center">
-          <div>
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-accent-soft text-accent-foreground text-xs font-medium mb-6">
+      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+        <img
+          src={hero}
+          alt="Joyful diverse children playing in a sunny meadow with rainbow and balloons"
+          width={1920}
+          height={1080}
+          className="absolute inset-0 w-full h-full object-cover"
+        />
+        {/* Readability overlay — stronger on the left where text sits */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+
+        <div className="container relative z-10 pt-32 pb-20">
+          <div className="max-w-2xl">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-bold mb-6 shadow-pill">
               <Sparkles className="w-3.5 h-3.5" /> Built with care for autistic minds
             </span>
-            <h1 className="text-5xl md:text-6xl font-bold leading-[1.05] mb-5">
+            <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.02] mb-6 tracking-tight">
               Understanding feelings.
-              <span className="block text-primary">Supporting every moment.</span>
+              <span className="block text-primary drop-shadow-sm">Supporting every moment.</span>
             </h1>
-            <p className="text-lg text-muted-foreground max-w-xl mb-8 leading-relaxed">
-              CalmSpace is a gentle companion that helps children, families, and caregivers
-              navigate emotions, build social confidence, and feel safe — together.
+            <p className="text-lg md:text-xl text-foreground/80 max-w-xl mb-8 leading-relaxed font-medium">
+              CalmSpace is a gentle, joyful companion that helps children, families,
+              and caregivers navigate emotions, build social confidence, and feel safe — together.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-full px-7 h-12">
+              <Button asChild size="lg" className="rounded-full px-8 h-14 text-base shadow-pill">
                 <Link to="/app/feelings">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full px-7 h-12 bg-card">
+              <Button asChild size="lg" variant="outline" className="rounded-full px-8 h-14 text-base bg-card/90 backdrop-blur border-2">
                 <Link to="/how-it-works">See how it works</Link>
               </Button>
             </div>
           </div>
-          <div className="relative">
-            <div className="absolute -inset-6 bg-gradient-warm rounded-[2.5rem] -rotate-2 opacity-70" />
-            <img
-              src={hero}
-              alt="Happy children playing together in a sunny meadow"
-              width={1536}
-              height={1024}
-              className="relative rounded-[2rem] shadow-soft border border-border w-full"
-            />
-          </div>
         </div>
       </section>
 
-      {/* Problem */}
-      <section className="container py-20">
-        <div className="max-w-2xl mb-12">
-          <p className="text-sm font-medium text-primary mb-2">The challenge</p>
-          <h2 className="text-3xl md:text-4xl">Big emotions deserve gentle tools.</h2>
-        </div>
-        <div className="grid md:grid-cols-3 gap-5">
-          {problems.map((p) => (
-            <div key={p.title} className="calm-card">
-              <div className="w-11 h-11 rounded-xl bg-primary-soft flex items-center justify-center mb-4">
-                <p.icon className="w-5 h-5 text-primary" />
-              </div>
-              <h3 className="text-lg mb-2">{p.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{p.text}</p>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Solution flow */}
-      <section className="bg-card border-y border-border py-20">
-        <div className="container">
-          <div className="text-center max-w-2xl mx-auto mb-12">
-            <p className="text-sm font-medium text-primary mb-2">How CalmSpace helps</p>
-            <h2 className="text-3xl md:text-4xl">A calm path from feeling to flourishing.</h2>
-          </div>
-          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-4">
-            {flow.map((s, i) => (
-              <div key={s.label} className="flex items-center gap-3 md:gap-4">
-                <div className="flex flex-col items-center gap-2">
-                  <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl flex items-center justify-center ${s.color}`}>
-                    <s.icon className="w-7 h-7 md:w-8 md:h-8" />
-                  </div>
-                  <span className="font-medium text-sm">{s.label}</span>
-                </div>
-                {i < flow.length - 1 && <ArrowRight className="w-5 h-5 text-muted-foreground" />}
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* Feature preview */}
       <section className="container py-20">
