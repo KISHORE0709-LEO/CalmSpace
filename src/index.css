@@ -7,10 +7,10 @@
 @layer base {
   :root {
     /* CalmSpace palette — HSL */
-    --background: 217 100% 98%;        /* #F7FAFF */
+    --background: 48 100% 97%;         /* warm soft yellow tint */
     --foreground: 217 28% 17%;         /* #1F2A37 */
 
-    --card: 0 0% 100%;
+    --card: 48 100% 99%;               /* near-white with warm yellow tint */
     --card-foreground: 217 28% 17%;
 
     --popover: 0 0% 100%;
@@ -46,8 +46,8 @@
     --shadow-card: 0 2px 12px -4px hsl(212 40% 40% / 0.08);
     --shadow-pill: 0 8px 30px -10px hsl(212 60% 50% / 0.25);
 
-    --gradient-hero: linear-gradient(180deg, hsl(215 100% 96%) 0%, hsl(217 100% 98%) 100%);
-    --gradient-warm: linear-gradient(135deg, hsl(48 100% 90%) 0%, hsl(215 100% 93%) 100%);
+    --gradient-hero: linear-gradient(180deg, hsl(48 100% 92%) 0%, hsl(48 100% 97%) 100%);
+    --gradient-warm: linear-gradient(135deg, hsl(48 100% 88%) 0%, hsl(46 100% 80%) 100%);
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 217 28% 17%;

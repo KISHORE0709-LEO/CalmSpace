@@ -49,9 +49,9 @@ const Home = () => {
           height={1080}
           className="absolute inset-0 w-full h-full object-cover"
         />
-        {/* Readability overlay — stronger on the left where text sits */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/90 via-background/60 to-background/10" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/70 via-transparent to-transparent" />
+        {/* Subtle readability overlay — image stays vivid */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-background/10 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
 
         <div className="container relative z-10 pt-32 pb-20">
           <div className="max-w-2xl">
