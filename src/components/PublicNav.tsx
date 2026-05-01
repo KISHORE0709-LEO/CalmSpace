@@ -12,31 +12,27 @@ export const PublicNav = () => {
   return (
     <header className="fixed top-4 left-0 right-0 z-50">
       <div className="container max-w-7xl flex items-center justify-between gap-4">
-        <Link to="/" className="flex items-center gap-2 font-semibold bg-card/85 backdrop-blur-xl border border-border rounded-full pl-3 pr-5 py-2 shadow-pill">
-          <span className="w-8 h-8 rounded-full bg-primary flex items-center justify-center">
+        <Link to="/" className="pill-nav px-4 py-2 font-black transition-transform hover:-translate-y-[2px] hover:shadow-pop-lg">
+          <span className="w-8 h-8 rounded-full bg-primary border-2 border-foreground flex items-center justify-center">
             <Heart className="w-4 h-4 text-primary-foreground" fill="currentColor" />
           </span>
-          <span>CalmSpace</span>
+          <span className="text-xl tracking-tight text-foreground">CalmSpace</span>
         </Link>
 
-        <nav className="hidden md:flex items-center gap-1 bg-card/85 backdrop-blur-xl border border-border rounded-full p-1.5 shadow-pill">
+        <nav className="hidden md:flex pill-nav">
           {links.map((l) => (
             <NavLink
               key={l.to}
               to={l.to}
               end={l.to === "/"}
-              className={({ isActive }) =>
-                `px-5 py-2 rounded-full text-sm font-medium transition-colors ${
-                  isActive ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"
-                }`
-              }
+              className={({ isActive }) => `pill-nav-item ${isActive ? "bg-primary text-primary-foreground border-2 border-foreground shadow-pop-sm" : ""}`}
             >
               {l.label}
             </NavLink>
           ))}
         </nav>
 
-        <Button asChild size="sm" className="rounded-full px-6 h-11 shadow-pill">
+        <Button asChild size="sm" className="rounded-full px-6 h-11">
           <Link to="/app/feelings">Sign In</Link>
         </Button>
       </div>

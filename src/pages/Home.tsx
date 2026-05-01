@@ -55,7 +55,7 @@ const Home = () => {
 
         <div className="container relative z-10 pt-32 pb-20">
           <div className="max-w-2xl">
-            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-bold mb-6 shadow-pill">
+            <span className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-accent text-accent-foreground text-xs font-bold mb-6 shadow-pop-sm border-2 border-foreground">
               <Sparkles className="w-3.5 h-3.5" /> Built with care for autistic minds
             </span>
             <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.02] mb-6 tracking-tight">
@@ -67,10 +67,10 @@ const Home = () => {
               and caregivers navigate emotions, build social confidence, and feel safe — together.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-full px-8 h-14 text-base shadow-pill">
+              <Button asChild size="lg" className="rounded-full px-8 h-14 text-base">
                 <Link to="/app/feelings">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full px-8 h-14 text-base bg-card/90 backdrop-blur border-2">
+              <Button asChild size="lg" variant="outline" className="rounded-full px-8 h-14 text-base bg-background/90 backdrop-blur">
                 <Link to="/how-it-works">See how it works</Link>
               </Button>
             </div>
