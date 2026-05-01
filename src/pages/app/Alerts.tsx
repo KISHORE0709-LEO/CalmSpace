@@ -4,7 +4,7 @@ import { AppShell } from "@/components/AppShell";
 const alerts = [
   {
     level: "Medium",
-    color: "bg-accent-soft text-accent-foreground border-accent/40",
+    color: "bg-accent text-foreground",
     dot: "bg-warning",
     when: "Today, 3:45 PM",
     reason: "Pattern detected: noisy environments + low sleep often lead to overwhelm.",
@@ -12,7 +12,7 @@ const alerts = [
   },
   {
     level: "Low",
-    color: "bg-primary-soft text-primary border-primary/30",
+    color: "bg-primary text-primary-foreground",
     dot: "bg-success",
     when: "Tomorrow morning",
     reason: "School routine change. Mornings have been steady this week.",
@@ -23,7 +23,7 @@ const alerts = [
 const Alerts = () => (
   <AppShell title="Alerts" subtitle="Gentle nudges to prepare for harder moments.">
     <div className="grid lg:grid-cols-3 gap-5 mb-5">
-      <div className="calm-card lg:col-span-2 bg-gradient-warm border-accent/30">
+      <div className="calm-card lg:col-span-2 bg-accent">
         <div className="flex items-start gap-4">
           <div className="w-12 h-12 rounded-2xl bg-card flex items-center justify-center shrink-0">
             <Shield className="w-6 h-6 text-primary" />
@@ -45,10 +45,10 @@ const Alerts = () => (
 
     <div className="space-y-4">
       {alerts.map((a, i) => (
-        <div key={i} className={`calm-card border-2 ${a.color}`}>
+        <div key={i} className={`calm-card ${a.color}`}>
           <div className="flex flex-wrap items-start justify-between gap-4 mb-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-card flex items-center justify-center">
+              <div className="w-10 h-10 rounded-[1rem] bg-background border-2 border-foreground shadow-pop-sm flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5" />
               </div>
               <div>
@@ -63,11 +63,11 @@ const Alerts = () => (
             </div>
           </div>
 
-          <div className="bg-card rounded-xl p-4 mb-4">
+          <div className="bg-background rounded-[1rem] p-4 mb-4 border-2 border-foreground shadow-pop-sm">
             <p className="text-sm text-foreground"><b>Why:</b> {a.reason}</p>
           </div>
 
-          <div className="bg-card rounded-xl p-4">
+          <div className="bg-background rounded-[1rem] p-4 border-2 border-foreground shadow-pop-sm">
             <div className="flex items-center gap-2 mb-3 text-sm font-semibold">
               <Lightbulb className="w-4 h-4 text-primary" /> Suggestions
             </div>

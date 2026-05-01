@@ -23,10 +23,10 @@ const Feelings = () => {
               <button
                 key={m.label}
                 onClick={() => setMood(m.label)}
-                className={`flex flex-col items-center gap-2 p-4 rounded-2xl border-2 transition-all ${
+                className={`flex flex-col items-center gap-2 p-4 rounded-[1rem] border-2 border-foreground transition-all duration-200 ${
                   mood === m.label
-                    ? "border-primary bg-primary-soft scale-[1.03]"
-                    : "border-border hover:border-primary/40 bg-card"
+                    ? "bg-primary text-primary-foreground shadow-pop-lg -translate-y-1"
+                    : "bg-background hover:bg-accent shadow-pop hover:shadow-pop-lg hover:-translate-y-1"
                 }`}
               >
                 <span className="text-3xl">{m.emoji}</span>
@@ -73,9 +73,9 @@ const Feelings = () => {
               { icon: Wind, t: "Box breathing", d: "4-4-4-4 for 2 minutes" },
               { icon: Sun, t: "Quiet corner", d: "Take a 10-min break" },
             ].map((s) => (
-              <button key={s.t} className="text-left p-4 rounded-2xl bg-primary-soft/50 hover:bg-primary-soft transition-colors">
+              <button key={s.t} className="text-left p-4 rounded-[1rem] bg-background border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-[2px] transition-all">
                 <s.icon className="w-5 h-5 text-primary mb-2" />
-                <div className="font-medium text-sm">{s.t}</div>
+                <div className="font-bold text-sm text-foreground">{s.t}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{s.d}</div>
               </button>
             ))}

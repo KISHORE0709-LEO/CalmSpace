@@ -34,8 +34,8 @@ const SocialPractice = () => {
                 <button
                   key={o.id}
                   onClick={() => setPicked(o.id)}
-                  className={`w-full text-left p-4 rounded-2xl border-2 transition-all flex items-center gap-3 ${
-                    isPicked ? "border-primary bg-primary-soft" : "border-border hover:border-primary/40 bg-card"
+                  className={`w-full text-left p-4 rounded-[1rem] border-2 border-foreground shadow-pop hover:-translate-y-[2px] transition-all flex items-center gap-3 ${
+                    isPicked ? "bg-primary text-primary-foreground shadow-pop-lg" : "bg-card hover:bg-accent"
                   }`}
                 >
                   <div className={`w-6 h-6 rounded-full flex items-center justify-center shrink-0 ${
@@ -50,7 +50,7 @@ const SocialPractice = () => {
           </div>
 
           {selected && (
-            <div className="mt-6 p-5 rounded-2xl bg-gradient-warm">
+            <div className="mt-6 p-5 rounded-[1rem] bg-accent border-2 border-foreground shadow-pop">
               <p className="font-medium mb-1">{selected.correct ? "Lovely choice ✨" : "Good try 💛"}</p>
               <p className="text-sm text-muted-foreground">{selected.fb}</p>
               <Button className="mt-4 rounded-full" onClick={() => setPicked(null)}>Next scenario</Button>

@@ -44,10 +44,10 @@ const Mitra = () => {
           {messages.map((m, i) => (
             <div key={i} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
               <div
-                className={`max-w-[75%] px-4 py-3 rounded-2xl text-sm leading-relaxed ${
+                className={`max-w-[75%] px-4 py-3 rounded-[1rem] text-sm font-medium border-2 border-foreground shadow-pop-sm ${
                   m.role === "user"
                     ? "bg-primary text-primary-foreground rounded-br-sm"
-                    : "bg-card border border-border rounded-bl-sm"
+                    : "bg-card rounded-bl-sm"
                 }`}
               >
                 {m.text}
@@ -62,7 +62,7 @@ const Mitra = () => {
               <button
                 key={s}
                 onClick={() => send(s)}
-                className="px-3 py-1.5 text-xs rounded-full bg-accent-soft hover:bg-accent/40 text-accent-foreground font-medium transition-colors"
+                className="px-3 py-1.5 text-xs rounded-full bg-secondary hover:bg-secondary/80 text-foreground font-bold transition-all border-2 border-foreground shadow-pop-sm hover:-translate-y-[1px] hover:shadow-pop"
               >
                 {s}
               </button>
@@ -76,7 +76,7 @@ const Mitra = () => {
               value={input}
               onChange={(e) => setInput(e.target.value)}
               placeholder="Type how you feel..."
-              className="flex-1 px-4 py-3 rounded-full border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+              className="flex-1 px-4 py-3 rounded-full border-2 border-foreground bg-background text-sm font-semibold shadow-pop-sm focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
             />
             <Button type="submit" size="icon" className="rounded-full w-12 h-12">
               <Send className="w-4 h-4" />

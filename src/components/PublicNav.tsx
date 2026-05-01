@@ -12,11 +12,11 @@ export const PublicNav = () => {
   return (
     <header className="fixed top-4 left-0 right-0 z-50">
       <div className="container max-w-7xl flex items-center justify-between gap-4">
-        <Link to="/" className="pill-nav px-4 py-2 font-black transition-transform hover:-translate-y-[2px] hover:shadow-pop-lg">
-          <span className="w-8 h-8 rounded-full bg-primary border-2 border-foreground flex items-center justify-center">
+        <Link to="/" className="flex items-center gap-2 px-2 py-2 transition-transform hover:-translate-y-[2px]">
+          <span className="w-8 h-8 rounded-full bg-primary border-2 border-foreground flex items-center justify-center shadow-pop-sm">
             <Heart className="w-4 h-4 text-primary-foreground" fill="currentColor" />
           </span>
-          <span className="text-xl tracking-tight text-foreground">CalmSpace</span>
+          <span className="text-xl tracking-tight text-foreground font-semibold">CalmSpace</span>
         </Link>
 
         <nav className="hidden md:flex pill-nav">

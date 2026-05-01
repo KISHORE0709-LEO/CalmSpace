@@ -38,7 +38,7 @@ const CheckIns = () => {
                   <button
                     key={o}
                     onClick={() => pick(o)}
-                    className="p-6 rounded-2xl border-2 border-border hover:border-primary hover:bg-primary-soft transition-all text-lg font-medium"
+                    className="p-6 rounded-[1rem] border-2 border-foreground bg-background shadow-pop hover:shadow-pop-lg hover:-translate-y-[2px] hover:bg-accent transition-all text-lg font-bold"
                   >
                     {o}
                   </button>
