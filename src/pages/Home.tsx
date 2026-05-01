@@ -41,7 +41,7 @@ const Home = () => {
       <PublicNav />
 
       {/* Hero */}
-      <section className="relative min-h-[92vh] flex items-center overflow-hidden">
+      <section className="relative min-h-screen flex items-center overflow-hidden mb-0">
         <img
           src={hero}
           alt="Joyful diverse children playing in a sunny meadow with rainbow and balloons"
@@ -50,10 +50,11 @@ const Home = () => {
           className="absolute inset-0 w-full h-full object-cover"
         />
         {/* Subtle readability overlay — image stays vivid */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/40 via-background/10 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-t from-background/30 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-background/20 to-transparent" />
+        {/* Blending gradient to ensure seamless transition to the next section */}
+        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="container relative z-10 pt-32 pb-20">
+        <div className="container relative z-10 pt-32 pb-10">
           <div className="max-w-2xl">
             <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.02] mb-6 tracking-tight">
               Understanding feelings.
@@ -77,7 +78,7 @@ const Home = () => {
 
 
       {/* Feature preview */}
-      <section className="container py-20">
+      <section className="container mt-0 pt-10 pb-20">
         <div className="max-w-2xl mb-12">
           <p className="text-sm font-medium text-primary mb-2">Inside the dashboard</p>
           <h2 className="text-3xl md:text-4xl">Everything in one calm space.</h2>
