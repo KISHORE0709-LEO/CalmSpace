@@ -59,7 +59,7 @@ const Home = () => {
             Understanding <span className="bg-primary text-primary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block -rotate-1">feelings</span>.
             <span className="block mt-2">Supporting every <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block rotate-1">moment</span>.</span>
           </h1>
-          <p className="text-lg md:text-xl text-foreground max-w-2xl mb-8 leading-relaxed font-semibold">
+          <p className="text-lg md:text-xl max-w-2xl mb-8 leading-relaxed font-bold bg-background text-foreground px-5 py-3 rounded-2xl border-2 border-foreground shadow-pop">
             CalmSpace is a gentle, joyful companion that helps children, families,
             and caregivers navigate emotions, build social confidence, and feel safe — together.
           </p>
