@@ -77,7 +77,7 @@
     font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
     -webkit-font-smoothing: antialiased;
   }
-  h1, h2, h3, h4 { font-weight: 700; letter-spacing: -0.025em; }
+  h1, h2, h3, h4 { font-weight: 900; letter-spacing: -0.03em; }
 }
 
 @layer utilities {
@@ -89,10 +89,10 @@
 
 @layer components {
   .calm-card {
-    @apply bg-card border-2 border-foreground rounded-[1rem] p-6 transition-all duration-200 shadow-pop;
+    @apply bg-card border-2 border-foreground rounded-[1.5rem] p-6 transition-all duration-300 shadow-pop;
   }
   .calm-card:hover { 
-    transform: translateY(-2px);
+    transform: translateY(-3px);
     box-shadow: var(--shadow-pop-lg); 
   }
 

@@ -55,20 +55,19 @@ const Home = () => {
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
         <div className="container relative z-10 pt-32 pb-10">
-          <div className="max-w-2xl">
-            <h1 className="text-5xl md:text-7xl font-extrabold leading-[1.02] mb-6 tracking-tight">
-              Understanding feelings.
-              <span className="block text-primary drop-shadow-sm">Supporting every moment.</span>
+          <div className="max-w-2xl">            <h1 className="text-5xl md:text-7xl font-black leading-[1.02] mb-6 tracking-tight">
+              Understanding <span className="bg-primary text-primary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block -rotate-1">feelings</span>.
+              <span className="block mt-2">Supporting every <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block rotate-1">moment</span>.</span>
             </h1>
             <p className="text-lg md:text-xl text-foreground/80 max-w-xl mb-8 leading-relaxed font-medium">
               CalmSpace is a gentle, joyful companion that helps children, families,
               and caregivers navigate emotions, build social confidence, and feel safe — together.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-full px-8 h-14 text-base">
+              <Button asChild size="lg" className="rounded-2xl px-8 h-14 text-base font-black border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
                 <Link to="/app/feelings">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
               </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-full px-8 h-14 text-base bg-background/90 backdrop-blur">
+              <Button asChild size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-base font-black bg-background/90 backdrop-blur border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
                 <Link to="/how-it-works">See how it works</Link>
               </Button>
             </div>
@@ -80,17 +79,17 @@ const Home = () => {
       {/* Feature preview */}
       <section className="container mt-0 pt-10 pb-20">
         <div className="max-w-2xl mb-12">
-          <p className="text-sm font-medium text-primary mb-2">Inside the dashboard</p>
-          <h2 className="text-3xl md:text-4xl">Everything in one calm space.</h2>
+          <p className="text-sm font-black text-primary mb-2 uppercase tracking-widest">Inside the dashboard</p>
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight">Everything in one calm space.</h2>
         </div>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
           {features.map((f) => (
-            <div key={f.title} className="calm-card group">
-              <div className="w-11 h-11 rounded-xl bg-accent-soft flex items-center justify-center mb-4 group-hover:bg-accent transition-colors">
-                <f.icon className="w-5 h-5 text-accent-foreground" />
+            <div key={f.title} className="group bg-card border-2 border-foreground rounded-[1.5rem] p-6 shadow-pop hover:shadow-pop-lg hover:-translate-y-2 transition-all duration-300">
+              <div className="w-12 h-12 rounded-2xl border-2 border-foreground bg-accent flex items-center justify-center mb-4 shadow-pop-sm group-hover:scale-110 group-hover:-rotate-6 transition-transform duration-300">
+                <f.icon className="w-5 h-5 text-foreground" />
               </div>
-              <h3 className="text-lg mb-2">{f.title}</h3>
-              <p className="text-sm text-muted-foreground leading-relaxed">{f.text}</p>
+              <h3 className="text-lg font-black mb-2 tracking-tight">{f.title}</h3>
+              <p className="text-sm text-muted-foreground leading-relaxed font-medium">{f.text}</p>
             </div>
           ))}
         </div>
@@ -98,12 +97,12 @@ const Home = () => {
 
       {/* Stats */}
       <section className="container pb-20">
-        <div className="rounded-3xl bg-gradient-warm p-10 md:p-14">
+        <div className="rounded-[2rem] bg-card border-2 border-foreground shadow-pop p-10 md:p-14">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {stats.map((s) => (
               <div key={s.l}>
-                <div className="text-4xl md:text-5xl font-bold text-foreground">{s.v}</div>
-                <div className="text-sm text-muted-foreground mt-1">{s.l}</div>
+                <div className="text-4xl md:text-5xl font-black text-foreground tracking-tight">{s.v}</div>
+                <div className="text-sm font-medium text-muted-foreground mt-1">{s.l}</div>
               </div>
             ))}
           </div>
@@ -112,12 +111,12 @@ const Home = () => {
 
       {/* CTA */}
       <section className="container pb-24">
-        <div className="rounded-3xl bg-primary text-primary-foreground p-10 md:p-16 text-center">
-          <h2 className="text-3xl md:text-4xl mb-4">Ready to bring calm to your day?</h2>
-          <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+        <div className="rounded-[2rem] bg-primary text-primary-foreground border-2 border-foreground shadow-pop-lg p-10 md:p-16 text-center">
+          <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">Ready to bring calm to your day?</h2>
+          <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto font-medium">
             Join families finding gentler routines, deeper understanding, and brighter moments.
           </p>
-          <Button asChild size="lg" variant="secondary" className="rounded-full px-7 h-12 bg-card text-foreground hover:bg-card/90">
+          <Button asChild size="lg" variant="secondary" className="rounded-2xl px-7 h-12 bg-card text-foreground hover:bg-card/90 border-2 border-foreground shadow-pop font-black hover:shadow-pop-lg hover:-translate-y-1 transition-all">
             <Link to="/app/feelings">Start your free space <ArrowRight className="w-4 h-4 ml-1" /></Link>
           </Button>
         </div>

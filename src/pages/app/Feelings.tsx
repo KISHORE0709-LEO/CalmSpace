@@ -17,7 +17,7 @@ const Feelings = () => {
     <AppShell title="Feelings & Comfort" subtitle="How are you feeling right now? Tap what fits.">
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 calm-card">
-          <h2 className="text-lg mb-4">Choose a feeling</h2>
+          <h2 className="text-lg font-black tracking-tight mb-4">Choose a feeling</h2>
           <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
             {moods.map((m) => (
               <button
@@ -50,11 +50,11 @@ const Feelings = () => {
 
         <div className="calm-card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg">Heart rate</h2>
+            <h2 className="text-lg font-black tracking-tight">Heart rate</h2>
             <Activity className="w-4 h-4 text-primary" />
           </div>
           <div className="text-center py-4">
-            <div className="text-5xl font-bold text-primary">82</div>
+            <div className="text-5xl font-black text-primary">82</div>
             <div className="text-xs text-muted-foreground mt-1">bpm — gentle</div>
           </div>
           <div className="h-20 flex items-end gap-1">
@@ -65,7 +65,7 @@ const Feelings = () => {
         </div>
 
         <div className="calm-card lg:col-span-3">
-          <h2 className="text-lg mb-4">Suggested adjustments</h2>
+          <h2 className="text-lg font-black tracking-tight mb-4">Suggested adjustments</h2>
           <div className="grid md:grid-cols-4 gap-4">
             {[
               { icon: Lightbulb, t: "Dim the lights", d: "Soften brightness by 40%" },
@@ -75,7 +75,7 @@ const Feelings = () => {
             ].map((s) => (
               <button key={s.t} className="text-left p-4 rounded-[1rem] bg-background border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-[2px] transition-all">
                 <s.icon className="w-5 h-5 text-primary mb-2" />
-                <div className="font-bold text-sm text-foreground">{s.t}</div>
+                <div className="font-black text-sm text-foreground">{s.t}</div>
                 <div className="text-xs text-muted-foreground mt-0.5">{s.d}</div>
               </button>
             ))}

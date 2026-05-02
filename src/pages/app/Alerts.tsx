@@ -29,7 +29,7 @@ const Alerts = () => (
             <Shield className="w-6 h-6 text-primary" />
           </div>
           <div>
-            <h2 className="text-xl mb-1">All clear for now ✨</h2>
+            <h2 className="text-xl font-black tracking-tight mb-1">All clear for now ✨</h2>
             <p className="text-sm text-muted-foreground">
               No high-risk moments expected in the next few hours. We'll let you know if that changes.
             </p>
@@ -38,7 +38,7 @@ const Alerts = () => (
       </div>
       <div className="calm-card">
         <div className="text-xs text-muted-foreground mb-1">Active alerts</div>
-        <div className="text-4xl font-bold text-primary">{alerts.length}</div>
+        <div className="text-4xl font-black text-primary">{alerts.length}</div>
         <div className="text-xs text-muted-foreground mt-1">in next 24h</div>
       </div>
     </div>
@@ -54,7 +54,7 @@ const Alerts = () => (
               <div>
                 <div className="flex items-center gap-2 mb-0.5">
                   <span className={`w-2 h-2 rounded-full ${a.dot}`} />
-                  <span className="font-semibold">{a.level} risk</span>
+                  <span className="font-black">{a.level} risk</span>
                 </div>
                 <div className="text-xs flex items-center gap-1 text-muted-foreground">
                   <Clock className="w-3 h-3" /> {a.when}
@@ -68,7 +68,7 @@ const Alerts = () => (
           </div>
 
           <div className="bg-background rounded-[1rem] p-4 border-2 border-foreground shadow-pop-sm">
-            <div className="flex items-center gap-2 mb-3 text-sm font-semibold">
+            <div className="flex items-center gap-2 mb-3 text-sm font-black">
               <Lightbulb className="w-4 h-4 text-primary" /> Suggestions
             </div>
             <ul className="space-y-2">

@@ -33,7 +33,7 @@ const Mitra = () => {
             <Sparkles className="w-5 h-5 text-primary-foreground" />
           </div>
           <div>
-            <div className="font-semibold">Mitra</div>
+            <div className="font-black text-base tracking-tight">Mitra</div>
             <div className="text-xs text-muted-foreground flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-success" /> Listening with care
             </div>

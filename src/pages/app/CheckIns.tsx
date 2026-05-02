@@ -32,7 +32,7 @@ const CheckIns = () => {
                   ))}
                 </div>
               </div>
-              <h2 className="text-2xl mb-8">{questions[step].q}</h2>
+              <h2 className="text-2xl font-black tracking-tight mb-8">{questions[step].q}</h2>
               <div className="grid sm:grid-cols-3 gap-3">
                 {questions[step].opts.map((o) => (
                   <button
@@ -50,7 +50,7 @@ const CheckIns = () => {
               <div className="w-16 h-16 rounded-full bg-accent-soft flex items-center justify-center mx-auto mb-4">
                 <CheckCircle2 className="w-8 h-8 text-accent-foreground" />
               </div>
-              <h2 className="text-2xl mb-2">All done — thank you 💛</h2>
+              <h2 className="text-2xl font-black tracking-tight mb-2">All done — thank you 💛</h2>
               <p className="text-muted-foreground mb-6">Your answers help us care for you better.</p>
               <div className="flex flex-wrap justify-center gap-2">
                 {answers.map((a, i) => (

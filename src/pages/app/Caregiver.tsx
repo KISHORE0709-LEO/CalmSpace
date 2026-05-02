@@ -26,8 +26,8 @@ const Caregiver = () => {
             <div className={`w-10 h-10 rounded-xl flex items-center justify-center mb-3 ${s.color}`}>
               <s.icon className="w-5 h-5" />
             </div>
-            <div className="text-3xl font-bold mb-1">{s.v}</div>
-            <div className="text-sm font-medium">{s.l}</div>
+            <div className="text-3xl font-black mb-1">{s.v}</div>
+            <div className="text-sm font-black tracking-tight">{s.l}</div>
             <div className="text-xs text-muted-foreground mt-1">{s.t}</div>
           </div>
         ))}
@@ -36,7 +36,7 @@ const Caregiver = () => {
       <div className="grid lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 calm-card">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg">Emotion timeline</h2>
+            <h2 className="text-lg font-black tracking-tight">Emotion timeline</h2>
             <div className="flex items-center gap-4 text-xs">
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-primary" /> Calm</span>
               <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-accent" /> Worry</span>
@@ -58,7 +58,7 @@ const Caregiver = () => {
         </div>
 
         <div className="calm-card">
-          <h2 className="text-lg mb-4">Weekly summary</h2>
+          <h2 className="text-lg font-black tracking-tight mb-4">Weekly summary</h2>
           <ul className="space-y-4 text-sm">
             <li className="flex gap-3">
               <span className="w-2 h-2 rounded-full bg-success mt-1.5 shrink-0" />

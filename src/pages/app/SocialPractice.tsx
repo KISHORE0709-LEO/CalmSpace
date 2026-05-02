@@ -24,7 +24,7 @@ const SocialPractice = () => {
           <div className="flex items-center gap-2 text-xs font-medium text-primary mb-3">
             <Users className="w-4 h-4" /> Scenario 3 of 12
           </div>
-          <h2 className="text-2xl mb-2">{scenario.title}</h2>
+          <h2 className="text-2xl font-black tracking-tight mb-2">{scenario.title}</h2>
           <p className="text-muted-foreground mb-6">{scenario.description}</p>
 
           <div className="space-y-3">
@@ -60,9 +60,9 @@ const SocialPractice = () => {
 
         <div className="space-y-5">
           <div className="calm-card">
-            <h3 className="font-semibold mb-4">Your progress</h3>
+            <h3 className="font-black tracking-tight mb-4">Your progress</h3>
             <div className="flex items-baseline gap-2 mb-2">
-              <span className="text-4xl font-bold text-primary">25%</span>
+              <span className="text-4xl font-black text-primary">25%</span>
               <span className="text-sm text-muted-foreground">complete</span>
             </div>
             <div className="h-2 rounded-full bg-muted overflow-hidden">
@@ -70,7 +70,7 @@ const SocialPractice = () => {
             </div>
           </div>
           <div className="calm-card bg-accent-soft border-accent/20">
-            <h3 className="font-semibold mb-2">Today's badge 🏅</h3>
+            <h3 className="font-black tracking-tight mb-2">Today's badge 🏅</h3>
             <p className="text-sm text-muted-foreground">Kind Greeter — practiced 3 friendly hellos!</p>
           </div>
         </div>
