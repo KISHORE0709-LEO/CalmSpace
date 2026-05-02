@@ -41,36 +41,35 @@ const Home = () => {
       <PublicNav />
 
       {/* Hero */}
-      <section className="relative min-h-screen flex items-center overflow-hidden mb-0">
+      <section className="relative min-h-screen flex items-center justify-center overflow-hidden mb-0">
         <img
           src={hero}
           alt="Joyful diverse children playing in a sunny meadow with rainbow and balloons"
           width={1920}
           height={1080}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-cover opacity-100"
         />
-        {/* Subtle readability overlay — image stays vivid */}
-        <div className="absolute inset-0 bg-gradient-to-r from-background/60 via-background/20 to-transparent" />
-        {/* Blending gradient to ensure seamless transition to the next section */}
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-background/20" />
+        {/* Bottom blend into next section */}
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
-        <div className="container relative z-10 pt-32 pb-10">
-          <div className="max-w-2xl">            <h1 className="text-5xl md:text-7xl font-black leading-[1.02] mb-6 tracking-tight">
-              Understanding <span className="bg-primary text-primary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block -rotate-1">feelings</span>.
-              <span className="block mt-2">Supporting every <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block rotate-1">moment</span>.</span>
-            </h1>
-            <p className="text-lg md:text-xl text-foreground/80 max-w-xl mb-8 leading-relaxed font-medium">
-              CalmSpace is a gentle, joyful companion that helps children, families,
-              and caregivers navigate emotions, build social confidence, and feel safe — together.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <Button asChild size="lg" className="rounded-2xl px-8 h-14 text-base font-black border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
-                <Link to="/app/feelings">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
-              </Button>
-              <Button asChild size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-base font-black bg-background/90 backdrop-blur border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
-                <Link to="/how-it-works">See how it works</Link>
-              </Button>
-            </div>
+        <div className="container relative z-10 pt-32 pb-10 flex flex-col items-center text-center">
+          <h1 className="text-5xl md:text-7xl font-black leading-[1.02] mb-6 tracking-tight max-w-4xl">
+            Understanding <span className="bg-primary text-primary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block -rotate-1">feelings</span>.
+            <span className="block mt-2">Supporting every <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block rotate-1">moment</span>.</span>
+          </h1>
+          <p className="text-lg md:text-xl text-foreground max-w-2xl mb-8 leading-relaxed font-semibold">
+            CalmSpace is a gentle, joyful companion that helps children, families,
+            and caregivers navigate emotions, build social confidence, and feel safe — together.
+          </p>
+          <div className="flex flex-wrap justify-center gap-3">
+            <Button asChild size="lg" className="rounded-2xl px-8 h-14 text-base font-black border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
+              <Link to="/app/feelings">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
+            </Button>
+            <Button asChild size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-base font-black bg-background/90 backdrop-blur border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
+              <Link to="/how-it-works">See how it works</Link>
+            </Button>
           </div>
         </div>
       </section>
