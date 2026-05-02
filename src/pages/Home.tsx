@@ -1,12 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, GraduationCap, LineChart, Sparkles, Heart, Shield, Users, CheckCircle2, MessageCircleHeart, Star, Baby, PersonStanding, Stethoscope, Quote, Zap, Rainbow, Sun, Cloud, Music } from "lucide-react";
+import { ArrowRight, GraduationCap, LineChart, Sparkles, Heart, Shield, Users, CheckCircle2, MessageCircleHeart, Star, Baby, PersonStanding, Stethoscope, Quote } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PublicNav } from "@/components/PublicNav";
 import { Footer } from "@/components/Footer";
 import hero from "@/assets/hero-children.jpg";
 
-/* ── Floating emoji bubbles in hero ── */
 const bubbles = [
   { emoji: "🌈", size: "text-4xl", top: "15%", left: "8%",  anim: "animate-float" },
   { emoji: "⭐", size: "text-3xl", top: "25%", left: "88%", anim: "animate-float-delay" },
@@ -19,41 +18,51 @@ const bubbles = [
 ];
 
 const audiences = [
-  { icon: Baby,          title: "Children & Teens",       text: "A safe, playful space to name feelings, calm down, and grow social skills at their own pace.",                              color: "bg-primary text-primary-foreground",   emoji: "🧒" },
-  { icon: PersonStanding,title: "Parents & Families",     text: "Stay connected to your child's emotional world with gentle insights and shared tools.",                                    color: "bg-secondary text-secondary-foreground", emoji: "👨‍👩‍👧" },
-  { icon: Stethoscope,   title: "Therapists & Caregivers",text: "Track progress, spot patterns, and get ahead of difficult moments with smart caregiver dashboards.",                       color: "bg-accent text-accent-foreground",      emoji: "🩺" },
+  { icon: Baby,           title: "Children & Teens",        text: "A safe, playful space to name feelings, calm down, and grow social skills at their own pace.",                color: "bg-primary text-primary-foreground",    emoji: "🧒" },
+  { icon: PersonStanding, title: "Parents & Families",      text: "Stay connected to your child's emotional world with gentle insights and shared tools.",                      color: "bg-secondary text-secondary-foreground", emoji: "👨👩👧" },
+  { icon: Stethoscope,    title: "Therapists & Caregivers", text: "Track progress, spot patterns, and get ahead of difficult moments with smart caregiver dashboards.",         color: "bg-accent text-accent-foreground",       emoji: "🩺" },
 ];
 
 const features = [
-  { icon: Heart,         title: "Emotion Check-In",          text: "Children tap how they feel right now. CalmSpace responds with personalised calming activities and comfort suggestions.", tag: "Core",       emoji: "💛", delay: "animate-fade-up-delay-1" },
-  { icon: Sparkles,      title: "Mitra — AI Companion",      text: "A warm, empathetic AI friend that listens without judgment and helps children find words for big feelings.",             tag: "AI-Powered", emoji: "🤖", delay: "animate-fade-up-delay-2" },
-  { icon: Users,         title: "Social Confidence Builder", text: "Step-by-step social scenarios — from saying hello to handling conflict — practiced safely before real life.",            tag: "Skills",     emoji: "🤝", delay: "animate-fade-up-delay-3" },
-  { icon: LineChart,     title: "Caregiver Dashboard",       text: "Beautiful mood timelines, trigger patterns, and milestone celebrations so caregivers always know how to help.",          tag: "Insights",   emoji: "📊", delay: "animate-fade-up-delay-1" },
-  { icon: Shield,        title: "Predictive Alerts",         text: "CalmSpace learns each child's patterns and quietly alerts caregivers before a difficult moment escalates.",              tag: "Smart",      emoji: "🛡️", delay: "animate-fade-up-delay-2" },
-  { icon: GraduationCap, title: "Daily Growth Check-ins",    text: "Tiny, fun daily questions that build self-awareness, gratitude, and emotional vocabulary over time.",                    tag: "Habits",     emoji: "🌱", delay: "animate-fade-up-delay-3" },
+  { icon: Heart,         title: "Emotion Check-In",          text: "Children tap how they feel right now. CalmSpace responds with personalised calming activities and comfort suggestions.", tag: "Core",       emoji: "💛" },
+  { icon: Sparkles,      title: "Mitra — AI Companion",      text: "A warm, empathetic AI friend that listens without judgment and helps children find words for big feelings.",             tag: "AI-Powered", emoji: "🤖" },
+  { icon: Users,         title: "Social Confidence Builder", text: "Step-by-step social scenarios — from saying hello to handling conflict — practiced safely before real life.",            tag: "Skills",     emoji: "🤝" },
+  { icon: LineChart,     title: "Caregiver Dashboard",       text: "Beautiful mood timelines, trigger patterns, and milestone celebrations so caregivers always know how to help.",          tag: "Insights",   emoji: "📊" },
+  { icon: Shield,        title: "Predictive Alerts",         text: "CalmSpace learns each child's patterns and quietly alerts caregivers before a difficult moment escalates.",              tag: "Smart",      emoji: "🛡️" },
+  { icon: GraduationCap, title: "Daily Growth Check-ins",    text: "Tiny, fun daily questions that build self-awareness, gratitude, and emotional vocabulary over time.",                    tag: "Habits",     emoji: "🌱" },
 ];
 
 const steps = [
-  { num: "01", icon: Heart,         title: "Check in your feelings",      text: "Start each session by tapping an emotion. No words needed — just a tap.",                          color: "bg-primary text-primary-foreground",    emoji: "💙" },
-  { num: "02", icon: Sparkles,      title: "Talk to Mitra",               text: "Mitra listens, reflects, and gently guides with empathy and zero judgment.",                        color: "bg-secondary text-secondary-foreground", emoji: "✨" },
-  { num: "03", icon: GraduationCap, title: "Practice & grow",             text: "Try a calming activity, social scenario, or daily check-in to build skills.",                      color: "bg-accent text-accent-foreground",       emoji: "🌱" },
-  { num: "04", icon: LineChart,     title: "Caregivers stay in the loop", text: "Parents and therapists see progress, patterns, and wins — all in one place.",                      color: "bg-primary text-primary-foreground",    emoji: "📈" },
+  { num: "01", icon: Heart,         title: "Check in your feelings",      text: "Start each session by tapping an emotion. No words needed — just a tap.",      color: "bg-primary text-primary-foreground",    emoji: "💙" },
+  { num: "02", icon: Sparkles,      title: "Talk to Mitra",               text: "Mitra listens, reflects, and gently guides with empathy and zero judgment.",    color: "bg-secondary text-secondary-foreground", emoji: "✨" },
+  { num: "03", icon: GraduationCap, title: "Practice & grow",             text: "Try a calming activity, social scenario, or daily check-in to build skills.",  color: "bg-accent text-accent-foreground",       emoji: "🌱" },
+  { num: "04", icon: LineChart,     title: "Caregivers stay in the loop", text: "Parents and therapists see progress, patterns, and wins — all in one place.", color: "bg-primary text-primary-foreground",    emoji: "📈" },
 ];
 
 const testimonials = [
-  { name: "Sarah M.",       role: "Parent of a 7-year-old",        text: "CalmSpace gave my daughter a way to express feelings she couldn't put into words. The change in just 3 weeks was remarkable.", stars: 5 },
-  { name: "Dr. Priya K.",   role: "Child Therapist",               text: "I recommend CalmSpace to every family I work with. The caregiver dashboard saves hours of guesswork and helps me tailor sessions perfectly.", stars: 5 },
-  { name: "James & Lena T.",role: "Parents of twins with autism",  text: "Both our boys use Mitra every evening. It's become part of their routine and they actually look forward to it.", stars: 5 },
+  { name: "Sarah M.",        role: "Parent of a 7-year-old",       text: "CalmSpace gave my daughter a way to express feelings she couldn't put into words. The change in just 3 weeks was remarkable.", stars: 5 },
+  { name: "Dr. Priya K.",    role: "Child Therapist",              text: "I recommend CalmSpace to every family I work with. The caregiver dashboard saves hours of guesswork and helps me tailor sessions perfectly.", stars: 5 },
+  { name: "James & Lena T.", role: "Parents of twins with autism", text: "Both our boys use Mitra every evening. It's become part of their routine and they actually look forward to it.", stars: 5 },
 ];
 
 const rawStats = [
-  { target: 12000, suffix: "+", l: "Children supported",   sub: "across 40+ countries",      emoji: "🌍" },
-  { target: 94,    suffix: "%", l: "Caregiver satisfaction",sub: "in independent surveys",    emoji: "💚" },
-  { target: 3,     suffix: ".2×",l: "Faster regulation",   sub: "vs. no intervention",       emoji: "⚡" },
-  { target: 24,    suffix: "/7", l: "Gentle support",      sub: "always there when needed",  emoji: "🌙" },
+  { target: 12000, suffix: "+",   l: "Children supported",    sub: "across 40+ countries",     emoji: "🌍" },
+  { target: 94,    suffix: "%",   l: "Caregiver satisfaction", sub: "in independent surveys",   emoji: "💚" },
+  { target: 3,     suffix: ".2×", l: "Faster regulation",     sub: "vs. no intervention",      emoji: "⚡" },
+  { target: 24,    suffix: "/7",  l: "Gentle support",        sub: "always there when needed", emoji: "🌙" },
 ];
 
-/* ── Animated counter hook ── */
+function useInView(threshold = 0.15) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [inView, setInView] = useState(false);
+  useEffect(() => {
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
+    if (ref.current) obs.observe(ref.current);
+    return () => obs.disconnect();
+  }, [threshold]);
+  return { ref, inView };
+}
+
 function useCounter(target: number, duration = 1800, start = false) {
   const [count, setCount] = useState(0);
   useEffect(() => {
@@ -70,19 +79,15 @@ function useCounter(target: number, duration = 1800, start = false) {
   return count;
 }
 
-/* ── Intersection observer hook ── */
-function useInView(threshold = 0.2) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [inView, setInView] = useState(false);
-  useEffect(() => {
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) setInView(true); }, { threshold });
-    if (ref.current) obs.observe(ref.current);
-    return () => obs.disconnect();
-  }, [threshold]);
-  return { ref, inView };
+function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
+  const { ref, inView } = useInView();
+  return (
+    <div ref={ref} className={className} style={{ opacity: inView ? 1 : 0, transform: inView ? "translateY(0)" : "translateY(40px)", transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms` }}>
+      {children}
+    </div>
+  );
 }
 
-/* ── Animated stat card ── */
 function StatCard({ target, suffix, l, sub, emoji }: typeof rawStats[0]) {
   const { ref, inView } = useInView(0.3);
   const count = useCounter(target, 1800, inView);
@@ -94,24 +99,6 @@ function StatCard({ target, suffix, l, sub, emoji }: typeof rawStats[0]) {
       </div>
       <div className="text-sm font-black mt-1 text-primary-foreground">{l}</div>
       <div className="text-xs font-medium opacity-60 mt-0.5 text-primary-foreground">{sub}</div>
-    </div>
-  );
-}
-
-/* ── Section fade-in wrapper ── */
-function FadeIn({ children, className = "", delay = 0 }: { children: React.ReactNode; className?: string; delay?: number }) {
-  const { ref, inView } = useInView(0.15);
-  return (
-    <div
-      ref={ref}
-      className={className}
-      style={{
-        opacity: inView ? 1 : 0,
-        transform: inView ? "translateY(0)" : "translateY(40px)",
-        transition: `opacity 0.7s ease ${delay}ms, transform 0.7s ease ${delay}ms`,
-      }}
-    >
-      {children}
     </div>
   );
 }
@@ -135,39 +122,28 @@ const Home = () => {
         <div className="absolute inset-0 bg-background/20" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
-        {/* floating emoji bubbles */}
         {bubbles.map((b, i) => (
-          <span
-            key={i}
-            className={`absolute select-none cursor-pointer ${b.size} ${b.anim} hover:scale-150 transition-transform duration-200 z-10`}
-            style={{ top: b.top, left: b.left }}
-            onClick={() => setActiveEmoji(b.emoji)}
-          >
+          <span key={i} className={`absolute select-none cursor-pointer ${b.size} ${b.anim} hover:scale-150 transition-transform duration-200 z-10`}
+            style={{ top: b.top, left: b.left }} onClick={() => setActiveEmoji(b.emoji)}>
             {b.emoji}
           </span>
         ))}
 
-        {/* click burst */}
         {activeEmoji && (
-          <div
-            className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none"
-            onAnimationEnd={() => setActiveEmoji(null)}
-          >
+          <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none" onAnimationEnd={() => setActiveEmoji(null)}>
             <span className="text-8xl animate-scale-in">{activeEmoji}</span>
           </div>
         )}
 
-        <div className="container relative z-10 pt-0 pb-24 flex flex-col items-center text-center">
-          <h1 className="text-5xl md:text-7xl font-black leading-[1.02] mb-6 tracking-tight max-w-4xl animate-fade-up">
-            Understanding{" "}
-            <span className="bg-primary text-primary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block -rotate-1 animate-wiggle">
-              feelings
-            </span>.
-            <span className="block mt-2">
-              Supporting every{" "}
-              <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block rotate-1 animate-bounce-slow">
-                moment
-              </span>.
+        <div className="container relative z-10 pb-24 flex flex-col items-center text-center">
+          <h1 className="font-black tracking-tight animate-fade-up mb-10 text-center">
+            <span className="block text-5xl md:text-7xl leading-[1.3] mb-6">
+              Understanding{" "}
+              <span className="bg-primary text-primary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block -rotate-1 animate-wiggle">feelings</span>.
+            </span>
+            <span className="block text-5xl md:text-7xl leading-[1.3]">
+              <span className="bg-secondary text-secondary-foreground px-3 py-1 rounded-2xl border-2 border-foreground shadow-pop inline-block rotate-1 animate-bounce-slow">Supporting</span>{" "}
+              every moment.
             </span>
           </h1>
           <div className="flex flex-wrap justify-center gap-3 animate-fade-up-delay-1">
@@ -181,7 +157,7 @@ const Home = () => {
         </div>
       </section>
 
-      {/* ── Scrolling emoji ticker ── */}
+      {/* ── Ticker ── */}
       <div className="bg-primary py-3 overflow-hidden">
         <div className="flex gap-8 animate-[marquee_18s_linear_infinite] whitespace-nowrap w-max">
           {["🌈 Emotions", "💛 Kindness", "🦋 Growth", "⭐ Confidence", "🌸 Calm", "🎈 Joy", "🌻 Strength", "✨ Progress",
@@ -218,16 +194,12 @@ const Home = () => {
 
       {/* ── Features ── */}
       <section className="bg-card rounded-[3rem] mx-4 md:mx-8 py-24 px-6 md:px-16 mb-8 relative overflow-hidden">
-        {/* decorative blobs */}
         <div className="absolute -top-16 -right-16 w-64 h-64 bg-primary/10 rounded-full blur-3xl animate-pulse-soft pointer-events-none" />
         <div className="absolute -bottom-16 -left-16 w-64 h-64 bg-secondary/20 rounded-full blur-3xl animate-pulse-soft pointer-events-none" />
-
         <FadeIn className="text-center mb-14 relative z-10">
           <p className="text-sm font-black text-primary uppercase tracking-widest mb-3">Inside CalmSpace</p>
           <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Everything in one calm space.</h2>
-          <p className="text-muted-foreground max-w-lg mx-auto font-medium leading-relaxed">
-            Six powerful tools working together to support emotional wellbeing every single day.
-          </p>
+          <p className="text-muted-foreground max-w-lg mx-auto font-medium leading-relaxed">Six powerful tools working together to support emotional wellbeing every single day.</p>
         </FadeIn>
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5 relative z-10">
           {features.map((f, i) => (
@@ -255,9 +227,7 @@ const Home = () => {
         <FadeIn className="text-center mb-14">
           <p className="text-sm font-black text-primary uppercase tracking-widest mb-3">Simple by design</p>
           <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">How CalmSpace works</h2>
-          <p className="text-muted-foreground max-w-lg mx-auto font-medium leading-relaxed">
-            Four gentle steps that fit naturally into any family's daily routine.
-          </p>
+          <p className="text-muted-foreground max-w-lg mx-auto font-medium leading-relaxed">Four gentle steps that fit naturally into any family's daily routine.</p>
         </FadeIn>
         <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
           {steps.map((s, i) => (
@@ -294,9 +264,7 @@ const Home = () => {
         <FadeIn className="text-center mb-14">
           <p className="text-sm font-black text-primary uppercase tracking-widest mb-3">Real stories</p>
           <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4">Families love CalmSpace 💛</h2>
-          <p className="text-muted-foreground max-w-lg mx-auto font-medium leading-relaxed">
-            Hear from the parents, therapists, and caregivers who use CalmSpace every day.
-          </p>
+          <p className="text-muted-foreground max-w-lg mx-auto font-medium leading-relaxed">Hear from the parents, therapists, and caregivers who use CalmSpace every day.</p>
         </FadeIn>
         <div className="grid md:grid-cols-3 gap-6">
           {testimonials.map((t, i) => (
@@ -331,19 +299,17 @@ const Home = () => {
           <FadeIn>
             <p className="text-sm font-black text-primary uppercase tracking-widest mb-3">Everything included</p>
             <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-4">No hidden extras.<br />No complexity.</h2>
-            <p className="text-muted-foreground font-medium mb-8 leading-relaxed">
-              Every CalmSpace account comes with the full suite of tools — no tiers, no paywalls on core features.
-            </p>
+            <p className="text-muted-foreground font-medium mb-8 leading-relaxed">Every CalmSpace account comes with the full suite of tools — no tiers, no paywalls on core features.</p>
             <ul className="space-y-3">
               {[
-                { text: "Emotion check-ins & calming activities",  emoji: "💛" },
-                { text: "Mitra AI companion (unlimited chats)",     emoji: "🤖" },
-                { text: "Social confidence scenarios",              emoji: "🤝" },
-                { text: "Caregiver dashboard & mood timeline",      emoji: "📊" },
-                { text: "Predictive alerts & pattern insights",     emoji: "🛡️" },
-                { text: "Daily growth check-ins",                   emoji: "🌱" },
-                { text: "Multi-child family profiles",              emoji: "👨‍👩‍👧" },
-                { text: "Therapist collaboration mode",             emoji: "🩺" },
+                { text: "Emotion check-ins & calming activities", emoji: "💛" },
+                { text: "Mitra AI companion (unlimited chats)",    emoji: "🤖" },
+                { text: "Social confidence scenarios",             emoji: "🤝" },
+                { text: "Caregiver dashboard & mood timeline",     emoji: "📊" },
+                { text: "Predictive alerts & pattern insights",    emoji: "🛡️" },
+                { text: "Daily growth check-ins",                  emoji: "🌱" },
+                { text: "Multi-child family profiles",             emoji: "👨👩👧" },
+                { text: "Therapist collaboration mode",            emoji: "🩺" },
               ].map((item, i) => (
                 <FadeIn key={item.text} delay={i * 60}>
                   <li className="flex items-center gap-3 group">
@@ -361,9 +327,7 @@ const Home = () => {
               <div className="absolute bottom-3 left-4 text-2xl animate-bounce-slow opacity-40">🎈</div>
               <MessageCircleHeart className="w-16 h-16 mx-auto mb-5 opacity-80 animate-pulse-soft" />
               <h3 className="text-2xl font-black mb-3">Start free today</h3>
-              <p className="text-primary-foreground/80 font-medium mb-8 text-sm leading-relaxed">
-                No credit card required. Set up your family's calm space in under 2 minutes.
-              </p>
+              <p className="text-primary-foreground/80 font-medium mb-8 text-sm leading-relaxed">No credit card required. Set up your family's calm space in under 2 minutes.</p>
               <Button asChild size="lg" variant="secondary" className="rounded-2xl px-7 h-12 bg-background text-foreground hover:bg-background/90 border-2 border-foreground shadow-pop font-black hover:shadow-pop-lg hover:-translate-y-1 transition-all w-full">
                 <Link to="/app/feelings">Create your free space <ArrowRight className="w-4 h-4 ml-1" /></Link>
               </Button>
@@ -379,9 +343,7 @@ const Home = () => {
             <div className="absolute top-4 left-8 text-4xl animate-float opacity-30">🌈</div>
             <div className="absolute top-4 right-8 text-3xl animate-bounce-slow opacity-30">⭐</div>
             <div className="absolute bottom-4 left-1/2 -translate-x-1/2 text-3xl animate-float-slow opacity-30">🦋</div>
-            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4 relative z-10">
-              Ready to bring calm to your day? 🌸
-            </h2>
+            <h2 className="text-3xl md:text-5xl font-black tracking-tight mb-4 relative z-10">Ready to bring calm to your day? 🌸</h2>
             <p className="text-secondary-foreground/80 mb-10 max-w-xl mx-auto font-medium leading-relaxed relative z-10">
               Join thousands of families finding gentler routines, deeper understanding, and brighter moments — every day.
             </p>
