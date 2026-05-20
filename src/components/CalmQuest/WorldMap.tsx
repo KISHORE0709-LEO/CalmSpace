@@ -54,7 +54,7 @@ const MobileConnector = ({ fromSide }: { fromSide: "left" | "right" }) => {
   );
 };
 
-const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLevel }: { level: any, isLocked: boolean, isNextLevel: boolean, isLevelCompleted: boolean, onSelectLevel: (w: number, l: number) => void }) => {
+const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLevel, stats }: { level: any, isLocked: boolean, isNextLevel: boolean, isLevelCompleted: boolean, onSelectLevel: (w: number, l: number) => void, stats?: { stars: number, highScore: number } }) => {
   const { ref, inView } = useInView(0.1);
   const delay = (level.id - 1) * 150;
 
@@ -72,7 +72,22 @@ const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLev
 
       {/* Status Emoji/Icon */}
       <span className="absolute top-4 right-5 text-3xl opacity-80 group-hover:opacity-100 transition-all group-hover:animate-bounce-slow">
-        {isLevelCompleted ? "⭐" : isNextLevel ? "🎮" : "🔒"}
+        {isLevelCompleted ? (
+          <div className="flex gap-0.5">
+            {Array.from({ length: 3 }).map((_, idx) => (
+              <Star
+                key={idx}
+                size={18}
+                className={cn(
+                  "stroke-foreground stroke-2",
+                  idx < (stats?.stars || 1)
+                    ? "fill-yellow-400 text-yellow-400"
+                    : "fill-transparent text-muted-foreground/30"
+                )}
+              />
+            ))}
+          </div>
+        ) : isNextLevel ? "🎮" : "🔒"}
       </span>
 
       <div className="flex flex-col flex-1 gap-4">
@@ -80,7 +95,7 @@ const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLev
           <div className={cn("grid place-items-center rounded-2xl border-4 border-foreground shadow-pop-sm shrink-0 w-16 h-16 transition-transform duration-300", 
             isLevelCompleted ? "bg-primary" : isNextLevel ? "bg-secondary group-hover:scale-110 group-hover:-rotate-6" : "bg-muted", "text-foreground")}>
             
-            {isLevelCompleted ? <Star size={28} strokeWidth={3} className="fill-foreground text-foreground" /> : 
+            {isLevelCompleted ? <Star size={28} strokeWidth={3} className="fill-yellow-400 text-foreground" /> : 
              isNextLevel ? <Gamepad2 size={28} strokeWidth={2.5} className="text-foreground" /> : 
              <Lock size={28} strokeWidth={3} />}
           </div>
@@ -95,12 +110,18 @@ const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLev
         <div className="mt-2 text-left flex flex-col flex-1">
           <div className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">{level.worldTitle} — Level {level.id}</div>
           <h3 className="text-2xl sm:text-[1.75rem] leading-tight font-black text-foreground tracking-tight mb-2">{level.title}</h3>
-          <p className="text-[15px] sm:text-[1.05rem] text-muted-foreground leading-relaxed font-semibold flex-1">{level.goal}</p>
+          <p className="text-[15px] sm:text-[1.05rem] text-muted-foreground leading-relaxed font-semibold flex-1 mb-2">{level.goal}</p>
           
+          {isLevelCompleted && stats && stats.highScore > 0 && (
+            <div className="mb-4 inline-flex items-center gap-1.5 text-xs font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-3 py-1 rounded-xl w-max shadow-sm">
+              🏆 High Score: {stats.highScore}
+            </div>
+          )}
+
           {!isLocked && (
              <div className="mt-4 pt-4 border-t-2 border-foreground/10 flex items-center justify-between">
-               <span className="text-sm font-black tracking-widest uppercase text-foreground">{isLevelCompleted ? "Replay" : "Play Now"}</span>
-               <Play className="w-5 h-5 fill-foreground group-hover:translate-x-1 transition-transform" />
+                <span className="text-sm font-black tracking-widest uppercase text-foreground">{isLevelCompleted ? "Replay" : "Play Now"}</span>
+                <Play className="w-5 h-5 fill-foreground group-hover:translate-x-1 transition-transform" />
              </div>
           )}
         </div>
@@ -134,14 +155,14 @@ export const WorldMap = ({ worldId, onSelectLevel }: WorldMapProps) => {
         const isLeft = i % 2 === 0;
         const isLast = i === levels.length - 1;
 
-        const isWorldUnlocked = true; // all worlds unlocked now
         const completedInWorld = progress.completedLevels[level.worldId] || [];
         const isLevelCompleted = completedInWorld.includes(level.id);
-        
-        // Unlocking logic for levels within the unlocked world
         const prevLevelId = level.id - 1;
         const isNextLevel = !isLevelCompleted && (level.id === 1 || completedInWorld.includes(prevLevelId));
-        const isLocked = !isLevelCompleted && !isNextLevel;
+        const isLocked = false; // User requested all games unlocked
+
+        const statsKey = `${level.worldId}-${level.id}`;
+        const stats = progress.levelStats?.[statsKey];
 
         return (
           <React.Fragment key={`${level.worldId}-${level.id}`}>
@@ -152,6 +173,7 @@ export const WorldMap = ({ worldId, onSelectLevel }: WorldMapProps) => {
                 isNextLevel={isNextLevel} 
                 isLevelCompleted={isLevelCompleted} 
                 onSelectLevel={onSelectLevel} 
+                stats={stats}
               />
             </div>
             

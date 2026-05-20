@@ -1,8 +1,14 @@
 import { useState, useEffect } from "react";
 
+export interface LevelStats {
+  stars: number;
+  highScore: number;
+}
+
 export interface CalmQuestProgress {
   unlockedWorlds: number[]; // e.g., [1, 2, 3]
   completedLevels: Record<number, number[]>; // worldId -> [levelId]
+  levelStats?: Record<string, LevelStats>; // "worldId-levelId" -> stats
   stars: number;
   xp: number;
   badges: string[];
@@ -11,6 +17,7 @@ export interface CalmQuestProgress {
 const DEFAULT_PROGRESS: CalmQuestProgress = {
   unlockedWorlds: [1],
   completedLevels: { 1: [], 2: [], 3: [] },
+  levelStats: {},
   stars: 0,
   xp: 0,
   badges: [],
@@ -23,7 +30,10 @@ export const useCalmQuestProgress = () => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        // Ensure levelStats is initialized for backward compatibility
+        if (!parsed.levelStats) parsed.levelStats = {};
+        return parsed;
       }
     } catch (e) {
       console.error("Error loading CalmQuest progress", e);
@@ -39,12 +49,33 @@ export const useCalmQuestProgress = () => {
     }
   }, [progress]);
 
-  const completeLevel = (worldId: number, levelId: number, starsEarned: number, xpEarned: number) => {
+  const completeLevel = (worldId: number, levelId: number, starsEarned: number, score: number) => {
     setProgress((prev) => {
+      const statsKey = `${worldId}-${levelId}`;
+      const currentStats = prev.levelStats || {};
+      const existing = currentStats[statsKey] || { stars: 0, highScore: 0 };
+
       const isNewComplete = !prev.completedLevels[worldId]?.includes(levelId);
       const updatedLevels = isNewComplete
         ? [...(prev.completedLevels[worldId] || []), levelId]
         : prev.completedLevels[worldId];
+
+      // Calculate incremental difference to avoid duplicate stars/XP when replaying
+      const starDiff = Math.max(0, starsEarned - existing.stars);
+      const scoreDiff = Math.max(0, score - existing.highScore);
+      
+      // XP is derived directly from score (min 50 XP)
+      const xpEarned = Math.max(50, Math.floor(score / 10));
+      const existingXp = Math.max(50, Math.floor(existing.highScore / 10));
+      const xpDiff = Math.max(0, xpEarned - existingXp);
+
+      const newStats = {
+        ...currentStats,
+        [statsKey]: {
+          stars: Math.max(existing.stars, starsEarned),
+          highScore: Math.max(existing.highScore, score),
+        }
+      };
 
       const newProgress = {
         ...prev,
@@ -52,12 +83,13 @@ export const useCalmQuestProgress = () => {
           ...prev.completedLevels,
           [worldId]: updatedLevels,
         },
-        stars: prev.stars + starsEarned,
-        xp: prev.xp + xpEarned,
+        levelStats: newStats,
+        stars: prev.stars + starDiff,
+        xp: prev.xp + xpDiff,
       };
 
-      // Check if world is complete (5 levels) and unlock next
-      if (updatedLevels.length >= 5 && worldId < 3) {
+      // Check if world is complete (all 3 levels completed) and unlock next world
+      if (updatedLevels.length >= 3 && worldId < 3) {
         if (!newProgress.unlockedWorlds.includes(worldId + 1)) {
           newProgress.unlockedWorlds = [...newProgress.unlockedWorlds, worldId + 1];
         }
