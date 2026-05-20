@@ -10,7 +10,7 @@ interface Props {
 }
 
 export const StormWithinMechanic = ({ level, onComplete }: Props) => {
-  const { tick, isPlaying, direction, isOverloaded, startGame, stopGame } = useGameLoop(100);
+  const { tick, isPlaying, direction, startGame, stopGame } = useGameLoop(100);
   
   // Balance mini-game: keep the cursor in the center of the bar while "storm" forces push it left/right.
   const [balance, setBalance] = useState(50); // 0 to 100
@@ -23,7 +23,7 @@ export const StormWithinMechanic = ({ level, onComplete }: Props) => {
 
     // Randomly shift the storm force every 10 ticks
     if (tick % 10 === 0) {
-       const newForce = (Math.random() * 6 - 3) * (isOverloaded ? 0.5 : 1); // -3 to 3
+       const newForce = (Math.random() * 6 - 3); // -3 to 3
        setStormForce(newForce);
     }
 
@@ -78,7 +78,7 @@ export const StormWithinMechanic = ({ level, onComplete }: Props) => {
       </div>
 
       {/* Game Board */}
-      <div className={`relative w-full max-w-md h-[200px] bg-card border-8 border-foreground rounded-[2rem] shadow-pop-lg overflow-hidden flex items-center justify-center transition-all duration-1000 ${isDanger ? 'animate-wiggle border-accent' : ''} ${isOverloaded ? 'grayscale-[30%] opacity-90' : ''}`}>
+      <div className={`relative w-full max-w-md h-[200px] bg-card border-8 border-foreground rounded-[2rem] shadow-pop-lg overflow-hidden flex items-center justify-center transition-all duration-1000 ${isDanger ? 'animate-wiggle border-accent' : ''}`}>
         
         {/* The Balance Bar */}
         <div className="w-[80%] h-8 bg-background border-4 border-foreground shadow-pop-sm rounded-full relative overflow-hidden">

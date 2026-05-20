@@ -3,7 +3,7 @@ import { worlds } from "@/lib/calmQuestData";
 import { EchoAcademyMechanic } from "./Engine/EchoAcademyMechanic";
 import { SocialTideMechanic } from "./Engine/SocialTideMechanic";
 import { StormWithinMechanic } from "./Engine/StormWithinMechanic";
-import { LumioCoach } from "./LumioCoach";
+import { DynamicLumio } from "./DynamicLumio";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play } from "lucide-react";
 
@@ -37,9 +37,10 @@ export const LevelRunner = ({ worldId, levelId, onBack, onLevelComplete }: Props
 
       {showIntro ? (
         <div className="flex flex-col items-center animate-fade-up mt-8">
-          <LumioCoach 
+          <DynamicLumio 
             message={level.lumioQuote} 
             mood="thoughtful"
+            position="bottom"
           />
           
           <Button size="lg" className="rounded-full text-xl py-6 px-12 shadow-pop hover:-translate-y-1 transition-transform" onClick={() => setShowIntro(false)}>

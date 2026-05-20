@@ -12,7 +12,7 @@ interface Props {
 const GRID_SIZE = 12;
 
 export const SocialTideMechanic = ({ level, onComplete }: Props) => {
-  const { tick, isPlaying, direction, isOverloaded, startGame, stopGame } = useGameLoop(300);
+  const { tick, isPlaying, direction, startGame, stopGame } = useGameLoop(300);
   
   const [playerPos, setPlayerPos] = useState({ x: 0, y: GRID_SIZE - 1 }); // Start bottom left
   const [targetPos] = useState({ x: GRID_SIZE - 1, y: 0 }); // Goal top right
@@ -44,7 +44,7 @@ export const SocialTideMechanic = ({ level, onComplete }: Props) => {
       newY = Math.max(0, Math.min(GRID_SIZE - 1, newY));
 
       // If in a river column and moving horizontally, sometimes it pushes you down
-      if (riverCols.includes(newX) && Math.random() > (isOverloaded ? 0.8 : 0.5)) {
+      if (riverCols.includes(newX) && Math.random() > 0.5) {
          newY = Math.min(GRID_SIZE - 1, newY + 1);
       }
 
@@ -71,7 +71,7 @@ export const SocialTideMechanic = ({ level, onComplete }: Props) => {
       </div>
 
       {/* Game Board */}
-      <div className={`relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] bg-card border-8 border-foreground rounded-[2rem] shadow-pop-lg overflow-hidden transition-all duration-1000 ${isOverloaded ? 'grayscale-[30%] opacity-90' : ''}`}>
+      <div className={`relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] bg-card border-8 border-foreground rounded-[2rem] shadow-pop-lg overflow-hidden transition-all duration-1000`}>
         
         {/* River Rendering */}
         <div className="absolute inset-0 z-0 opacity-40">
@@ -84,8 +84,8 @@ export const SocialTideMechanic = ({ level, onComplete }: Props) => {
                  left: `${(col / GRID_SIZE) * 100}%`,
                }}
              >
-                <Droplets className={`text-primary w-6 h-6 transition-transform duration-[300ms] ${isOverloaded ? 'opacity-30' : 'opacity-80'}`} style={{ transform: `translateY(${riverYOffset * 5}px)` }} />
-                <Droplets className={`text-primary w-6 h-6 transition-transform duration-[300ms] ${isOverloaded ? 'opacity-30' : 'opacity-80'}`} style={{ transform: `translateY(${riverYOffset * 5}px)` }} />
+                <Droplets className={`text-primary w-6 h-6 transition-transform duration-[300ms] opacity-80`} style={{ transform: `translateY(${riverYOffset * 5}px)` }} />
+                <Droplets className={`text-primary w-6 h-6 transition-transform duration-[300ms] opacity-80`} style={{ transform: `translateY(${riverYOffset * 5}px)` }} />
              </div>
           ))}
         </div>

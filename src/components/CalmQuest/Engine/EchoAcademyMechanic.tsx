@@ -12,7 +12,7 @@ interface Props {
 const GRID_SIZE = 15;
 
 export const EchoAcademyMechanic = ({ level, onComplete }: Props) => {
-  const { tick, isPlaying, direction, isOverloaded, startGame, stopGame } = useGameLoop(250);
+  const { tick, isPlaying, direction, startGame, stopGame } = useGameLoop(250);
   
   const [playerPos, setPlayerPos] = useState({ x: 7, y: 7 });
   const [orbs, setOrbs] = useState<{ x: number, y: number }[]>([{ x: 3, y: 3 }]);
@@ -86,14 +86,7 @@ export const EchoAcademyMechanic = ({ level, onComplete }: Props) => {
       </div>
 
       {/* Game Board */}
-      <div className={`relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] bg-card border-8 border-foreground rounded-[2rem] shadow-pop-lg overflow-hidden transition-all duration-1000 ${isOverloaded ? 'grayscale-[30%] opacity-90' : ''}`}>
-        
-        {/* Breathing overlay if overloaded */}
-        {isOverloaded && (
-          <div className="absolute inset-0 z-0 flex items-center justify-center pointer-events-none opacity-20">
-             <div className="w-64 h-64 bg-primary rounded-full animate-pulse-soft blur-3xl" />
-          </div>
-        )}
+      <div className={`relative w-[300px] h-[300px] sm:w-[450px] sm:h-[450px] bg-card border-8 border-foreground rounded-[2rem] shadow-pop-lg overflow-hidden transition-all duration-1000`}>
 
         {/* Entities */}
         <div className="absolute inset-0 z-10">
@@ -116,7 +109,7 @@ export const EchoAcademyMechanic = ({ level, onComplete }: Props) => {
           {hazards.map((haz, i) => (
             <div 
               key={`haz-${i}`}
-              className={`absolute bg-accent rounded-xl blur-[1px] animate-pulse-soft ${isOverloaded ? 'opacity-30' : 'opacity-80'}`}
+              className={`absolute bg-accent rounded-xl blur-[1px] animate-pulse-soft opacity-80`}
               style={{
                 width: `${100 / GRID_SIZE}%`,
                 height: `${100 / GRID_SIZE}%`,

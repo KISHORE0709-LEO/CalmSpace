@@ -1,12 +1,10 @@
 import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
-import { EmotionProvider } from "@/context/EmotionContext";
-import { EmotionSelector } from "@/components/CalmQuest/EmotionSelector";
 import { CinematicWorldSelect } from "@/components/CalmQuest/Cinematic/CinematicWorldSelect";
 import { OnboardingSequence } from "@/components/CalmQuest/Cinematic/OnboardingSequence";
 import { LevelRunner } from "@/components/CalmQuest/LevelRunner";
 import { WorldMap } from "@/components/CalmQuest/WorldMap";
-import { LumioCoach } from "@/components/CalmQuest/LumioCoach";
+import { DynamicLumio } from "@/components/CalmQuest/DynamicLumio";
 import { CinematicWorldData, worlds } from "@/lib/calmQuestData";
 import { useCalmQuestProgress } from "@/hooks/useCalmQuestProgress";
 import { Button } from "@/components/ui/button";
@@ -50,7 +48,6 @@ const CalmQuestApp = () => {
 
   return (
     <div className="relative w-full min-h-[calc(100vh-8rem)]">
-      <EmotionSelector />
       
       {view === "onboarding" && (
         <OnboardingSequence onComplete={() => setView("worldSelect")} />
@@ -58,9 +55,10 @@ const CalmQuestApp = () => {
 
       {view === "worldSelect" && (
         <div className="w-full flex flex-col items-center animate-fade-up mt-8">
-           <LumioCoach 
+           <DynamicLumio 
              message="Welcome to CalmQuest. Choose a realm to begin practicing your social confidence."
              mood="calm"
+             position="side"
            />
            <CinematicWorldSelect onSelectWorld={handleWorldSelect} />
         </div>
@@ -74,9 +72,10 @@ const CalmQuestApp = () => {
              </Button>
            </div>
            
-           <LumioCoach 
+           <DynamicLumio 
              message={currentWorld.lumioIntro}
              mood="thoughtful"
+             position="side"
            />
            <WorldMap worldId={currentWorldId} onSelectLevel={handleSelectLevel} />
         </div>
@@ -97,9 +96,7 @@ const CalmQuestApp = () => {
 const SocialPractice = () => {
   return (
     <AppShell title="CalmQuest" subtitle="Interactive Social Confidence Journey">
-      <EmotionProvider>
-        <CalmQuestApp />
-      </EmotionProvider>
+      <CalmQuestApp />
     </AppShell>
   );
 };

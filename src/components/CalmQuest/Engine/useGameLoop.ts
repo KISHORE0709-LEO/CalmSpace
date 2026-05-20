@@ -1,15 +1,8 @@
 import { useEffect, useRef, useState, useCallback } from "react";
-import { useEmotion } from "@/context/EmotionContext";
 
 export type Direction = "UP" | "DOWN" | "LEFT" | "RIGHT";
 
 export const useGameLoop = (baseTickRateMs: number) => {
-  const { emotion } = useEmotion();
-  const isOverloaded = emotion === "Overloaded";
-  
-  // Slow down the game if overloaded to reduce sensory load
-  const currentTickRate = isOverloaded ? baseTickRateMs * 2 : baseTickRateMs;
-
   const [tick, setTick] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [direction, setDirection] = useState<Direction>("RIGHT");
@@ -53,9 +46,9 @@ export const useGameLoop = (baseTickRateMs: number) => {
     const interval = setInterval(() => {
       setDirection(latestDirection.current);
       setTick(t => t + 1);
-    }, currentTickRate);
+    }, baseTickRateMs);
     return () => clearInterval(interval);
-  }, [isPlaying, currentTickRate]);
+  }, [isPlaying, baseTickRateMs]);
 
   const startGame = useCallback(() => {
     setIsPlaying(true);
@@ -66,5 +59,5 @@ export const useGameLoop = (baseTickRateMs: number) => {
     setIsPlaying(false);
   }, []);
 
-  return { tick, isPlaying, direction, isOverloaded, startGame, stopGame };
+  return { tick, isPlaying, direction, startGame, stopGame };
 };
