@@ -1,22 +1,37 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppShell } from "@/components/AppShell";
 import { EmotionProvider } from "@/context/EmotionContext";
 import { EmotionSelector } from "@/components/CalmQuest/EmotionSelector";
-import { WorldMap } from "@/components/CalmQuest/WorldMap";
+import { CinematicWorldSelect } from "@/components/CalmQuest/Cinematic/CinematicWorldSelect";
+import { OnboardingSequence } from "@/components/CalmQuest/Cinematic/OnboardingSequence";
 import { LevelRunner } from "@/components/CalmQuest/LevelRunner";
-import { CalmingCheckpoint } from "@/components/CalmQuest/CalmingCheckpoint";
-import { FinalReport } from "@/components/CalmQuest/FinalReport";
+import { WorldMap } from "@/components/CalmQuest/WorldMap";
+import { LumioCoach } from "@/components/CalmQuest/LumioCoach";
+import { CinematicWorldData, worlds } from "@/lib/calmQuestData";
 import { useCalmQuestProgress } from "@/hooks/useCalmQuestProgress";
-import { worlds } from "@/lib/calmQuestData";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft } from "lucide-react";
 
-type ViewState = "map" | "level" | "checkpoint" | "report";
+type ViewState = "onboarding" | "worldSelect" | "levelSelect" | "level";
 
 const CalmQuestApp = () => {
-  const [view, setView] = useState<ViewState>("map");
+  const [view, setView] = useState<ViewState>("onboarding");
   const [currentWorldId, setCurrentWorldId] = useState<number | null>(null);
   const [currentLevelId, setCurrentLevelId] = useState<number | null>(null);
   
   const { progress, completeLevel } = useCalmQuestProgress();
+
+  useEffect(() => {
+    // If they have already played before (e.g. XP > 0), skip cinematic onboarding
+    if (progress.xp > 0 && view === "onboarding") {
+      setView("worldSelect");
+    }
+  }, []);
+
+  const handleWorldSelect = (world: CinematicWorldData) => {
+    setCurrentWorldId(world.id);
+    setView("levelSelect");
+  };
 
   const handleSelectLevel = (worldId: number, levelId: number) => {
     setCurrentWorldId(worldId);
@@ -27,31 +42,43 @@ const CalmQuestApp = () => {
   const handleLevelComplete = (stars: number, xp: number) => {
     if (currentWorldId !== null && currentLevelId !== null) {
       completeLevel(currentWorldId, currentLevelId, stars, xp);
-      
-      // If just finished level 5, show checkpoint
-      if (currentLevelId === 5) {
-        if (currentWorldId === 3) {
-          setView("report");
-        } else {
-          setView("checkpoint");
-        }
-      } else {
-        setView("map");
-      }
+      setView("levelSelect"); // Return to the zig-zag map for this world
     }
   };
+
+  const currentWorld = worlds.find(w => w.id === currentWorldId);
 
   return (
     <div className="relative w-full min-h-[calc(100vh-8rem)]">
       <EmotionSelector />
       
-      {view === "map" && (
-        <div className="animate-fade-up">
-          <div className="text-center mb-8">
-            <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-2">CalmQuest</h2>
-            <p className="text-muted-foreground font-medium">Your interactive journey to social confidence.</p>
-          </div>
-          <WorldMap onSelectLevel={handleSelectLevel} />
+      {view === "onboarding" && (
+        <OnboardingSequence onComplete={() => setView("worldSelect")} />
+      )}
+
+      {view === "worldSelect" && (
+        <div className="w-full flex flex-col items-center animate-fade-up mt-8">
+           <LumioCoach 
+             message="Welcome to CalmQuest. Choose a realm to begin practicing your social confidence."
+             mood="calm"
+           />
+           <CinematicWorldSelect onSelectWorld={handleWorldSelect} />
+        </div>
+      )}
+
+      {view === "levelSelect" && currentWorldId && currentWorld && (
+        <div className="w-full max-w-5xl mx-auto animate-fade-up mt-8">
+           <div className="mb-8">
+             <Button variant="outline" size="sm" onClick={() => setView("worldSelect")} className="rounded-full shadow-pop-sm">
+               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Realms
+             </Button>
+           </div>
+           
+           <LumioCoach 
+             message={currentWorld.lumioIntro}
+             mood="thoughtful"
+           />
+           <WorldMap worldId={currentWorldId} onSelectLevel={handleSelectLevel} />
         </div>
       )}
 
@@ -59,24 +86,8 @@ const CalmQuestApp = () => {
         <LevelRunner 
           worldId={currentWorldId} 
           levelId={currentLevelId} 
-          onBack={() => setView("map")}
+          onBack={() => setView("levelSelect")}
           onLevelComplete={handleLevelComplete}
-        />
-      )}
-
-      {view === "checkpoint" && currentWorldId && (
-        <CalmingCheckpoint 
-          worldId={currentWorldId} 
-          worldTitle={worlds.find(w => w.id === currentWorldId)?.title || ""}
-          onContinue={() => setView("map")}
-        />
-      )}
-
-      {view === "report" && (
-        <FinalReport 
-          stars={progress.stars} 
-          xp={progress.xp} 
-          onHome={() => setView("map")}
         />
       )}
     </div>
@@ -85,7 +96,7 @@ const CalmQuestApp = () => {
 
 const SocialPractice = () => {
   return (
-    <AppShell title="" subtitle="">
+    <AppShell title="CalmQuest" subtitle="Interactive Social Confidence Journey">
       <EmotionProvider>
         <CalmQuestApp />
       </EmotionProvider>
