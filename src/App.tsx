@@ -12,6 +12,7 @@ import SocialPractice from "./pages/app/SocialPractice.tsx";
 import Caregiver from "./pages/app/Caregiver.tsx";
 import CheckIns from "./pages/app/CheckIns.tsx";
 import Alerts from "./pages/app/Alerts.tsx";
+import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
+          <Route path="/auth" element={<Auth />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/about" element={<About />} />
           <Route path="/app/feelings" element={<Feelings />} />

@@ -50,8 +50,10 @@ const DesktopConnector = ({ fromSide }: { fromSide: "left" | "right" }) => {
           className="opacity-90"
         />
       </svg>
-      <div className="absolute text-primary translate-x-[-50%] bottom-[-10px] animate-bounce-slow" style={{ left: isLeft ? "75%" : "25%" }}>
-        <ChevronDown size={32} strokeWidth={3.5} />
+      <div className="absolute bottom-0 w-0 h-0" style={{ left: isLeft ? "75%" : "25%" }}>
+        <div className="absolute -left-4 -top-3 text-primary animate-bounce-slow">
+          <ChevronDown size={32} strokeWidth={3.5} />
+        </div>
       </div>
     </div>
   );
@@ -67,8 +69,10 @@ const MobileConnector = ({ fromSide }: { fromSide: "left" | "right" }) => {
           fill="none" stroke="hsl(var(--primary))" strokeWidth="3.5" strokeDasharray="6 8" strokeLinecap="round" vectorEffect="non-scaling-stroke" className="opacity-90"
         />
       </svg>
-      <div className="absolute text-primary bottom-[-12px] left-[50%] -translate-x-1/2 animate-bounce-slow">
-        <ChevronDown size={28} strokeWidth={3.5} />
+      <div className="absolute bottom-0 left-[50%] w-0 h-0">
+        <div className="absolute -left-[14px] -top-3 text-primary animate-bounce-slow">
+          <ChevronDown size={28} strokeWidth={3.5} />
+        </div>
       </div>
     </div>
   );

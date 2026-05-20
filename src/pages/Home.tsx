@@ -105,6 +105,13 @@ function StatCard({ target, suffix, l, sub, emoji }: typeof rawStats[0]) {
 
 const Home = () => {
   const [activeEmoji, setActiveEmoji] = useState<string | null>(null);
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-background overflow-x-hidden">
@@ -122,12 +129,17 @@ const Home = () => {
         <div className="absolute inset-0 bg-background/20" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-t from-background to-transparent" />
 
-        {bubbles.map((b, i) => (
-          <span key={i} className={`absolute select-none cursor-pointer ${b.size} ${b.anim} hover:scale-150 transition-transform duration-200 z-10`}
-            style={{ top: b.top, left: b.left }} onClick={() => setActiveEmoji(b.emoji)}>
-            {b.emoji}
-          </span>
-        ))}
+        {bubbles.map((b, i) => {
+          const speed = (i % 3 + 1) * 0.15 * (i % 2 === 0 ? 1 : -0.7);
+          return (
+            <div key={i} className="absolute z-10" style={{ top: b.top, left: b.left, transform: `translateY(${scrollY * speed}px)` }}>
+              <span className={`block select-none cursor-pointer ${b.size} ${b.anim} hover:scale-150 transition-transform duration-200`}
+                onClick={() => setActiveEmoji(b.emoji)}>
+                {b.emoji}
+              </span>
+            </div>
+          );
+        })}
 
         {activeEmoji && (
           <div className="fixed inset-0 z-50 flex items-center justify-center pointer-events-none" onAnimationEnd={() => setActiveEmoji(null)}>
