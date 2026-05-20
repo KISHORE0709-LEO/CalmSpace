@@ -124,6 +124,12 @@
   from { opacity: 0; transform: scale(0.85); }
   to { opacity: 1; transform: scale(1); }
 }
+@keyframes cinematic-in {
+  0%   { opacity: 0; filter: blur(16px); letter-spacing: 0.3em; transform: scale(1.08); }
+  40%  { opacity: 1; filter: blur(0px);  letter-spacing: normal; transform: scale(1); }
+  80%  { opacity: 1; filter: blur(0px);  letter-spacing: normal; transform: scale(1); }
+  100% { opacity: 0; filter: blur(4px);  letter-spacing: 0.05em; transform: scale(0.97); }
+}
 @keyframes marquee {
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }

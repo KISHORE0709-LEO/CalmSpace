@@ -12,18 +12,18 @@ import { ArrowLeft } from "lucide-react";
 
 type ViewState = "onboarding" | "worldSelect" | "levelSelect" | "level";
 
-const CalmQuestApp = () => {
+const SocialPractice = () => {
   const [view, setView] = useState<ViewState>("onboarding");
   const [currentWorldId, setCurrentWorldId] = useState<number | null>(null);
   const [currentLevelId, setCurrentLevelId] = useState<number | null>(null);
-  
+
   const { progress, completeLevel } = useCalmQuestProgress();
+  const currentWorld = worlds.find(w => w.id === currentWorldId);
 
   useEffect(() => {
-    // If they have already played before (e.g. XP > 0), skip cinematic onboarding
-    if (progress.xp > 0 && view === "onboarding") {
-      setView("worldSelect");
-    }
+    // Skip onboarding if user has played before
+    if (progress.xp > 0) setView("worldSelect");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleWorldSelect = (world: CinematicWorldData) => {
@@ -40,63 +40,61 @@ const CalmQuestApp = () => {
   const handleLevelComplete = (stars: number, xp: number) => {
     if (currentWorldId !== null && currentLevelId !== null) {
       completeLevel(currentWorldId, currentLevelId, stars, xp);
-      setView("levelSelect"); // Return to the zig-zag map for this world
+      setView("levelSelect");
     }
   };
 
-  const currentWorld = worlds.find(w => w.id === currentWorldId);
-
   return (
-    <div className="relative w-full min-h-[calc(100vh-8rem)]">
-      
-      {view === "onboarding" && (
-        <OnboardingSequence onComplete={() => setView("worldSelect")} />
-      )}
+    <AppShell
+      title={view === "onboarding" ? "" : "CalmQuest"}
+      subtitle={view === "onboarding" ? "" : "Interactive Social Confidence Journey"}
+    >
+      <div className="relative w-full">
 
-      {view === "worldSelect" && (
-        <div className="w-full flex flex-col items-center animate-fade-up mt-8">
-           <DynamicLumio 
-             message="Welcome to CalmQuest. Choose a realm to begin practicing your social confidence."
-             mood="calm"
-             position="side"
-           />
-           <CinematicWorldSelect onSelectWorld={handleWorldSelect} />
-        </div>
-      )}
+        {view === "onboarding" && (
+          <OnboardingSequence onComplete={() => setView("worldSelect")} />
+        )}
 
-      {view === "levelSelect" && currentWorldId && currentWorld && (
-        <div className="w-full max-w-5xl mx-auto animate-fade-up mt-8">
-           <div className="mb-8">
-             <Button variant="outline" size="sm" onClick={() => setView("worldSelect")} className="rounded-full shadow-pop-sm">
-               <ArrowLeft className="w-4 h-4 mr-2" /> Back to Realms
-             </Button>
-           </div>
-           
-           <DynamicLumio 
-             message={currentWorld.lumioIntro}
-             mood="thoughtful"
-             position="side"
-           />
-           <WorldMap worldId={currentWorldId} onSelectLevel={handleSelectLevel} />
-        </div>
-      )}
+        {view === "worldSelect" && (
+          <div className="w-full flex flex-col items-center animate-fade-up mt-4">
+            <DynamicLumio
+              message="Welcome to CalmQuest. Choose a realm to begin practicing your social confidence."
+              mood="calm"
+              position="side"
+            />
+            <CinematicWorldSelect onSelectWorld={handleWorldSelect} />
+          </div>
+        )}
 
-      {view === "level" && currentWorldId && currentLevelId && (
-        <LevelRunner 
-          worldId={currentWorldId} 
-          levelId={currentLevelId} 
-          onBack={() => setView("levelSelect")}
-          onLevelComplete={handleLevelComplete}
-        />
-      )}
-    </div>
-  );
-};
+        {view === "levelSelect" && currentWorldId && currentWorld && (
+          <div className="w-full max-w-5xl mx-auto animate-fade-up mt-4">
+            <div className="w-full mb-8 text-left flex items-center justify-between">
+              <div>
+                <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-1">{currentWorld.title}</h2>
+                <p className="text-muted-foreground font-medium">CalmQuest — Level Select</p>
+              </div>
+              <Button variant="outline" size="sm" onClick={() => setView("worldSelect")} className="rounded-full shadow-pop-sm">
+                <ArrowLeft className="w-4 h-4 mr-2" /> Back to Realms
+              </Button>
+            </div>
+            <DynamicLumio
+              message={currentWorld.lumioIntro}
+              mood="thoughtful"
+              position="side"
+            />
+            <WorldMap worldId={currentWorldId} onSelectLevel={handleSelectLevel} />
+          </div>
+        )}
 
-const SocialPractice = () => {
-  return (
-    <AppShell title="CalmQuest" subtitle="Interactive Social Confidence Journey">
-      <CalmQuestApp />
+        {view === "level" && currentWorldId && currentLevelId && (
+          <LevelRunner
+            worldId={currentWorldId}
+            levelId={currentLevelId}
+            onBack={() => setView("levelSelect")}
+            onLevelComplete={handleLevelComplete}
+          />
+        )}
+      </div>
     </AppShell>
   );
 };
