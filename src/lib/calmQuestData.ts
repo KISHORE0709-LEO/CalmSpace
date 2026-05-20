@@ -23,47 +23,41 @@ export interface CinematicWorldData {
 export const worlds: CinematicWorldData[] = [
   {
     id: 1,
-    title: "Echo Academy",
-    theme: "School/college confidence",
+    title: "School & Friendship",
+    theme: "Navigating School Life",
     color: "bg-primary",
     gradient: "from-primary to-background",
-    lumioIntro: "Confidence begins where fear first speaks.",
+    lumioIntro: "School is a big place, but you have everything you need to make great friends.",
     levels: [
-      { id: 1, title: "First Spark", gameplayMechanic: "collection", goal: "Collect Confidence Orbs", avoid: "Panic Clouds", lumioQuote: "Every spark of confidence pushes the fog away." },
-      { id: 2, title: "Broken Signal", gameplayMechanic: "collection", goal: "Collect Confidence Orbs", avoid: "Panic Clouds", lumioQuote: "Even when interrupted, your signal remains strong." },
-      { id: 3, title: "Spotlight Drift", gameplayMechanic: "collection", goal: "Collect Confidence Orbs", avoid: "Panic Clouds", lumioQuote: "The spotlight is warm, not burning." },
-      { id: 4, title: "Team Orbit", gameplayMechanic: "collection", goal: "Collect Confidence Orbs", avoid: "Panic Clouds", lumioQuote: "Find your orbit even when others drift." },
-      { id: 5, title: "Mirror Marks", gameplayMechanic: "collection", goal: "Collect Confidence Orbs", avoid: "Panic Clouds", lumioQuote: "The only reflection that matters is your own." },
+      { id: 1, title: "Greeting Run", gameplayMechanic: "pathfinding", goal: "Greet students and teachers while avoiding rude collisions.", avoid: "Ignoring people", lumioQuote: "A simple hello is the start of a great friendship." },
+      { id: 2, title: "Share Dash", gameplayMechanic: "collection", goal: "Quickly deliver requested items like pencils and books.", avoid: "Running out of time", lumioQuote: "Sharing makes the classroom brighter for everyone." },
+      { id: 3, title: "Team Task", gameplayMechanic: "survival", goal: "Help teammates and organize tasks to complete a project.", avoid: "Classroom chaos", lumioQuote: "Working together turns a hard task into a fun one." },
     ]
   },
   {
     id: 2,
-    title: "The Social Tide",
-    theme: "Friendship & Belonging",
+    title: "Emotions & Calm",
+    theme: "Emotional Regulation",
     color: "bg-secondary",
     gradient: "from-secondary to-background",
-    lumioIntro: "Navigating connection means learning how to float.",
+    lumioIntro: "Every feeling is valid. Let's learn to understand and embrace them.",
     levels: [
-      { id: 1, title: "Silent Waves", gameplayMechanic: "pathfinding", goal: "Navigate Trust Bridges", avoid: "Silent Waves", lumioQuote: "Silence is just water settling. Keep moving." },
-      { id: 2, title: "Echo Room", gameplayMechanic: "pathfinding", goal: "Navigate Trust Bridges", avoid: "Shadow Claims", lumioQuote: "Echoes fade. Your path remains solid." },
-      { id: 3, title: "Missing Seat", gameplayMechanic: "pathfinding", goal: "Navigate Trust Bridges", avoid: "Silent Waves", lumioQuote: "You don't need a seat when you can build a bridge." },
-      { id: 4, title: "Shadow Claim", gameplayMechanic: "pathfinding", goal: "Navigate Trust Bridges", avoid: "Shadow Claims", lumioQuote: "A shadow only exists because of your light." },
-      { id: 5, title: "Rush Current", gameplayMechanic: "pathfinding", goal: "Navigate Trust Bridges", avoid: "Silent Waves", lumioQuote: "Let the rush pass you by. You set the pace." },
+      { id: 1, title: "Emotion Pop", gameplayMechanic: "collection", goal: "Match emotion icons to clear levels.", avoid: "Unmatched emotions", lumioQuote: "Matching your feelings helps you understand them." },
+      { id: 2, title: "Noise Escape", gameplayMechanic: "pathfinding", goal: "Find calming tools before sensory overload happens.", avoid: "Loud noises", lumioQuote: "It's always okay to step away and find a quiet space." },
+      { id: 3, title: "Calm Room Builder", gameplayMechanic: "collection", goal: "Build a personalized calming space with sensory objects.", avoid: "Clutter", lumioQuote: "Your calm space is your safe space. Make it yours." },
     ]
   },
   {
     id: 3,
-    title: "Storm Within",
-    theme: "Conflict & Emotional Regulation",
+    title: "Real-Life Safety",
+    theme: "Safety & Boundaries",
     color: "bg-accent",
     gradient: "from-accent to-background",
-    lumioIntro: "The hardest battles are often inside us.",
+    lumioIntro: "The real world can be unpredictable, but you can always stay safe and in control.",
     levels: [
-      { id: 1, title: "Thunder Step", gameplayMechanic: "survival", goal: "Collect Calm Energy", avoid: "Emotional Spikes", lumioQuote: "Thunder is loud, but it passes quickly." },
-      { id: 2, title: "Pressure Loop", gameplayMechanic: "survival", goal: "Collect Calm Energy", avoid: "Emotional Spikes", lumioQuote: "Break the loop. Step into the calm." },
-      { id: 3, title: "Iron Voice", gameplayMechanic: "survival", goal: "Collect Calm Energy", avoid: "Emotional Spikes", lumioQuote: "You do not have to bend to iron." },
-      { id: 4, title: "Whisper Storm", gameplayMechanic: "survival", goal: "Collect Calm Energy", avoid: "Emotional Spikes", lumioQuote: "Whispers blow away like dry leaves." },
-      { id: 5, title: "Gentle Repair", gameplayMechanic: "survival", goal: "Collect Calm Energy", avoid: "Emotional Spikes", lumioQuote: "Every storm leaves fertile ground behind." },
+      { id: 1, title: "Safe Response", gameplayMechanic: "survival", goal: "Move away safely and reach a trusted adult.", avoid: "Escalating the situation", lumioQuote: "Walking away is sometimes the bravest thing you can do." },
+      { id: 2, title: "Party Control", gameplayMechanic: "survival", goal: "Balance conversations and take calming breaks at a party.", avoid: "Social overload", lumioQuote: "Taking a break doesn't mean the party is over." },
+      { id: 3, title: "Find My Parent", gameplayMechanic: "pathfinding", goal: "Navigate the mall safely to find the help desk.", avoid: "Unsafe strangers", lumioQuote: "When lost, always look for someone who can help." },
     ]
   }
 ];

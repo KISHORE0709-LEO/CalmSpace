@@ -45,10 +45,7 @@ const SocialPractice = () => {
   };
 
   return (
-    <AppShell
-      title={view === "onboarding" ? "" : "CalmQuest"}
-      subtitle={view === "onboarding" ? "" : "Interactive Social Confidence Journey"}
-    >
+    <AppShell title="" subtitle="">
       <div className="relative w-full">
 
         {view === "onboarding" && (

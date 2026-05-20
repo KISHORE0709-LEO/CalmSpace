@@ -11,53 +11,50 @@ export const CinematicWorldSelect = ({ onSelectWorld }: Props) => {
   const { progress } = useCalmQuestProgress();
 
   return (
-    <div className="w-full flex flex-col gap-8 pb-24">
+    <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8 pb-24 px-4 md:px-0 relative">
       {worlds.map((world, idx) => {
-        const isUnlocked = progress.unlockedWorlds.includes(world.id);
+        const isUnlocked = true; // Unlock all worlds as requested
         
         return (
           <div 
             key={world.id}
             onClick={() => isUnlocked && onSelectWorld(world)}
             className={cn(
-              "w-full relative rounded-[2rem] border-4 border-foreground overflow-hidden group transition-all duration-500",
-              isUnlocked ? "cursor-pointer bg-card shadow-pop hover:shadow-pop-lg hover:-translate-y-2" : "grayscale opacity-75 cursor-not-allowed bg-muted"
+              "w-full relative rounded-[2.5rem] border-4 border-foreground overflow-hidden group transition-all duration-500 flex flex-col h-full",
+              isUnlocked ? "cursor-pointer bg-card shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] hover:shadow-[16px_16px_0px_0px_rgba(0,0,0,1)] hover:-translate-y-3 hover:-translate-x-1" : "grayscale opacity-75 cursor-not-allowed bg-muted"
             )}
           >
-            {/* Background Atmosphere Gradient (Only on unlocked) */}
-            {isUnlocked && (
-               <div className={cn("absolute inset-0 opacity-20 group-hover:opacity-40 transition-opacity duration-700 bg-gradient-to-r blur-3xl", world.gradient)} />
-            )}
+            {/* Background Atmosphere Gradient */}
+            <div className={cn("absolute inset-0 opacity-30 group-hover:opacity-60 transition-opacity duration-700 bg-gradient-to-br blur-2xl", world.gradient)} />
+            
+            {/* Gaming decorative elements */}
+            <div className="absolute -top-6 -right-6 w-32 h-32 bg-foreground/5 rounded-full blur-xl group-hover:scale-150 transition-transform duration-700 pointer-events-none" />
 
-            <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+            <div className="relative z-10 p-6 md:p-8 flex flex-col flex-1 h-full">
                
-               {/* Left Content */}
+               {/* Top Content */}
                <div className="flex-1">
-                 <div className="flex items-center gap-4 mb-2">
-                   <div className="px-3 py-1 bg-foreground text-background text-xs font-black uppercase tracking-widest rounded-full">
+                 <div className="flex items-center justify-between mb-6">
+                   <div className="px-4 py-1.5 bg-foreground text-background text-sm font-black uppercase tracking-widest rounded-full shadow-pop-sm group-hover:scale-110 transition-transform origin-left">
                      World {idx + 1}
                    </div>
-                   {!isUnlocked && (
-                     <div className="flex items-center gap-1 text-muted-foreground text-sm font-bold">
-                       <Lock className="w-4 h-4" /> Locked
-                     </div>
-                   )}
                  </div>
                  
-                 <h2 className="text-3xl md:text-5xl font-black text-foreground tracking-tight mb-4">
+                 <h2 className="text-3xl md:text-4xl font-black text-foreground tracking-tight mb-4 group-hover:text-primary transition-colors">
                    {world.title}
                  </h2>
-                 <p className="text-lg text-muted-foreground font-medium max-w-xl">
+                 <p className="text-base text-muted-foreground font-semibold mb-6">
                    {world.lumioIntro}
                  </p>
                </div>
 
-               {/* Right Action */}
-               {isUnlocked && (
-                 <div className="shrink-0 w-16 h-16 md:w-20 md:h-20 bg-primary border-4 border-foreground rounded-full flex items-center justify-center shadow-pop group-hover:bg-foreground group-hover:text-background transition-colors duration-300">
-                   <ArrowRight className="w-8 h-8 md:w-10 md:h-10 transition-transform group-hover:translate-x-2" />
+               {/* Bottom Action */}
+               <div className="mt-auto flex justify-between items-end">
+                 <div className="text-4xl opacity-50 group-hover:opacity-100 group-hover:animate-bounce-slow transition-all">🌍</div>
+                 <div className="shrink-0 w-14 h-14 bg-primary border-4 border-foreground rounded-full flex items-center justify-center shadow-pop group-hover:bg-foreground group-hover:text-background group-hover:-rotate-12 group-hover:scale-110 transition-all duration-300">
+                   <ArrowRight className="w-6 h-6 transition-transform group-hover:translate-x-1" />
                  </div>
-               )}
+               </div>
             </div>
           </div>
         );
