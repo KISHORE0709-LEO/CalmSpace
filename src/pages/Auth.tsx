@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { PublicNav } from "@/components/PublicNav";
 import { Smile, Stethoscope, Heart, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -54,6 +54,19 @@ const floatingEmojis = [
 const Auth = () => {
   const [selectedRole, setSelectedRole] = useState<Role>(null);
   const [isLogin, setIsLogin] = useState(true);
+
+  const navigate = useNavigate();
+
+  const roleRedirect: Record<string, string> = {
+    child:  "/app/feelings",
+    parent: "/app/feelings",
+    doctor: "/app/feelings",
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (selectedRole) navigate(roleRedirect[selectedRole]);
+  };
 
   const roles = [
     {
@@ -146,7 +159,7 @@ const Auth = () => {
                     : "Join us and start exploring a calmer space."}
                 </p>
 
-                <form className="space-y-6" onSubmit={(e) => e.preventDefault()}>
+                <form className="space-y-6" onSubmit={handleSubmit}>
                   {!isLogin && (
                     <div className="space-y-3 text-left">
                       <label className="text-base font-bold ml-1">Full Name</label>
