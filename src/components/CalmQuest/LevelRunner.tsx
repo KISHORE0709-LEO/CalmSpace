@@ -3,6 +3,12 @@ import { worlds } from "@/lib/calmQuestData";
 import { EchoAcademyMechanic } from "./Engine/EchoAcademyMechanic";
 import { SocialTideMechanic } from "./Engine/SocialTideMechanic";
 import { StormWithinMechanic } from "./Engine/StormWithinMechanic";
+import { EmotionPop } from "./Games/EmotionPop";
+import { CalmControl } from "./Games/CalmControl";
+import { MyCalmSpace } from "./Games/MyCalmSpace";
+import { BullyBlock } from "./Games/BullyBlock";
+import { PeerPressurePanic } from "./Games/PeerPressurePanic";
+import { SafeStrangerQuest } from "./Games/SafeStrangerQuest";
 import { DynamicLumio } from "./DynamicLumio";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft, Play } from "lucide-react";
@@ -49,9 +55,62 @@ export const LevelRunner = ({ worldId, levelId, onBack, onLevelComplete }: Props
         </div>
       ) : (
         <div className="animate-fade-up w-full">
-          {level.gameplayMechanic === "collection" && <EchoAcademyMechanic level={level} onComplete={onLevelComplete} />}
-          {level.gameplayMechanic === "pathfinding" && <SocialTideMechanic level={level} onComplete={onLevelComplete} />}
-          {level.gameplayMechanic === "survival" && <StormWithinMechanic level={level} onComplete={onLevelComplete} />}
+          {worldId === 2 && levelId === 1 && (
+            <EmotionPop 
+              onComplete={(score) => {
+                const stars = score > 1500 ? 3 : score > 800 ? 2 : 1;
+                onLevelComplete(stars, Math.floor(score / 10) || 50);
+              }} 
+            />
+          )}
+          {worldId === 2 && levelId === 2 && (
+            <CalmControl 
+              onComplete={(score) => {
+                const stars = score > 800 ? 3 : score > 500 ? 2 : 1;
+                onLevelComplete(stars, Math.floor(score / 10) || 50);
+              }} 
+            />
+          )}
+          {worldId === 2 && levelId === 3 && (
+            <MyCalmSpace 
+              onComplete={(score) => {
+                const stars = score >= 100 ? 3 : score >= 70 ? 2 : 1;
+                onLevelComplete(stars, score);
+              }} 
+            />
+          )}
+          {worldId === 3 && levelId === 1 && (
+            <BullyBlock 
+              onComplete={(score) => {
+                const stars = score >= 80 ? 3 : score >= 50 ? 2 : 1;
+                onLevelComplete(stars, score);
+              }} 
+            />
+          )}
+          {worldId === 3 && levelId === 2 && (
+            <PeerPressurePanic 
+              onComplete={(score) => {
+                const stars = score >= 70 ? 3 : score >= 40 ? 2 : 1;
+                onLevelComplete(stars, score);
+              }} 
+            />
+          )}
+          {worldId === 3 && levelId === 3 && (
+            <SafeStrangerQuest 
+              onComplete={(score) => {
+                const stars = score >= 70 ? 3 : score >= 40 ? 2 : 1;
+                onLevelComplete(stars, score);
+              }} 
+            />
+          )}
+          
+          {worldId !== 2 && worldId !== 3 && (
+            <>
+              {level.gameplayMechanic === "collection" && <EchoAcademyMechanic level={level} onComplete={onLevelComplete} />}
+              {level.gameplayMechanic === "pathfinding" && <SocialTideMechanic level={level} onComplete={onLevelComplete} />}
+              {level.gameplayMechanic === "survival" && <StormWithinMechanic level={level} onComplete={onLevelComplete} />}
+            </>
+          )}
         </div>
       )}
     </div>
