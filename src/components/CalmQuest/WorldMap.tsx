@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { worlds } from "@/lib/calmQuestData";
+import { worlds, CinematicLevelData } from "@/lib/calmQuestData";
 import { useCalmQuestProgress } from "@/hooks/useCalmQuestProgress";
 import { Lock, Star, Play, Gamepad2, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -54,7 +54,7 @@ const MobileConnector = ({ fromSide }: { fromSide: "left" | "right" }) => {
   );
 };
 
-const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLevel, stats }: { level: any, isLocked: boolean, isNextLevel: boolean, isLevelCompleted: boolean, onSelectLevel: (w: number, l: number) => void, stats?: { stars: number, highScore: number } }) => {
+const LevelCard = ({ level, isLocked, isNextLevel, isLevelCompleted, onSelectLevel, stats }: { level: CinematicLevelData, isLocked: boolean, isNextLevel: boolean, isLevelCompleted: boolean, onSelectLevel: (w: number, l: number) => void, stats?: { stars: number, highScore: number } }) => {
   const { ref, inView } = useInView(0.1);
   const delay = (level.id - 1) * 150;
 
