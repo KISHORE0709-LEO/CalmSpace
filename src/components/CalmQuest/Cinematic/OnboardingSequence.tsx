@@ -8,31 +8,31 @@ interface Props {
 }
 
 const leftItems = [
-  { icon: Gamepad2,      top: "8vh",  left: "1vw",  bg: "bg-primary",   color: "text-primary-foreground",   delay: "0s",   size: 52, anim: "animate-float" },
-  { icon: Zap,           top: "16vh", left: "10vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.5s", size: 40, anim: "animate-bounce-slow" },
-  { icon: Heart,         top: "24vh", left: "3vw",  bg: "bg-primary",   color: "text-primary-foreground",   delay: "0.3s", size: 44, anim: "animate-pulse-soft" },
-  { icon: Target,        top: "32vh", left: "12vw", bg: "bg-accent",    color: "text-accent-foreground",    delay: "0.8s", size: 40, anim: "animate-float-slow" },
-  { icon: Flame,         top: "40vh", left: "2vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.6s", size: 42, anim: "animate-float-delay" },
-  { icon: MessageCircle, top: "48vh", left: "11vw", bg: "bg-primary",   color: "text-primary-foreground",   delay: "1s",   size: 44, anim: "animate-bounce-slow" },
-  { icon: Sparkles,      top: "56vh", left: "1vw",  bg: "bg-accent",    color: "text-accent-foreground",    delay: "0.4s", size: 38, anim: "animate-float" },
-  { icon: Star,          top: "64vh", left: "9vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "1.2s", size: 42, anim: "animate-float-slow" },
-  { icon: Brain,         top: "72vh", left: "3vw",  bg: "bg-primary",   color: "text-primary-foreground",   delay: "0.7s", size: 40, anim: "animate-bounce-slow" },
-  { icon: Award,         top: "80vh", left: "13vw", bg: "bg-accent",    color: "text-accent-foreground",    delay: "0.9s", size: 44, anim: "animate-float-delay" },
-  { icon: Users,         top: "88vh", left: "2vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "1.4s", size: 38, anim: "animate-pulse-soft" },
+  { icon: Gamepad2, top: "8vh", left: "1vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0s", size: 52, anim: "animate-float" },
+  { icon: Zap, top: "16vh", left: "10vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.5s", size: 40, anim: "animate-bounce-slow" },
+  { icon: Heart, top: "24vh", left: "3vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0.3s", size: 44, anim: "animate-pulse-soft" },
+  { icon: Target, top: "32vh", left: "12vw", bg: "bg-accent", color: "text-accent-foreground", delay: "0.8s", size: 40, anim: "animate-float-slow" },
+  { icon: Flame, top: "40vh", left: "2vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.6s", size: 42, anim: "animate-float-delay" },
+  { icon: MessageCircle, top: "48vh", left: "11vw", bg: "bg-primary", color: "text-primary-foreground", delay: "1s", size: 44, anim: "animate-bounce-slow" },
+  { icon: Sparkles, top: "56vh", left: "1vw", bg: "bg-accent", color: "text-accent-foreground", delay: "0.4s", size: 38, anim: "animate-float" },
+  { icon: Star, top: "64vh", left: "9vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "1.2s", size: 42, anim: "animate-float-slow" },
+  { icon: Brain, top: "72vh", left: "3vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0.7s", size: 40, anim: "animate-bounce-slow" },
+  { icon: Award, top: "80vh", left: "13vw", bg: "bg-accent", color: "text-accent-foreground", delay: "0.9s", size: 44, anim: "animate-float-delay" },
+  { icon: Users, top: "88vh", left: "2vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "1.4s", size: 38, anim: "animate-pulse-soft" },
 ];
 
 const rightItems = [
-  { icon: Trophy,        top: "8vh",  right: "2vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.4s", size: 48, anim: "animate-float-delay" },
-  { icon: Shield,        top: "16vh", right: "11vw", bg: "bg-primary",   color: "text-primary-foreground",   delay: "0.9s", size: 44, anim: "animate-float-slow" },
-  { icon: Star,          top: "24vh", right: "1vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.2s", size: 46, anim: "animate-spin-slow" },
-  { icon: Users,         top: "32vh", right: "10vw", bg: "bg-accent",    color: "text-accent-foreground",    delay: "0.7s", size: 44, anim: "animate-bounce-slow" },
-  { icon: Award,         top: "40vh", right: "2vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "1.1s", size: 46, anim: "animate-float-slow" },
-  { icon: Zap,           top: "48vh", right: "12vw", bg: "bg-primary",   color: "text-primary-foreground",   delay: "0.5s", size: 40, anim: "animate-float" },
-  { icon: Heart,         top: "56vh", right: "1vw",  bg: "bg-accent",    color: "text-accent-foreground",    delay: "1.3s", size: 44, anim: "animate-float-delay" },
-  { icon: Gamepad2,      top: "64vh", right: "9vw",  bg: "bg-primary",   color: "text-primary-foreground",   delay: "0.6s", size: 42, anim: "animate-bounce-slow" },
-  { icon: Flame,         top: "72vh", right: "2vw",  bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.8s", size: 40, anim: "animate-float-slow" },
-  { icon: Brain,         top: "80vh", right: "11vw", bg: "bg-accent",    color: "text-accent-foreground",    delay: "1.5s", size: 44, anim: "animate-float" },
-  { icon: Sparkles,      top: "88vh", right: "3vw",  bg: "bg-primary",   color: "text-primary-foreground",   delay: "0.3s", size: 38, anim: "animate-pulse-soft" },
+  { icon: Trophy, top: "8vh", right: "2vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.4s", size: 48, anim: "animate-float-delay" },
+  { icon: Shield, top: "16vh", right: "11vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0.9s", size: 44, anim: "animate-float-slow" },
+  { icon: Star, top: "24vh", right: "1vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.2s", size: 46, anim: "animate-spin-slow" },
+  { icon: Users, top: "32vh", right: "10vw", bg: "bg-accent", color: "text-accent-foreground", delay: "0.7s", size: 44, anim: "animate-bounce-slow" },
+  { icon: Award, top: "40vh", right: "2vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "1.1s", size: 46, anim: "animate-float-slow" },
+  { icon: Zap, top: "48vh", right: "12vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0.5s", size: 40, anim: "animate-float" },
+  { icon: Heart, top: "56vh", right: "1vw", bg: "bg-accent", color: "text-accent-foreground", delay: "1.3s", size: 44, anim: "animate-float-delay" },
+  { icon: Gamepad2, top: "64vh", right: "9vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0.6s", size: 42, anim: "animate-bounce-slow" },
+  { icon: Flame, top: "72vh", right: "2vw", bg: "bg-secondary", color: "text-secondary-foreground", delay: "0.8s", size: 40, anim: "animate-float-slow" },
+  { icon: Brain, top: "80vh", right: "11vw", bg: "bg-accent", color: "text-accent-foreground", delay: "1.5s", size: 44, anim: "animate-float" },
+  { icon: Sparkles, top: "88vh", right: "3vw", bg: "bg-primary", color: "text-primary-foreground", delay: "0.3s", size: 38, anim: "animate-pulse-soft" },
 ];
 
 const FloatingElements = () => (
@@ -97,7 +97,7 @@ export const OnboardingSequence = ({ onComplete }: Props) => {
 
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed w-full">
             Every level you complete earns <span className="text-secondary font-black">stars and XP</span>. There are no wrong answers here — only learning moments. CalmSpace is a{" "}
-            <span className="text-primary font-black">judgment-free zone</span> where every child is celebrated for showing up.
+            <span className="text-primary font-black">judgment-free zone</span> where every child is celebrated for showing up further.
           </p>
 
           <Button
