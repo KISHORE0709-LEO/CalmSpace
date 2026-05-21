@@ -1,533 +1,517 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Button } from "@/components/ui/button";
-import { Sparkles, Heart, Volume2, Music, CheckCircle2, Star, Disc } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CheckCircle2, Sparkles, Star } from "lucide-react";
 
 interface CalmControlProps {
   onComplete?: (score: number) => void;
 }
 
-type TabType = 'breath' | 'fidget' | 'sound';
-type BreathPhase = 'Inhale' | 'Hold' | 'Exhale' | 'Rest';
+type Step = 0 | 1 | 2; // 0=breathing, 1=fidget, 2=sound
 
-export const CalmControl = ({ onComplete }: CalmControlProps) => {
-  const [activeTab, setActiveTab] = useState<TabType>('breath');
-  const [harmony, setHarmony] = useState(20); // starts low, aim for 100
-  const [isWin, setIsWin] = useState(false);
-  const [autoReturn, setAutoReturn] = useState<number | null>(null);
+// ─── Step 1: Breathing ───────────────────────────────────────────────────────
+const BREATH_CYCLES = 3; // complete 3 full cycles to finish
 
-  // 🌬️ Guided Breathing States
-  const [breathPhase, setBreathPhase] = useState<BreathPhase>('Inhale');
-  const [breathProgress, setBreathProgress] = useState(0); // 0 to 100 for current phase
-  const [isBreathingHeld, setIsBreathingHeld] = useState(false); // true if holding pointer down
+type BreathPhase = 'inhale' | 'hold' | 'exhale' | 'rest';
+const PHASE_DURATION: Record<BreathPhase, number> = {
+  inhale: 4000,
+  hold:   2000,
+  exhale: 4000,
+  rest:   1500,
+};
+const PHASE_ORDER: BreathPhase[] = ['inhale', 'hold', 'exhale', 'rest'];
+const PHASE_LABEL: Record<BreathPhase, string> = {
+  inhale: 'Breathe IN 🌬️',
+  hold:   'Hold... ✋',
+  exhale: 'Breathe OUT 😮‍💨',
+  rest:   'Rest 😌',
+};
+const PHASE_COLOR: Record<BreathPhase, string> = {
+  inhale: 'from-teal-400 to-emerald-500',
+  hold:   'from-blue-400 to-indigo-500',
+  exhale: 'from-purple-400 to-pink-500',
+  rest:   'from-amber-300 to-orange-400',
+};
+const PHASE_SCALE: Record<BreathPhase, number> = {
+  inhale: 1.35,
+  hold:   1.35,
+  exhale: 0.85,
+  rest:   0.85,
+};
 
-  // 🪀 Pop-It Board States
-  const [poppedBubbles, setPoppedBubbles] = useState<boolean[]>(Array(12).fill(false));
-  const [bubblesSquash, setBubblesSquash] = useState<number[]>(Array(12).fill(1)); // scale multiplier
-  const [popCount, setPopCount] = useState(0);
+function BreathingStep({ onDone }: { onDone: () => void }) {
+  const [phaseIdx, setPhaseIdx] = useState(0);
+  const [progress, setProgress] = useState(0); // 0–100 within current phase
+  const [cycles, setCycles] = useState(0);
+  const phase = PHASE_ORDER[phaseIdx];
+  const duration = PHASE_DURATION[phase];
 
-  // 🎧 Sound Mixer States
-  const [soundVolumes, setSoundVolumes] = useState({
-    rain: 30,
-    forest: 20,
-    chimes: 40
-  });
-
-  // Floating Sparkle particles generated on user interaction
-  const [fidgetParticles, setFidgetParticles] = useState<{ id: number; x: number; y: number; color: string; scale: number; vy: number }[]>([]);
-
-  // Soundscape ambient noise level (decreases as user boosts volumes and pops)
-  const ambientOverloadLevel = Math.max(0, 100 - harmony);
-
-  // Win condition checker
   useEffect(() => {
-    if (harmony >= 100 && !isWin) {
-      setIsWin(true);
-      setAutoReturn(5);
-    }
-  }, [harmony, isWin]);
-
-  // Auto Return countdown
-  useEffect(() => {
-    if (autoReturn === null) return;
-    if (autoReturn <= 0) {
-      if (onComplete) onComplete(100);
-      return;
-    }
-    const timer = setTimeout(() => setAutoReturn(autoReturn - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [autoReturn, onComplete]);
-
-  // Breathing Guide Loop
-  useEffect(() => {
-    if (isWin) return;
+    const start = Date.now();
     const interval = setInterval(() => {
-      setBreathProgress(prev => {
-        if (prev >= 100) {
-          // Transition phase
-          setBreathPhase(current => {
-            if (current === 'Inhale') return 'Hold';
-            if (current === 'Hold') return 'Exhale';
-            if (current === 'Exhale') return 'Rest';
-            return 'Inhale';
+      const elapsed = Date.now() - start;
+      const pct = Math.min(100, (elapsed / duration) * 100);
+      setProgress(pct);
+      if (pct >= 100) {
+        clearInterval(interval);
+        const nextIdx = (phaseIdx + 1) % PHASE_ORDER.length;
+        setPhaseIdx(nextIdx);
+        setProgress(0);
+        if (nextIdx === 0) {
+          setCycles(c => {
+            const next = c + 1;
+            if (next >= BREATH_CYCLES) setTimeout(onDone, 600);
+            return next;
           });
-          return 0;
         }
-
-        // Increase harmony if they are actively holding/breathed in sync
-        const isCorrectInteraction = 
-          (breathPhase === 'Inhale' && isBreathingHeld) ||
-          (breathPhase === 'Hold' && isBreathingHeld) ||
-          (breathPhase === 'Exhale' && !isBreathingHeld) ||
-          (breathPhase === 'Rest' && !isBreathingHeld);
-
-        if (isCorrectInteraction) {
-          setHarmony(h => Math.min(100, h + 0.35));
-        }
-
-        return prev + 2.5; // step increment
-      });
-    }, 100);
-
+      }
+    }, 50);
     return () => clearInterval(interval);
-  }, [breathPhase, isBreathingHeld, isWin]);
+  }, [phaseIdx, duration, onDone]);
 
-  // Fidget particles physics update
+  const scale = PHASE_SCALE[phase];
+  const cycleProgress = Math.round(((cycles / BREATH_CYCLES) + (phaseIdx / (PHASE_ORDER.length * BREATH_CYCLES))) * 100);
+
+  return (
+    <div className="flex flex-col items-center gap-6 w-full">
+      <div className="text-center">
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Step 1 of 3 — Breathing</p>
+        <h3 className="text-2xl font-black text-foreground">Follow the circle</h3>
+        <p className="text-sm text-muted-foreground mt-1">Just watch and breathe along. No tapping needed!</p>
+      </div>
+
+      {/* Animated breathing circle */}
+      <div className="relative flex items-center justify-center w-52 h-52">
+        {/* Ripple rings */}
+        {phase === 'inhale' && (
+          <>
+            <div className="absolute w-52 h-52 rounded-full border-4 border-teal-300/30 animate-ping" style={{ animationDuration: '2s' }} />
+            <div className="absolute w-44 h-44 rounded-full border-2 border-teal-300/20 animate-ping" style={{ animationDuration: '2.5s' }} />
+          </>
+        )}
+        <div
+          className={cn("w-36 h-36 rounded-full bg-gradient-to-br flex flex-col items-center justify-center text-white shadow-2xl transition-all", PHASE_COLOR[phase])}
+          style={{ transform: `scale(${scale})`, transition: `transform ${duration}ms ease-in-out` }}
+        >
+          <span className="text-3xl mb-1">
+            {phase === 'inhale' ? '🌬️' : phase === 'hold' ? '✋' : phase === 'exhale' ? '😮‍💨' : '😌'}
+          </span>
+          <span className="text-sm font-black tracking-tight">{PHASE_LABEL[phase]}</span>
+        </div>
+      </div>
+
+      {/* Phase progress bar */}
+      <div className="w-full max-w-xs space-y-1">
+        <div className="flex justify-between text-xs font-black text-muted-foreground">
+          <span>{PHASE_LABEL[phase]}</span>
+          <span>{cycles}/{BREATH_CYCLES} cycles</span>
+        </div>
+        <div className="w-full h-3 bg-muted rounded-full border-2 border-foreground overflow-hidden">
+          <div className="h-full bg-teal-400 rounded-full transition-all duration-100" style={{ width: `${progress}%` }} />
+        </div>
+      </div>
+
+      {/* Overall progress */}
+      <div className="w-full max-w-xs space-y-1">
+        <div className="text-xs font-black text-muted-foreground text-center">Overall progress</div>
+        <div className="w-full h-4 bg-muted rounded-full border-2 border-foreground overflow-hidden">
+          <div className="h-full bg-emerald-400 rounded-full transition-all duration-500" style={{ width: `${Math.min(99, cycleProgress)}%` }} />
+        </div>
+      </div>
+
+      <div className="bg-primary/5 border-2 border-foreground/10 rounded-2xl px-5 py-3 max-w-xs text-center">
+        <p className="text-sm font-semibold text-muted-foreground">
+          Slow breathing calms your nervous system and reduces stress 💙
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Step 2: Fidget Pop-It ────────────────────────────────────────────────────
+const TOTAL_BUBBLES = 16;
+const POPS_NEEDED = 16;
+
+function FidgetStep({ onDone }: { onDone: () => void }) {
+  const [popped, setPopped] = useState<boolean[]>(Array(TOTAL_BUBBLES).fill(false));
+  const popCount = popped.filter(Boolean).length;
+
   useEffect(() => {
-    if (fidgetParticles.length === 0) return;
-    const timer = setInterval(() => {
-      setFidgetParticles(prev =>
-        prev
-          .map(p => ({
-            ...p,
-            y: p.y + p.vy,
-            vy: p.vy + 0.12, // gravity
-            scale: Math.max(0, p.scale - 0.02)
-          }))
-          .filter(p => p.scale > 0)
-      );
-    }, 20);
-    return () => clearInterval(timer);
-  }, [fidgetParticles]);
+    if (popCount >= POPS_NEEDED) setTimeout(onDone, 700);
+  }, [popCount, onDone]);
 
-  // Handle bubble pop
-  const handlePop = (index: number, e: React.MouseEvent) => {
-    if (isWin) return;
-    
-    // Trigger squash scale animation
-    setBubblesSquash(prev => {
-      const copy = [...prev];
-      copy[index] = 0.5;
-      return copy;
-    });
-
-    setTimeout(() => {
-      setBubblesSquash(prev => {
-        const copy = [...prev];
-        copy[index] = 1.15; // spring bounce
-        return copy;
-      });
-      setTimeout(() => {
-        setBubblesSquash(prev => {
-          const copy = [...prev];
-          copy[index] = 1.0;
-          return copy;
-        });
-      }, 150);
-    }, 80);
-
-    setPoppedBubbles(prev => {
-      const copy = [...prev];
-      copy[index] = !copy[index];
-      return copy;
-    });
-
-    setPopCount(c => c + 1);
-    setHarmony(h => Math.min(100, h + 2.5));
-
-    // Spawn sparkles at pointer position
-    const rect = e.currentTarget.getBoundingClientRect();
-    const parentRect = e.currentTarget.parentElement?.getBoundingClientRect();
-    if (parentRect) {
-      const x = rect.left - parentRect.left + rect.width / 2;
-      const y = rect.top - parentRect.top;
-      
-      const colors = ['#f87171', '#60a5fa', '#34d399', '#fbbf24', '#c084fc'];
-      const newParticles = Array.from({ length: 5 }).map((_, idx) => ({
-        id: Date.now() + idx + Math.random(),
-        x: x + (Math.random() - 0.5) * 20,
-        y: y,
-        color: colors[Math.floor(Math.random() * colors.length)],
-        scale: 1,
-        vy: -1.5 - Math.random() * 2
-      }));
-      setFidgetParticles(prev => [...prev, ...newParticles]);
-    }
-  };
-
-  const resetPopIt = () => {
-    setPoppedBubbles(Array(12).fill(false));
-  };
-
-  // Handle mixer adjustment
-  const handleVolumeChange = (type: 'rain' | 'forest' | 'chimes', val: number) => {
-    if (isWin) return;
-    setSoundVolumes(prev => {
-      const next = { ...prev, [type]: val };
-      // Harmony increases based on total relaxing sounds added (ideal levels)
-      const avgVolume = (next.rain + next.forest + next.chimes) / 3;
-      setHarmony(h => Math.min(100, Math.max(20, Math.floor(avgVolume + 15))));
-      return next;
-    });
-  };
-
-  // Get Phase instruction text
-  const getBreathInstruction = () => {
-    switch (breathPhase) {
-      case 'Inhale': return 'Press and hold down to breathe in...';
-      case 'Hold': return 'Keep holding your finger down and pause...';
-      case 'Exhale': return 'Release your touch and let it out...';
-      case 'Rest': return 'Rest and relax before the next cycle...';
-    }
-  };
-
-  const getBreathColor = () => {
-    switch (breathPhase) {
-      case 'Inhale': return 'from-emerald-400 to-teal-500 shadow-teal-500/35';
-      case 'Hold': return 'from-blue-400 to-indigo-500 shadow-indigo-500/35';
-      case 'Exhale': return 'from-purple-400 to-pink-500 shadow-pink-500/35';
-      case 'Rest': return 'from-amber-400 to-orange-500 shadow-orange-500/35';
-    }
+  const handlePop = (i: number) => {
+    if (popped[i]) return;
+    setPopped(prev => { const n = [...prev]; n[i] = true; return n; });
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto flex flex-col items-center">
-      {/* Visual keyframe animation helper */}
-      <style>{`
-        @keyframes ripple-calm {
-          0% { transform: scale(0.85); opacity: 0.75; }
-          100% { transform: scale(1.6); opacity: 0; }
-        }
-        .animate-ripple-calm {
-          animation: ripple-calm 4s infinite ease-out;
-        }
-        @keyframes slow-background-pulse {
-          0%, 100% { opacity: 0.15; }
-          50% { opacity: 0.35; }
-        }
-        .animate-bg-pulse {
-          animation: slow-background-pulse 6s infinite ease-in-out;
-        }
-      `}</style>
+    <div className="flex flex-col items-center gap-6 w-full">
+      <div className="text-center">
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Step 2 of 3 — Fidget</p>
+        <h3 className="text-2xl font-black text-foreground">Pop all the bubbles! 🫧</h3>
+        <p className="text-sm text-muted-foreground mt-1">Tap every bubble to pop it. Feel the satisfying release!</p>
+      </div>
 
-      {/* Dynamic Background visual: shifts from red/noisy gradient to starry indigo night based on harmony */}
-      <div 
-        className="absolute inset-0 -z-10 transition-all duration-1000"
-        style={{
-          background: `linear-gradient(135deg, 
-            rgba(${Math.floor(239 - (harmony * 1.8))}, ${Math.floor(68 + (harmony * 1.5))}, ${Math.floor(68 + (harmony * 1.8))}, 0.15) 0%, 
-            rgba(${Math.floor(99 - (harmony * 0.5))}, ${Math.floor(102 + (harmony * 0.8))}, ${Math.floor(241 + (harmony * 0.1))}, 0.15) 100%)`
-        }}
-      />
+      {/* Pop-it grid */}
+      <div className="grid grid-cols-4 gap-3 bg-muted/40 border-4 border-foreground rounded-[2rem] p-5 shadow-inner">
+        {popped.map((isPop, i) => (
+          <button
+            key={i}
+            onClick={() => handlePop(i)}
+            className={cn(
+              "w-14 h-14 rounded-full border-4 border-foreground flex items-center justify-center text-2xl transition-all duration-150 active:scale-90 select-none",
+              isPop
+                ? "bg-emerald-300 shadow-inner scale-95 border-emerald-500"
+                : "bg-gradient-to-br from-pink-400 to-rose-500 shadow-pop-sm hover:-translate-y-1 hover:shadow-pop"
+            )}
+          >
+            {isPop ? '✅' : '🔴'}
+          </button>
+        ))}
+      </div>
 
-      {/* Top HUD: Ambient Noise vs Cozy Harmony level */}
-      <div className="w-full bg-card/90 backdrop-blur-md border-[5px] border-foreground rounded-[2rem] p-5 sm:p-6 shadow-pop mb-6 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div className="flex flex-col text-center md:text-left">
-          <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1 flex items-center justify-center md:justify-start gap-1">
-            <Volume2 className="w-4 h-4 text-primary animate-pulse" /> Environmental Overload
-          </span>
-          <div className="flex items-baseline gap-1 justify-center md:justify-start">
-            <span className={cn(
-              "text-3xl font-black tabular-nums transition-colors duration-300",
-              ambientOverloadLevel > 50 ? "text-red-500" : "text-emerald-500"
-            )}>
-              {Math.round(ambientOverloadLevel)}%
-            </span>
-            <span className="text-xs text-muted-foreground font-black uppercase">Volume</span>
-          </div>
+      {/* Progress */}
+      <div className="w-full max-w-xs space-y-1">
+        <div className="flex justify-between text-sm font-black text-muted-foreground">
+          <span>Popped</span><span>{popCount} / {POPS_NEEDED}</span>
         </div>
-
-        <div className="flex-1 max-w-sm w-full mx-4">
-          <div className="text-xs font-black text-muted-foreground uppercase text-center mb-1 flex items-center justify-center gap-1.5">
-            <Heart className="w-3.5 h-3.5 fill-red-400 text-red-400 animate-pulse" /> Sensory Balance Progress
-          </div>
-          <div className="w-full h-4 bg-muted rounded-full overflow-hidden border-2 border-foreground relative shadow-inner">
-            <div 
-              className="h-full bg-gradient-to-r from-teal-400 via-primary to-emerald-400 transition-all duration-500 ease-out"
-              style={{ width: `${harmony}%` }}
-            />
-          </div>
-        </div>
-
-        <div className="flex flex-col items-center md:items-end">
-          <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">Cozy Rating</span>
-          <span className="text-3xl font-black text-foreground">{Math.round(harmony)} / 100</span>
+        <div className="w-full h-4 bg-muted rounded-full border-2 border-foreground overflow-hidden">
+          <div className="h-full bg-pink-400 rounded-full transition-all duration-300" style={{ width: `${(popCount / POPS_NEEDED) * 100}%` }} />
         </div>
       </div>
 
-      {/* Core Game Container */}
-      <div className="w-full bg-card border-[6px] border-foreground rounded-[2.5rem] p-6 lg:p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden flex flex-col md:flex-row gap-6">
-        
-        {/* Left Side: Coping Strategies Tab Navigation */}
-        <div className="w-full md:w-[220px] shrink-0 flex flex-row md:flex-col gap-2">
-          <button
-            onClick={() => setActiveTab('breath')}
-            className={cn(
-              "flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-2xl border-2 border-foreground font-black text-sm transition-all hover:-translate-y-0.5",
-              activeTab === 'breath' ? "bg-primary text-primary-foreground shadow-pop-sm" : "bg-background hover:bg-muted"
-            )}
-          >
-            <span>🌬️</span> Breathing Anchor
-          </button>
-          <button
-            onClick={() => setActiveTab('fidget')}
-            className={cn(
-              "flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-2xl border-2 border-foreground font-black text-sm transition-all hover:-translate-y-0.5",
-              activeTab === 'fidget' ? "bg-primary text-primary-foreground shadow-pop-sm" : "bg-background hover:bg-muted"
-            )}
-          >
-            <span>🪀</span> Tactile Fidget Pop
-          </button>
-          <button
-            onClick={() => setActiveTab('sound')}
-            className={cn(
-              "flex-1 md:flex-none flex items-center justify-center md:justify-start gap-3 px-4 py-3 rounded-2xl border-2 border-foreground font-black text-sm transition-all hover:-translate-y-0.5",
-              activeTab === 'sound' ? "bg-primary text-primary-foreground shadow-pop-sm" : "bg-background hover:bg-muted"
-            )}
-          >
-            <span>🎧</span> Soundscape Mixer
-          </button>
-        </div>
+      <div className="bg-primary/5 border-2 border-foreground/10 rounded-2xl px-5 py-3 max-w-xs text-center">
+        <p className="text-sm font-semibold text-muted-foreground">
+          Stimming like popping helps discharge nervous energy and refocus 🧠
+        </p>
+      </div>
+    </div>
+  );
+}
 
-        {/* Right Side: Coping Playground Area */}
-        <div className="flex-1 bg-background/50 border-4 border-foreground rounded-2xl p-6 min-h-[350px] flex flex-col items-center justify-center relative overflow-hidden">
-          
-          {/* TAB 1: Breathing Guided Circle */}
-          {activeTab === 'breath' && (
-            <div className="flex flex-col items-center w-full select-none text-center">
-              {/* Expanding Ripple Circles */}
-              <div className="relative w-48 h-48 flex items-center justify-center mb-6">
-                {/* Floating Ripple Aura */}
-                <div 
-                  className={cn(
-                    "absolute w-44 h-44 rounded-full border-4 border-dashed border-primary/20",
-                    isBreathingHeld && "animate-spin-slow"
-                  )} 
-                />
-                
-                {/* The main pulsing breathing ball */}
-                <div 
-                  onPointerDown={() => setIsBreathingHeld(true)}
-                  onPointerUp={() => setIsBreathingHeld(false)}
-                  onPointerLeave={() => setIsBreathingHeld(false)}
-                  className={cn(
-                    "w-36 h-36 rounded-full bg-gradient-to-br flex flex-col items-center justify-center text-white border-4 border-foreground cursor-pointer shadow-pop transition-all duration-300 transform ease-in-out active:scale-95 touch-none relative z-10",
-                    getBreathColor()
-                  )}
-                  style={{
-                    transform: `scale(${1 + (breathProgress / 300)})`
-                  }}
-                >
-                  <span className="text-xs font-black uppercase tracking-widest opacity-60">Phase</span>
-                  <span className="text-xl font-black tracking-tight">{breathPhase}</span>
-                  <span className="text-[10px] font-bold mt-1 opacity-70">
-                    {isBreathingHeld ? "HOLDING" : "TAP & HOLD"}
-                  </span>
+// ─── Step 3: Sound Mixer (real Web Audio) ────────────────────────────────────
+const SOUND_DEFS = [
+  { key: 'rain',   emoji: '🌧️', label: 'Rain',        color: '#60a5fa', ideal: 50 },
+  { key: 'forest', emoji: '🌲', label: 'Forest Birds', color: '#34d399', ideal: 50 },
+  { key: 'chimes', emoji: '🎐', label: 'Wind Chimes',  color: '#c084fc', ideal: 40 },
+] as const;
 
-                  {/* Circular progress overlay ring */}
-                  <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none">
-                    <circle 
-                      cx="72" cy="72" r="66" 
-                      stroke="rgba(255,255,255,0.25)" strokeWidth="4" fill="transparent" 
-                    />
-                    <circle 
-                      cx="72" cy="72" r="66" 
-                      stroke="white" strokeWidth="4" fill="transparent" 
-                      strokeDasharray={414}
-                      strokeDashoffset={414 - (414 * breathProgress) / 100}
-                    />
-                  </svg>
-                </div>
-              </div>
+type SoundKey = 'rain' | 'forest' | 'chimes';
 
-              <h4 className="text-lg font-black text-foreground mb-2">
-                {getBreathInstruction()}
-              </h4>
-              <p className="text-xs text-muted-foreground font-semibold max-w-sm leading-relaxed">
-                Paced breathing triggers your parasympathetic nervous system, lowering stress signals and calming sensory overload.
-              </p>
-            </div>
-          )}
+// Build rain: white noise through a bandpass filter
+function buildRain(ctx: AudioContext) {
+  const bufSize = ctx.sampleRate * 2;
+  const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+  const data = buf.getChannelData(0);
+  for (let i = 0; i < bufSize; i++) data[i] = Math.random() * 2 - 1;
+  const src = ctx.createBufferSource();
+  src.buffer = buf;
+  src.loop = true;
+  const filter = ctx.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = 1200;
+  filter.Q.value = 0.4;
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  src.connect(filter);
+  filter.connect(gain);
+  gain.connect(ctx.destination);
+  src.start();
+  return gain;
+}
 
-          {/* TAB 2: Tactile Pop-It board */}
-          {activeTab === 'fidget' && (
-            <div className="flex flex-col items-center w-full select-none">
-              <h4 className="text-base font-black text-foreground mb-4 flex items-center gap-1.5">
-                Satisfying Fidget Pop <Sparkles className="w-4 h-4 text-yellow-500 animate-spin-slow" />
-              </h4>
+// Build forest: random short sine bursts (bird chirps)
+function buildForest(ctx: AudioContext) {
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  gain.connect(ctx.destination);
+  let stopped = false;
+  const chirp = () => {
+    if (stopped) return;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = 1200 + Math.random() * 1400;
+    g.gain.setValueAtTime(0, ctx.currentTime);
+    g.gain.linearRampToValueAtTime(0.18, ctx.currentTime + 0.04);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.connect(g);
+    g.connect(gain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.3);
+    setTimeout(chirp, 300 + Math.random() * 900);
+  };
+  chirp();
+  return { gain, stop: () => { stopped = true; } };
+}
 
-              {/* Fidget Popping Board */}
-              <div className="grid grid-cols-4 gap-3 bg-muted/60 border-4 border-foreground rounded-[2rem] p-5 shadow-inner relative max-w-xs w-full">
-                {poppedBubbles.map((isPopped, idx) => (
-                  <button
-                    key={idx}
-                    onClick={(e) => handlePop(idx, e)}
-                    style={{
-                      transform: `scale(${bubblesSquash[idx]})`
-                    }}
-                    className={cn(
-                      "aspect-square rounded-full border-4 border-foreground shadow-pop-sm flex items-center justify-center transition-all duration-100 ease-out active:scale-90 relative overflow-hidden",
-                      isPopped 
-                        ? "bg-gradient-to-br from-emerald-300 to-teal-400 translate-y-0.5 shadow-none border-foreground/50" 
-                        : "bg-gradient-to-br from-pink-400 to-rose-500 hover:-translate-y-0.5"
-                    )}
-                  >
-                    {/* Pop-it Bubble circle reflection details */}
-                    <div className={cn(
-                      "w-4 h-4 rounded-full absolute top-1 left-1 opacity-45 pointer-events-none",
-                      isPopped ? "bg-white/10" : "bg-white/40"
-                    )} />
-                    <span className="text-lg select-none pointer-events-none">
-                      {isPopped ? "🟢" : "🔴"}
-                    </span>
-                  </button>
-                ))}
+// Build chimes: pentatonic bell tones
+const CHIME_FREQS = [523, 659, 784, 1047, 1319];
+function buildChimes(ctx: AudioContext) {
+  const gain = ctx.createGain();
+  gain.gain.value = 0;
+  gain.connect(ctx.destination);
+  let stopped = false;
+  const ding = () => {
+    if (stopped) return;
+    const freq = CHIME_FREQS[Math.floor(Math.random() * CHIME_FREQS.length)];
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.value = freq;
+    g.gain.setValueAtTime(0.22, ctx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.8);
+    osc.connect(g);
+    g.connect(gain);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 2);
+    setTimeout(ding, 800 + Math.random() * 2200);
+  };
+  ding();
+  return { gain, stop: () => { stopped = true; } };
+}
 
-                {/* Particle layer rendering relative to pop board */}
-                {fidgetParticles.map(p => (
-                  <div
-                    key={p.id}
-                    className="absolute pointer-events-none font-black text-sm z-30"
-                    style={{
-                      left: p.x,
-                      top: p.y,
-                      color: p.color,
-                      transform: `scale(${p.scale}) translate(-50%, -50%)`,
-                    }}
-                  >
-                    ★
-                  </div>
-                ))}
-              </div>
+function SoundStep({ onDone }: { onDone: () => void }) {
+  const [volumes, setVolumes] = useState<Record<SoundKey, number>>({ rain: 0, forest: 0, chimes: 0 });
+  const [started, setStarted] = useState(false);
+  const ctxRef   = useRef<AudioContext | null>(null);
+  const gainsRef = useRef<Partial<Record<SoundKey, GainNode>>>({});
+  const stopsRef = useRef<Partial<Record<SoundKey, () => void>>>({});
 
-              <div className="flex items-center justify-between w-full max-w-xs mt-4">
-                <span className="text-xs font-black text-muted-foreground uppercase">
-                  Total Pops: {popCount}
-                </span>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={resetPopIt}
-                  className="rounded-full border-2 border-foreground shadow-pop-sm hover:-translate-y-0.5 px-3"
-                >
-                  Reset Board
-                </Button>
-              </div>
+  const allGood = SOUND_DEFS.every(s => volumes[s.key] >= s.ideal);
 
-              <p className="text-xs text-muted-foreground font-semibold mt-4 text-center max-w-xs leading-relaxed">
-                Stimming (like clicking or popping) keeps hands active, refocuses attention, and discharges nervous tension.
-              </p>
-            </div>
-          )}
+  // Start audio context on first user interaction
+  const startAudio = useCallback(() => {
+    if (ctxRef.current) return;
+    const ctx = new AudioContext();
+    ctxRef.current = ctx;
 
-          {/* TAB 3: Auditory Soundscape Mixer */}
-          {activeTab === 'sound' && (
-            <div className="flex flex-col items-center w-full select-none px-4">
-              <h4 className="text-base font-black text-foreground mb-4 flex items-center gap-1.5">
-                Auditory Masking Mixer <Music className="w-4 h-4 text-primary animate-bounce" />
-              </h4>
+    gainsRef.current.rain = buildRain(ctx);
 
-              <div className="w-full space-y-4 max-w-sm bg-background border-4 border-foreground rounded-[2rem] p-5 shadow-pop-sm">
-                {/* Channel 1: Rain */}
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl w-8 select-none text-center">🌧️</span>
-                  <div className="flex-1 flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground">Rain soundscape</span>
-                    <input 
-                      type="range" 
-                      min="0" max="100"
-                      value={soundVolumes.rain}
-                      onChange={(e) => handleVolumeChange('rain', parseInt(e.target.value))}
-                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary border border-foreground/10"
-                    />
-                  </div>
-                  <span className="text-xs font-black w-8 tabular-nums text-right">{soundVolumes.rain}%</span>
-                </div>
+    const forest = buildForest(ctx);
+    gainsRef.current.forest = forest.gain;
+    stopsRef.current.forest = forest.stop;
 
-                {/* Channel 2: Wind Chimes */}
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl w-8 select-none text-center">🎐</span>
-                  <div className="flex-1 flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground">Wind Chimes</span>
-                    <input 
-                      type="range" 
-                      min="0" max="100"
-                      value={soundVolumes.chimes}
-                      onChange={(e) => handleVolumeChange('chimes', parseInt(e.target.value))}
-                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary border border-foreground/10"
-                    />
-                  </div>
-                  <span className="text-xs font-black w-8 tabular-nums text-right">{soundVolumes.chimes}%</span>
-                </div>
+    const chimes = buildChimes(ctx);
+    gainsRef.current.chimes = chimes.gain;
+    stopsRef.current.chimes = chimes.stop;
 
-                {/* Channel 3: Forest/Birds */}
-                <div className="flex items-center gap-4">
-                  <span className="text-2xl w-8 select-none text-center">🌲</span>
-                  <div className="flex-1 flex flex-col">
-                    <span className="text-[10px] font-black uppercase text-muted-foreground">Forest Birds</span>
-                    <input 
-                      type="range" 
-                      min="0" max="100"
-                      value={soundVolumes.forest}
-                      onChange={(e) => handleVolumeChange('forest', parseInt(e.target.value))}
-                      className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-primary border border-foreground/10"
-                    />
-                  </div>
-                  <span className="text-xs font-black w-8 tabular-nums text-right">{soundVolumes.forest}%</span>
-                </div>
-              </div>
+    setStarted(true);
+  }, []);
 
-              <p className="text-xs text-muted-foreground font-semibold mt-5 text-center max-w-xs leading-relaxed">
-                auditory masking overlays soft ambient frequencies over high-stimulus alarms or screaming, allowing focus.
-              </p>
-            </div>
-          )}
+  // Sync gain nodes when volumes change
+  useEffect(() => {
+    if (!ctxRef.current) return;
+    (Object.keys(volumes) as SoundKey[]).forEach(key => {
+      const g = gainsRef.current[key];
+      if (g) g.gain.setTargetAtTime(volumes[key] / 100 * 0.7, ctxRef.current!.currentTime, 0.1);
+    });
+  }, [volumes]);
 
-          {/* Glowing Aura overlay when almost fully balanced */}
-          {harmony > 75 && (
-            <div className="absolute inset-0 border-[6px] border-emerald-400/20 blur-md pointer-events-none rounded-xl" />
-          )}
-        </div>
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      Object.values(stopsRef.current).forEach(fn => fn?.());
+      ctxRef.current?.close();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (allGood) setTimeout(onDone, 800);
+  }, [allGood, onDone]);
+
+  return (
+    <div className="flex flex-col items-center gap-6 w-full">
+      <div className="text-center">
+        <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-1">Step 3 of 3 — Sounds</p>
+        <h3 className="text-2xl font-black text-foreground">Mix your calm sounds 🎧</h3>
+        <p className="text-sm text-muted-foreground mt-1">
+          {started ? 'Drag each slider up to hear the sound. Fill all three!' : 'Tap the button below to start the sounds 🔊'}
+        </p>
       </div>
 
-      {/* Win overlay screen */}
-      {isWin && (
-        <div className="absolute inset-0 z-50 bg-background/95 backdrop-blur-md flex flex-col items-center justify-center animate-fade-up p-4">
-          <div className="bg-card border-[6px] border-foreground rounded-[2.5rem] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full flex flex-col items-center animate-fade-up text-center">
-            <CheckCircle2 className="w-20 h-20 text-emerald-500 mb-4 animate-bounce" />
-            <h2 className="text-3xl font-black text-foreground mb-3">Sensory Harmony Achieved</h2>
-            <p className="text-sm font-bold text-muted-foreground mb-6">
-              You turned chaotic noise triggers into a peaceful, balanced atmosphere.
-            </p>
-            <div className="bg-emerald-500/10 text-emerald-600 border-4 border-emerald-500/20 rounded-2xl px-8 py-3 mb-6 w-full">
-              <p className="text-xs font-black uppercase tracking-widest mb-0.5">Harmony Rating</p>
-              <p className="text-4xl font-black">100% PERFECT</p>
-            </div>
-            {onComplete && (
-              <div className="flex flex-col items-center gap-3 w-full">
-                <Button onClick={() => onComplete(100)} size="lg" className="w-full rounded-full font-black text-xl py-5 shadow-pop hover:-translate-y-1">
-                  Complete Lesson <Sparkles className="w-5 h-5 ml-2" />
-                </Button>
-                {autoReturn !== null && (
-                  <span className="text-sm text-muted-foreground font-black animate-pulse">
-                    Returning to map in {autoReturn}s...
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
+      {/* Start button — needed to unlock AudioContext on mobile/browser */}
+      {!started && (
+        <button
+          onClick={startAudio}
+          className="bg-secondary text-secondary-foreground border-4 border-foreground rounded-2xl px-10 py-5 text-lg font-black shadow-pop-lg hover:-translate-y-1 transition-all animate-bounce-slow"
+        >
+          🔊 Start Sounds
+        </button>
       )}
+
+      {/* Sliders */}
+      <div className="w-full max-w-sm space-y-5 bg-card border-4 border-foreground rounded-[2rem] p-6 shadow-pop">
+        {SOUND_DEFS.map(s => {
+          const val = volumes[s.key];
+          const good = val >= s.ideal;
+          return (
+            <div key={s.key} className="flex flex-col gap-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="text-2xl">{s.emoji}</span>
+                  <span className="text-sm font-black text-foreground">{s.label}</span>
+                </div>
+                <span className="text-lg transition-all">{good ? '✅' : val > 0 ? '🔉' : '🔇'}</span>
+              </div>
+              <input
+                type="range" min="0" max="100" value={val}
+                onChange={e => {
+                  if (!started) startAudio();
+                  setVolumes(prev => ({ ...prev, [s.key]: +e.target.value }));
+                }}
+                className="w-full h-4 rounded-full appearance-none cursor-pointer"
+                style={{
+                  background: `linear-gradient(to right, ${good ? '#34d399' : s.color} ${val}%, #e2e8f0 ${val}%)`
+                }}
+              />
+              <div className="flex justify-between text-xs text-muted-foreground font-bold">
+                <span>Silent</span>
+                <span className={cn('font-black', good ? 'text-emerald-600' : 'text-foreground')}>{val}%</span>
+                <span>Loud</span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Calm level bar */}
+      <div className="w-full max-w-sm space-y-1">
+        <div className="flex justify-between text-sm font-black text-muted-foreground">
+          <span>Calm level</span>
+          <span>{SOUND_DEFS.filter(s => volumes[s.key] >= s.ideal).length} / {SOUND_DEFS.length} active</span>
+        </div>
+        <div className="w-full h-4 bg-muted rounded-full border-2 border-foreground overflow-hidden">
+          <div
+            className="h-full bg-indigo-400 rounded-full transition-all duration-500"
+            style={{ width: `${(SOUND_DEFS.filter(s => volumes[s.key] >= s.ideal).length / SOUND_DEFS.length) * 100}%` }}
+          />
+        </div>
+      </div>
+
+      <div className="bg-primary/5 border-2 border-foreground/10 rounded-2xl px-5 py-3 max-w-xs text-center">
+        <p className="text-sm font-semibold text-muted-foreground">
+          Calming sounds mask stressful noise and help your brain relax 🎵
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Component ───────────────────────────────────────────────────────────
+export const CalmControl = ({ onComplete }: CalmControlProps) => {
+  const [step, setStep] = useState<Step>(0);
+  const [done, setDone] = useState([false, false, false]);
+  const [showWin, setShowWin] = useState(false);
+  const [autoReturn, setAutoReturn] = useState<number | null>(null);
+
+  const markDone = (s: Step) => {
+    setDone(prev => { const n = [...prev]; n[s] = true; return n; });
+    if (s < 2) setTimeout(() => setStep((s + 1) as Step), 400);
+    else setTimeout(() => setShowWin(true), 600);
+  };
+
+  useEffect(() => {
+    if (!showWin) return;
+    setAutoReturn(5);
+  }, [showWin]);
+
+  useEffect(() => {
+    if (autoReturn === null) return;
+    if (autoReturn <= 0) { onComplete?.(100); return; }
+    const t = setTimeout(() => setAutoReturn(p => p! - 1), 1000);
+    return () => clearTimeout(t);
+  }, [autoReturn, onComplete]);
+
+  const STEPS = [
+    { emoji: '🌬️', label: 'Breathing' },
+    { emoji: '🫧', label: 'Fidget Pop' },
+    { emoji: '🎧', label: 'Calm Sounds' },
+  ];
+
+  if (showWin) {
+    return (
+      <div className="w-full max-w-lg mx-auto animate-fade-up">
+        <div className="bg-card border-4 border-foreground rounded-[2rem] p-8 shadow-pop-lg flex flex-col items-center text-center gap-5">
+          <div className="text-7xl animate-bounce-slow">🌈</div>
+          <h2 className="text-3xl font-black text-foreground">You're Calm Now!</h2>
+          <p className="text-base font-semibold text-muted-foreground leading-relaxed">
+            You completed all 3 calming techniques. These tools work in real life too — try them whenever you feel overwhelmed!
+          </p>
+          <div className="flex gap-3">
+            {[1,2,3].map(i => (
+              <Star key={i} className="w-12 h-12 fill-yellow-400 text-yellow-400 animate-bounce-slow"
+                style={{ animationDelay: `${i * 0.15}s` }} />
+            ))}
+          </div>
+          <div className="w-full grid grid-cols-3 gap-3">
+            {STEPS.map((s, i) => (
+              <div key={i} className="bg-emerald-500/10 border-2 border-emerald-400 rounded-2xl p-3 text-center">
+                <div className="text-2xl mb-1">{s.emoji}</div>
+                <p className="text-xs font-black text-emerald-700">{s.label}</p>
+                <CheckCircle2 className="w-4 h-4 text-emerald-500 mx-auto mt-1" />
+              </div>
+            ))}
+          </div>
+          <div className="w-full bg-primary/5 border-2 border-foreground/10 rounded-2xl p-4 text-left">
+            <p className="text-xs font-black uppercase text-muted-foreground mb-1">✨ What you learned</p>
+            <p className="text-sm font-semibold text-foreground">Breathing, stimming, and calming sounds are real tools you can use anytime you feel stressed or overwhelmed.</p>
+          </div>
+          {onComplete && (
+            <div className="w-full flex flex-col gap-2">
+              <Button onClick={() => onComplete(100)} className="w-full rounded-2xl border-2 border-foreground font-black py-5 shadow-pop text-base">
+                Complete Level <Sparkles className="w-4 h-4 ml-2" />
+              </Button>
+              {autoReturn !== null && (
+                <span className="text-sm text-muted-foreground font-black animate-pulse text-center">
+                  Returning in {autoReturn}s…
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="w-full max-w-xl mx-auto flex flex-col gap-5 animate-fade-up">
+
+      {/* Step progress bar */}
+      <div className="bg-card border-4 border-foreground rounded-[1.5rem] px-5 py-4 shadow-pop">
+        <div className="flex items-center gap-3">
+          {STEPS.map((s, i) => (
+            <React.Fragment key={i}>
+              <div className={cn(
+                "flex flex-col items-center gap-1 transition-all duration-300",
+                i === step ? "scale-110" : ""
+              )}>
+                <div className={cn(
+                  "w-12 h-12 rounded-full border-4 border-foreground flex items-center justify-center text-xl shadow-pop-sm transition-all",
+                  done[i] ? "bg-emerald-400" : i === step ? "bg-secondary animate-pulse" : "bg-muted"
+                )}>
+                  {done[i] ? '✅' : s.emoji}
+                </div>
+                <span className={cn("text-xs font-black", i === step ? "text-foreground" : "text-muted-foreground")}>
+                  {s.label}
+                </span>
+              </div>
+              {i < 2 && (
+                <div className={cn("flex-1 h-1.5 rounded-full border border-foreground/20 transition-all duration-500", done[i] ? "bg-emerald-400" : "bg-muted")} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      </div>
+
+      {/* Active step card */}
+      <div className="bg-card border-4 border-foreground rounded-[2rem] p-6 shadow-pop-lg">
+        {step === 0 && <BreathingStep onDone={() => markDone(0)} />}
+        {step === 1 && <FidgetStep    onDone={() => markDone(1)} />}
+        {step === 2 && <SoundStep     onDone={() => markDone(2)} />}
+      </div>
+
     </div>
   );
 };

@@ -1,603 +1,336 @@
-import React, { useState, useRef, useEffect, useCallback } from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
-import { Sparkles, Trash2, CheckCircle2, RotateCw, Maximize2, Trash, Music } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { Sparkles, Star, Trash2 } from "lucide-react";
 
 interface MyCalmSpaceProps {
   onComplete?: (score: number) => void;
 }
 
-interface InventoryItem {
+type Category = 'lighting' | 'furniture' | 'nature' | 'sounds' | 'activities';
+
+interface Item {
   id: string;
   name: string;
   emoji: string;
-  calmScore: number;
-  type: 'light' | 'sound' | 'texture' | 'object';
+  score: number;
+  category: Category;
+  bad?: boolean;
+  tip: string;
 }
 
-interface PlacedItem extends InventoryItem {
-  instanceId: string;
-  x: number; // in pixels relative to room canvas
-  y: number;
-  rotation: number; // degrees: 0, 45, 90, 135, etc.
-  scale: number; // multiplier: 0.8, 1, 1.3
-}
+const ITEMS: Item[] = [
+  { id: 'l1', name: 'Fairy Lights',  emoji: '✨', score: 18, category: 'lighting',   tip: 'Soft twinkly lights feel magical & calm' },
+  { id: 'l2', name: 'Candle',        emoji: '🕯️', score: 15, category: 'lighting',   tip: 'Warm flickering light soothes the mind' },
+  { id: 'l3', name: 'Lava Lamp',     emoji: '🫧', score: 14, category: 'lighting',   tip: 'Slow moving blobs are hypnotically relaxing' },
+  { id: 'l4', name: 'Night Light',   emoji: '🌙', score: 12, category: 'lighting',   tip: 'A gentle glow makes darkness feel safe' },
+  { id: 'l5', name: 'Strobe Light',  emoji: '🚨', score: -25, category: 'lighting',  bad: true, tip: '⚠️ Flashing lights cause sensory overload!' },
+  { id: 'f1', name: 'Bean Bag',      emoji: '🛋️', score: 22, category: 'furniture',  tip: 'Sinking into a bean bag feels like a hug' },
+  { id: 'f2', name: 'Soft Rug',      emoji: '🪵', score: 14, category: 'furniture',  tip: 'Soft textures under your feet feel grounding' },
+  { id: 'f3', name: 'Cozy Blanket',  emoji: '🧸', score: 20, category: 'furniture',  tip: 'Weighted blankets reduce anxiety' },
+  { id: 'f4', name: 'Floor Cushion', emoji: '🪑', score: 12, category: 'furniture',  tip: 'Sitting low and comfy helps you relax' },
+  { id: 'f5', name: 'Hammock',       emoji: '🌴', score: 18, category: 'furniture',  tip: 'Gentle swinging calms the nervous system' },
+  { id: 'n1', name: 'Indoor Plant',  emoji: '🪴', score: 16, category: 'nature',     tip: 'Plants clean the air and lift your mood' },
+  { id: 'n2', name: 'Fish Tank',     emoji: '🐠', score: 20, category: 'nature',     tip: 'Watching fish swim lowers blood pressure' },
+  { id: 'n3', name: 'Flowers',       emoji: '🌸', score: 14, category: 'nature',     tip: 'Fresh flowers make any space feel alive' },
+  { id: 'n4', name: 'Sunlight',      emoji: '☀️', score: 18, category: 'nature',     tip: 'Natural light boosts serotonin levels' },
+  { id: 'n5', name: 'Rain Window',   emoji: '🌧️', score: 15, category: 'nature',     tip: 'Watching rain is naturally meditative' },
+  { id: 's1', name: 'Lofi Music',    emoji: '🎧', score: 22, category: 'sounds',     tip: 'Lofi beats help focus and reduce stress' },
+  { id: 's2', name: 'Wind Chimes',   emoji: '🎐', score: 16, category: 'sounds',     tip: 'Gentle chimes create a peaceful atmosphere' },
+  { id: 's3', name: 'White Noise',   emoji: '📻', score: 14, category: 'sounds',     tip: 'White noise blocks out distracting sounds' },
+  { id: 's4', name: 'Loud Alarm',    emoji: '📢', score: -30, category: 'sounds',    bad: true, tip: '⚠️ Loud sudden sounds spike your stress!' },
+  { id: 's5', name: 'Singing Bowl',  emoji: '🔔', score: 18, category: 'sounds',     tip: 'Singing bowls create calming vibrations' },
+  { id: 'a1', name: 'Fidget Cube',   emoji: '🎲', score: 14, category: 'activities', tip: 'Fidgeting helps discharge nervous energy' },
+  { id: 'a2', name: 'Colouring',     emoji: '🎨', score: 18, category: 'activities', tip: 'Colouring is meditative and creative' },
+  { id: 'a3', name: 'Journal',       emoji: '📓', score: 16, category: 'activities', tip: 'Writing feelings helps process emotions' },
+  { id: 'a4', name: 'Stress Ball',   emoji: '🟡', score: 12, category: 'activities', tip: 'Squeezing releases physical tension' },
+  { id: 'a5', name: 'Puzzle',        emoji: '🧩', score: 16, category: 'activities', tip: 'Puzzles focus the mind and reduce worry' },
+];
 
-interface VisualNote {
-  id: number;
-  emoji: string;
-  x: number;
-  y: number;
-  vx: number;
-  vy: number;
-  alpha: number;
-}
+const CATEGORIES: { key: Category; label: string; emoji: string; active: string }[] = [
+  { key: 'lighting',   label: 'Lighting',   emoji: '💡', active: 'bg-yellow-400 text-yellow-900 border-yellow-600' },
+  { key: 'furniture',  label: 'Furniture',  emoji: '🛋️', active: 'bg-orange-400 text-white border-orange-600' },
+  { key: 'nature',     label: 'Nature',     emoji: '🌿', active: 'bg-emerald-500 text-white border-emerald-700' },
+  { key: 'sounds',     label: 'Sounds',     emoji: '🎵', active: 'bg-blue-500 text-white border-blue-700' },
+  { key: 'activities', label: 'Activities', emoji: '🎨', active: 'bg-purple-500 text-white border-purple-700' },
+];
 
-const INVENTORY: InventoryItem[] = [
-  { id: 'i1', name: 'Soft Lamp', emoji: '🏮', calmScore: 20, type: 'light' },
-  { id: 'i2', name: 'Lava Lamp', emoji: '🌋', calmScore: 15, type: 'light' },
-  { id: 'i3', name: 'Flashing Strobe', emoji: '🚨', calmScore: -30, type: 'light' },
-  { id: 'i4', name: 'Lofi Beats', emoji: '🎧', calmScore: 25, type: 'sound' },
-  { id: 'i5', name: 'Loud Alarm', emoji: '📢', calmScore: -35, type: 'sound' },
-  { id: 'i6', name: 'Soft Rug', emoji: '🧶', calmScore: 15, type: 'texture' },
-  { id: 'i7', name: 'Bean Bag', emoji: '🛋️', calmScore: 25, type: 'texture' },
-  { id: 'i8', name: 'Fidget Toy', emoji: '🪀', calmScore: 10, type: 'object' },
-  { id: 'i9', name: 'Indoor Plant', emoji: '🪴', calmScore: 20, type: 'object' },
+const WIN_TARGET = 80;
+
+// 6 clearly visible room slots with descriptive positions
+const SLOTS = [
+  { id: 'top-left',     label: 'Wall Left',    emoji: '🖼️', x: '4%',   y: '6%',  w: '22%', h: '26%' },
+  { id: 'top-center',   label: 'Ceiling',      emoji: '💫', x: '38%',  y: '4%',  w: '24%', h: '20%' },
+  { id: 'top-right',    label: 'Wall Right',   emoji: '🖼️', x: '74%',  y: '6%',  w: '22%', h: '26%' },
+  { id: 'floor-left',   label: 'Floor Left',   emoji: '📦', x: '4%',   y: '66%', w: '28%', h: '28%' },
+  { id: 'floor-center', label: 'Centre Floor', emoji: '📦', x: '36%',  y: '62%', w: '28%', h: '32%' },
+  { id: 'floor-right',  label: 'Floor Right',  emoji: '📦', x: '68%',  y: '66%', w: '28%', h: '28%' },
 ];
 
 export const MyCalmSpace = ({ onComplete }: MyCalmSpaceProps) => {
-  const [placedItems, setPlacedItems] = useState<PlacedItem[]>([]);
-  const [selectedInstanceId, setSelectedInstanceId] = useState<string | null>(null);
-  
-  // Dragging states
-  const [draggedItem, setDraggedItem] = useState<{
-    item: InventoryItem | PlacedItem;
-    type: 'inventory' | 'placed';
-    offsetX: number;
-    offsetY: number;
-  } | null>(null);
-  
-  const [pointerPos, setPointerPos] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [notes, setNotes] = useState<VisualNote[]>([]);
-
-  const roomRef = useRef<HTMLDivElement>(null);
-
-  const currentCalmScore = placedItems.reduce((acc, item) => acc + item.calmScore, 0);
-  const winTarget = 100;
-  const isWin = currentCalmScore >= winTarget;
-
+  const [activeCategory, setActiveCategory] = useState<Category>('lighting');
+  const [placed, setPlaced] = useState<Record<string, Item>>({});
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
+  const [lastTip, setLastTip] = useState<{ emoji: string; text: string } | null>(null);
+  const [showWin, setShowWin] = useState(false);
   const [autoReturn, setAutoReturn] = useState<number | null>(null);
 
-  // Auto return countdown trigger
-  useEffect(() => {
-    if (isWin && autoReturn === null) {
-      setAutoReturn(5);
-    } else if (!isWin && autoReturn !== null) {
-      setAutoReturn(null);
-    }
-  }, [isWin, autoReturn]);
+  const calmScore = Object.values(placed).reduce((s, i) => s + i.score, 0);
+  const pct = Math.min(100, Math.max(0, (calmScore / WIN_TARGET) * 100));
+  const hasBad = Object.values(placed).some(i => i.bad);
 
-  // Auto Return Countdown loop
-  useEffect(() => {
+  const avatar = (() => {
+    if (hasBad)            return { emoji: '😵💫', msg: 'Too stressful! Remove the bad items.' };
+    if (calmScore <= 0)    return { emoji: '😟',   msg: 'Add some calming items to your room!' };
+    if (calmScore < 30)    return { emoji: '😐',   msg: 'Getting there, keep adding...' };
+    if (calmScore < 60)    return { emoji: '🙂',   msg: 'Feeling better already!' };
+    if (calmScore < WIN_TARGET) return { emoji: '😊', msg: 'Almost there, so cozy!' };
+    return { emoji: '😌',  msg: 'Perfect! This space is so peaceful 💚' };
+  })();
+
+  const handleSlotClick = (id: string) => setSelectedSlot(prev => prev === id ? null : id);
+
+  const handleItemPick = (item: Item) => {
+    if (!selectedSlot) return;
+    const newPlaced = { ...placed, [selectedSlot]: item };
+    setPlaced(newPlaced);
+    setSelectedSlot(null);
+    setLastTip({ emoji: item.emoji, text: item.tip });
+    setTimeout(() => setLastTip(null), 2500);
+    const newScore = Object.values(newPlaced).reduce((s, i) => s + i.score, 0);
+    if (newScore >= WIN_TARGET && !showWin) {
+      setTimeout(() => { setShowWin(true); setAutoReturn(5); }, 700);
+    }
+  };
+
+  const removeItem = (slotId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setPlaced(prev => { const n = { ...prev }; delete n[slotId]; return n; });
+  };
+
+  React.useEffect(() => {
     if (autoReturn === null) return;
-    if (autoReturn <= 0) {
-      if (onComplete) onComplete(currentCalmScore);
-      return;
-    }
-    const timer = setTimeout(() => setAutoReturn(autoReturn - 1), 1000);
-    return () => clearTimeout(timer);
-  }, [autoReturn, currentCalmScore, onComplete]);
+    if (autoReturn <= 0) { onComplete?.(calmScore); return; }
+    const t = setTimeout(() => setAutoReturn(p => p! - 1), 1000);
+    return () => clearTimeout(t);
+  }, [autoReturn, calmScore, onComplete]);
 
-  // Music Notes floating physics loop
-  useEffect(() => {
-    // Generate new notes periodically if sound lofi is placed
-    const lofiPlaced = placedItems.filter(item => item.id === 'i4');
-    let noteSpawner: NodeJS.Timeout;
-
-    if (lofiPlaced.length > 0) {
-      noteSpawner = setInterval(() => {
-        const randomLofi = lofiPlaced[Math.floor(Math.random() * lofiPlaced.length)];
-        const noteEmojis = ['🎵', '🎶', '♩', '♪'];
-        setNotes(prev => [
-          ...prev,
-          {
-            id: Date.now() + Math.random(),
-            emoji: noteEmojis[Math.floor(Math.random() * noteEmojis.length)],
-            x: randomLofi.x + 40,
-            y: randomLofi.y - 10,
-            vx: (Math.random() - 0.5) * 1.5,
-            vy: -1.2 - Math.random() * 1.5,
-            alpha: 1
-          }
-        ]);
-      }, 800);
-    }
-
-    return () => clearInterval(noteSpawner);
-  }, [placedItems]);
-
-  // Update floating notes
-  useEffect(() => {
-    if (notes.length === 0) return;
-    const interval = setInterval(() => {
-      setNotes(prev =>
-        prev
-          .map(n => ({
-            ...n,
-            x: n.x + n.vx,
-            y: n.y + n.vy,
-            alpha: n.alpha - 0.02
-          }))
-          .filter(n => n.alpha > 0)
-      );
-    }, 25);
-    return () => clearInterval(interval);
-  }, [notes]);
-
-  // Global Pointer Events to track drag position relative to Canvas
-  const handlePointerDown = (e: React.PointerEvent, item: InventoryItem | PlacedItem, type: 'inventory' | 'placed') => {
-    if (e.button !== 0 && e.button !== undefined) return; // only left click / touch
-
-    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const offsetX = e.clientX - rect.left;
-    const offsetY = e.clientY - rect.top;
-
-    setDraggedItem({ item, type, offsetX, offsetY });
-    setSelectedInstanceId(type === 'placed' ? (item as PlacedItem).instanceId : null);
-
-    // Capture pointer
-    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
-  };
-
-  const handlePointerMove = (e: React.PointerEvent) => {
-    if (!draggedItem || !roomRef.current) return;
-    const rect = roomRef.current.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    setPointerPos({ x, y });
-  };
-
-  const handlePointerUp = (e: React.PointerEvent) => {
-    if (!draggedItem) return;
-    
-    try {
-      (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    } catch (err) {
-      // ignore
-    }
-
-    if (!roomRef.current) {
-      setDraggedItem(null);
-      return;
-    }
-
-    const rect = roomRef.current.getBoundingClientRect();
-    const dropX = e.clientX - rect.left - draggedItem.offsetX;
-    const dropY = e.clientY - rect.top - draggedItem.offsetY;
-
-    // Bounds check: Allow dropping if mostly inside the room
-    const padding = 30;
-    const isInside = 
-      dropX >= -padding && 
-      dropX <= rect.width - 40 && 
-      dropY >= -padding && 
-      dropY <= rect.height - 40;
-
-    if (isInside) {
-      const constrainedX = Math.max(0, Math.min(rect.width - 80, dropX));
-      const constrainedY = Math.max(0, Math.min(rect.height - 80, dropY));
-
-      if (draggedItem.type === 'inventory') {
-        // Add new placed item
-        const newInstanceId = `placed-${Date.now()}`;
-        setPlacedItems(prev => [
-          ...prev,
-          {
-            ...draggedItem.item,
-            instanceId: newInstanceId,
-            x: constrainedX,
-            y: constrainedY,
-            rotation: 0,
-            scale: 1.0
-          }
-        ]);
-        setSelectedInstanceId(newInstanceId);
-      } else {
-        // Move existing item
-        const placed = draggedItem.item as PlacedItem;
-        setPlacedItems(prev =>
-          prev.map(p =>
-            p.instanceId === placed.instanceId
-              ? { ...p, x: constrainedX, y: constrainedY }
-              : p
-          )
-        );
-      }
-    } else if (draggedItem.type === 'placed') {
-      // Drop outside room -> Delete item
-      const placed = draggedItem.item as PlacedItem;
-      setPlacedItems(prev => prev.filter(p => p.instanceId !== placed.instanceId));
-      setSelectedInstanceId(null);
-    }
-
-    setDraggedItem(null);
-  };
-
-  // Item Modifiers
-  const rotateItem = (instanceId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPlacedItems(prev =>
-      prev.map(p =>
-        p.instanceId === instanceId
-          ? { ...p, rotation: (p.rotation + 45) % 360 }
-          : p
-      )
-    );
-  };
-
-  const scaleItem = (instanceId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPlacedItems(prev =>
-      prev.map(p => {
-        if (p.instanceId === instanceId) {
-          const nextScale = p.scale === 1.0 ? 1.3 : p.scale === 1.3 ? 0.8 : 1.0;
-          return { ...p, scale: nextScale };
-        }
-        return p;
-      })
-    );
-  };
-
-  const deleteItem = (instanceId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPlacedItems(prev => prev.filter(p => p.instanceId !== instanceId));
-    setSelectedInstanceId(null);
-  };
-
-  const clearRoom = () => {
-    setPlacedItems([]);
-    setSelectedInstanceId(null);
-  };
-
-  // Avatar state
-  const getAvatar = () => {
-    if (placedItems.some(i => i.id === 'i3' || i.id === 'i5')) {
-      // Overstimulated/Stressed emoji if alarms/strobes are placed
-      return { emoji: '😵‍💫', text: 'Too loud and flashing!', animation: 'animate-shake' };
-    }
-    if (currentCalmScore < 0) return { emoji: '😰', text: 'This space feels overwhelming...', animation: 'animate-shake' };
-    if (currentCalmScore < 30) return { emoji: '😐', text: 'Could be more relaxing...', animation: 'animate-none' };
-    if (currentCalmScore < 60) return { emoji: '🙂', text: 'Getting cozier!', animation: 'animate-float-slow' };
-    if (currentCalmScore < 100) return { emoji: '😊', text: 'I feel very peaceful.', animation: 'animate-float' };
-    return { emoji: '😌', text: 'Perfect relaxation space!', animation: 'animate-bounce-slow' };
-  };
-
-  const avatar = getAvatar();
-
-  // Dynamic Room Overlay style based on placed lamps
-  const renderRoomLightingStyles = () => {
-    const lamps = placedItems.filter(item => item.type === 'light');
-    if (lamps.length === 0) return {};
-
-    const activeStrobe = lamps.some(l => l.id === 'i3');
-    if (activeStrobe) return {}; // strobe is handled via flashing animation class
-
-    // Construct layered radial gradients centered at each lamp position
-    const gradients = lamps
-      .map(lamp => {
-        if (lamp.id === 'i1') {
-          // Warm soft gold glow
-          return `radial-gradient(circle at ${lamp.x + 40}px ${lamp.y + 40}px, rgba(251,191,36,0.3) 0%, rgba(251,191,36,0) 65%)`;
-        }
-        if (lamp.id === 'i2') {
-          // Slow neon pink-magenta lava glow
-          return `radial-gradient(circle at ${lamp.x + 40}px ${lamp.y + 40}px, rgba(236,72,153,0.3) 0%, rgba(236,72,153,0) 70%)`;
-        }
-        return '';
-      })
-      .filter(Boolean)
-      .join(', ');
-
-    return { backgroundImage: gradients || undefined };
-  };
-
-  const isStrobeActive = placedItems.some(i => i.id === 'i3');
-  const isAlarmActive = placedItems.some(i => i.id === 'i5');
-
-  return (
-    <div className="w-full max-w-6xl mx-auto flex flex-col lg:flex-row gap-8">
-      {/* Inject custom visualizer keyframes */}
-      <style>{`
-        @keyframes float-notes {
-          0% { transform: translateY(0) scale(0.7) rotate(0deg); opacity: 1; }
-          100% { transform: translateY(-70px) scale(1.1) rotate(15deg); opacity: 0; }
-        }
-        .animate-note {
-          animation: float-notes 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
-        }
-        @keyframes strobe-flash {
-          0%, 100% { background-color: rgba(239, 68, 68, 0.05); }
-          50% { background-color: rgba(239, 68, 68, 0.35); }
-        }
-        .animate-strobe-alert {
-          animation: strobe-flash 0.15s infinite;
-        }
-        @keyframes alarm-ripple {
-          0% { transform: scale(0.3); opacity: 0.8; }
-          100% { transform: scale(1.8); opacity: 0; }
-        }
-        .animate-alarm-ripple {
-          animation: alarm-ripple 1s infinite linear;
-        }
-      `}</style>
-
-      {/* Left: Inventory panel */}
-      <div className="w-full lg:w-[320px] shrink-0 bg-card border-[6px] border-foreground rounded-[2.5rem] p-6 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col h-[380px] lg:h-[650px] overflow-hidden z-20">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-xl font-black text-foreground tracking-tight">Cozy Inventory</h3>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={clearRoom} 
-            disabled={placedItems.length === 0}
-            className="shadow-pop-sm rounded-xl hover:-translate-y-0.5 border-2 border-foreground"
-          >
-            <Trash2 className="w-4 h-4 mr-1.5" /> Reset
-          </Button>
-        </div>
-        
-        <p className="text-xs text-muted-foreground font-semibold mb-4">
-          Drag soothing items into your room. Avoid noise alarms & flashing strobes!
-        </p>
-        
-        <div className="grid grid-cols-2 gap-3 overflow-y-auto pb-4 scrollbar-none touch-none px-1">
-          {INVENTORY.map(item => (
-            <div 
-              key={item.id}
-              className="aspect-square bg-background border-[3px] border-foreground/15 rounded-2xl flex flex-col items-center justify-center cursor-grab active:cursor-grabbing hover:-translate-y-1 hover:border-foreground hover:shadow-pop transition-all group select-none relative overflow-hidden"
-              onPointerDown={(e) => handlePointerDown(e, item, 'inventory')}
-              onPointerUp={handlePointerUp}
-              onPointerMove={handlePointerMove}
-            >
-              {/* Calm Score Badge */}
-              <div className={cn(
-                "absolute top-1.5 right-1.5 text-[9px] font-black px-1 py-0.5 rounded border border-foreground/10",
-                item.calmScore > 0 ? "bg-primary/20 text-emerald-600" : "bg-red-500/20 text-red-600"
-              )}>
-                {item.calmScore > 0 ? `+${item.calmScore}` : item.calmScore}
-              </div>
-
-              <span className="text-4xl pointer-events-none group-hover:scale-110 transition-transform duration-300 drop-shadow-sm">{item.emoji}</span>
-              <span className="text-[10px] font-black uppercase mt-2.5 text-center leading-tight px-1 pointer-events-none text-muted-foreground group-hover:text-foreground transition-colors">{item.name}</span>
+  // ── WIN SCREEN ──
+  if (showWin) {
+    const stars = calmScore >= 120 ? 3 : calmScore >= WIN_TARGET ? 2 : 1;
+    return (
+      <div className="w-full max-w-lg mx-auto animate-fade-up">
+        <div className="bg-card border-4 border-foreground rounded-[2rem] p-8 shadow-pop-lg flex flex-col items-center text-center gap-5">
+          <div className="text-7xl animate-bounce-slow">🏡</div>
+          <h2 className="text-3xl font-black text-foreground">Your Calm Space is Ready!</h2>
+          <p className="text-base font-semibold text-muted-foreground leading-relaxed">
+            You built a beautiful, soothing space. These are real things you can add to your room to feel calmer every day!
+          </p>
+          <div className="flex gap-3">
+            {[1,2,3].map(i => (
+              <Star key={i} className={cn("w-12 h-12", i <= stars ? "fill-yellow-400 text-yellow-400 animate-bounce-slow" : "fill-muted text-muted")}
+                style={{ animationDelay: `${i * 0.15}s` }} />
+            ))}
+          </div>
+          <div className="w-full grid grid-cols-2 gap-3">
+            <div className="bg-emerald-500/10 border-2 border-emerald-400 rounded-2xl p-4 text-center">
+              <p className="text-3xl font-black text-foreground">{calmScore}</p>
+              <p className="text-xs font-black text-emerald-700 uppercase">Calm Score</p>
             </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Right: Cozy Canvas Room */}
-      <div className="flex-1 flex flex-col gap-6">
-        {/* Calm Score HUD */}
-        <div className="bg-background/90 border-4 border-foreground rounded-[2rem] p-5 shadow-pop-sm flex justify-between items-center relative overflow-hidden z-20">
-          <div className="flex flex-col z-10">
-            <span className="text-xs font-black text-muted-foreground uppercase tracking-widest mb-1">Atmosphere Comfort</span>
-            <div className="flex items-baseline gap-1.5">
-              <span className={cn(
-                "text-4xl font-black tabular-nums transition-colors duration-300", 
-                isWin ? "text-emerald-500" : currentCalmScore < 0 ? "text-red-500" : "text-foreground"
-              )}>
-                {currentCalmScore}
-              </span>
-              <span className="text-lg text-muted-foreground font-bold">/ {winTarget}</span>
+            <div className="bg-primary/10 border-2 border-primary/40 rounded-2xl p-4 text-center">
+              <p className="text-3xl font-black text-foreground">{Object.values(placed).filter(i => !i.bad).length}</p>
+              <p className="text-xs font-black text-primary uppercase">Items Placed</p>
             </div>
           </div>
-          
-          <div className="flex-1 max-w-[280px] mx-6 hidden sm:block">
-            <div className="w-full h-3 bg-muted rounded-full overflow-hidden border-2 border-foreground relative shadow-inner">
-              <div 
-                className={cn(
-                  "h-full transition-all duration-500 ease-out", 
-                  isWin ? "bg-emerald-500" : currentCalmScore < 0 ? "bg-red-500" : "bg-blue-400"
-                )} 
-                style={{ width: `${Math.max(0, Math.min(100, (currentCalmScore / winTarget) * 100))}%` }} 
+          <div className="w-full bg-muted/40 border-2 border-foreground/10 rounded-2xl p-4">
+            <p className="text-xs font-black uppercase text-muted-foreground mb-3">Your room contains</p>
+            <div className="flex flex-wrap gap-2 justify-center">
+              {Object.values(placed).filter(i => !i.bad).map((item, i) => (
+                <span key={i} className="bg-card border-2 border-foreground rounded-full px-3 py-1.5 text-sm font-bold flex items-center gap-1.5">
+                  {item.emoji} {item.name}
+                </span>
+              ))}
+            </div>
+          </div>
+          <div className="w-full bg-primary/5 border-2 border-foreground/10 rounded-2xl p-4 text-left">
+            <p className="text-xs font-black uppercase text-muted-foreground mb-1">✨ What you learned</p>
+            <p className="text-sm font-semibold text-foreground">Your environment affects how you feel. Small changes like soft lighting, plants, and calming sounds can make a big difference to your mood.</p>
+          </div>
+          {onComplete && (
+            <div className="w-full flex flex-col gap-2">
+              <Button onClick={() => onComplete(calmScore)} className="w-full rounded-2xl border-2 border-foreground font-black py-5 shadow-pop text-base">
+                Complete Level <Sparkles className="w-4 h-4 ml-2" />
+              </Button>
+              {autoReturn !== null && (
+                <span className="text-sm text-muted-foreground font-black animate-pulse text-center">Returning in {autoReturn}s…</span>
+              )}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ── MAIN GAME ──
+  return (
+    <div className="w-full max-w-4xl mx-auto flex flex-col gap-4 animate-fade-up">
+
+      {/* ── TOP HUD ── */}
+      <div className="bg-card border-4 border-foreground rounded-[1.5rem] px-5 py-4 shadow-pop flex items-center gap-4 flex-wrap">
+        {/* Avatar + score */}
+        <div className="flex items-center gap-3 flex-1 min-w-[180px]">
+          <div className="text-4xl shrink-0 transition-all duration-500">{avatar.emoji}</div>
+          <div className="flex-1">
+            <p className="text-xs font-black text-muted-foreground mb-1.5">{avatar.msg}</p>
+            <div className="w-full h-4 bg-muted rounded-full border-2 border-foreground overflow-hidden">
+              <div
+                className={cn("h-full rounded-full transition-all duration-700",
+                  hasBad ? "bg-red-500" : pct < 40 ? "bg-amber-400" : pct < 80 ? "bg-blue-400" : "bg-emerald-400"
+                )}
+                style={{ width: `${pct}%` }}
               />
             </div>
           </div>
-
-          {isWin ? (
-            <div className="flex items-center gap-1.5 text-emerald-600 font-black animate-bounce-slow text-sm bg-emerald-500/10 px-4 py-2 rounded-xl border-2 border-emerald-500/20">
-              <CheckCircle2 className="w-5 h-5" /> Cozy Vibe Match!
-            </div>
-          ) : (
-            <div className="text-xs font-bold text-muted-foreground max-w-[150px] text-right">
-              Place items to raise tranquility score to {winTarget}
-            </div>
-          )}
+          <div className="text-right shrink-0">
+            <p className={cn("text-2xl font-black tabular-nums", calmScore >= WIN_TARGET ? "text-emerald-600" : "text-foreground")}>{calmScore}</p>
+            <p className="text-xs font-black text-muted-foreground">/ {WIN_TARGET}</p>
+          </div>
         </div>
+        <Button variant="outline" size="sm" onClick={() => { setPlaced({}); setSelectedSlot(null); }}
+          className="rounded-xl border-2 border-foreground shadow-pop-sm font-black text-xs shrink-0">
+          <Trash2 className="w-3.5 h-3.5 mr-1" /> Reset
+        </Button>
+      </div>
 
-        {/* Room Canvas Area */}
-        <div 
-          ref={roomRef}
-          onPointerMove={handlePointerMove}
-          className={cn(
-            "flex-1 min-h-[460px] lg:min-h-0 border-[6px] border-foreground rounded-[2.5rem] shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] relative overflow-hidden transition-colors duration-500 bg-[#FAF9F6] dark:bg-slate-950 touch-none select-none z-10",
-            isStrobeActive && "animate-strobe-alert"
-          )}
-        >
-          {/* Room Isometric Floor Line Visuals */}
-          <div className="absolute top-1/4 left-0 right-0 border-t-[4px] border-foreground/15 z-0" />
-          <div className="absolute bottom-0 left-0 right-0 h-3/4 bg-slate-200/20 dark:bg-slate-800/10 z-0 pointer-events-none" />
-          
-          {/* Window showing scenery */}
-          <div className="absolute top-6 left-12 w-28 h-20 bg-cyan-100 dark:bg-cyan-950 border-[3px] border-foreground rounded-lg overflow-hidden flex flex-col justify-end z-0">
-            <div className="absolute inset-0 bg-gradient-to-b from-blue-300 to-amber-100 dark:from-indigo-950 dark:to-cyan-900 opacity-60" />
-            <div className="w-12 h-6 bg-white/40 dark:bg-white/10 rounded-full animate-float-slow absolute top-4 left-4" />
-            {/* Window Pane grids */}
-            <div className="w-full h-0.5 bg-foreground/20 absolute top-1/2" />
-            <div className="w-0.5 h-full bg-foreground/20 absolute left-1/2" />
-          </div>
+      {/* ── INSTRUCTION BANNER ── */}
+      <div className={cn(
+        "rounded-2xl border-4 border-foreground px-5 py-3 text-base font-black text-center transition-all duration-300",
+        selectedSlot
+          ? "bg-secondary text-secondary-foreground shadow-pop"
+          : "bg-primary/10 text-foreground"
+      )}>
+        {selectedSlot
+          ? "✅ Great! Now pick an item from below to place it"
+          : "👆 Step 1: Tap any glowing slot in the room  →  Step 2: Pick an item below"}
+      </div>
 
-          {/* Dynamic Light overlays */}
-          <div 
-            className="absolute inset-0 pointer-events-none z-10 mix-blend-screen opacity-90 transition-all duration-300"
-            style={renderRoomLightingStyles()}
-          />
-
-          {/* Avatar Person inside Room */}
-          <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex flex-col items-center pointer-events-none z-10">
-             <div className="relative">
-               <span className={cn(
-                 "text-[8rem] transition-all duration-500 block filter drop-shadow-[0_15px_15px_rgba(0,0,0,0.25)]", 
-                 avatar.animation
-               )}>
-                 {avatar.emoji}
-               </span>
-               
-               {/* Ambient Glow Aura */}
-               {currentCalmScore > 50 && (
-                 <div className="absolute inset-[-20px] bg-primary/20 blur-3xl -z-10 rounded-full animate-pulse-soft" />
-               )}
-             </div>
-             <span className="bg-background/90 border-2 border-foreground rounded-full px-4 py-1 text-xs font-black shadow-sm mt-3 animate-float-slow">
-               {avatar.text}
-             </span>
-          </div>
-
-          {/* Placed Items */}
-          {placedItems.map(item => {
-            const isSelected = selectedInstanceId === item.instanceId;
+      {/* ── ROOM ── */}
+      <div className="w-full bg-card border-4 border-foreground rounded-[2rem] p-4 shadow-pop-lg">
+        <div className="grid grid-cols-3 gap-3">
+          {SLOTS.map(slot => {
+            const item = placed[slot.id];
+            const isSelected = selectedSlot === slot.id;
             return (
               <div
-                key={item.instanceId}
+                key={slot.id}
+                onClick={() => handleSlotClick(slot.id)}
                 className={cn(
-                  "absolute select-none group touch-none cursor-grab active:cursor-grabbing",
-                  isSelected ? "z-30" : "z-20"
+                  "aspect-square flex flex-col items-center justify-center cursor-pointer rounded-2xl border-4 transition-all duration-200",
+                  isSelected
+                    ? "border-secondary bg-secondary/10 scale-105 shadow-pop"
+                    : item
+                    ? "border-foreground bg-muted/30 hover:scale-105"
+                    : "border-foreground/30 bg-muted/20 hover:border-foreground/60 hover:bg-muted/40"
                 )}
-                style={{ 
-                  left: item.x, 
-                  top: item.y,
-                  transform: `scale(${item.scale}) rotate(${item.rotation}deg)`,
-                  transition: draggedItem?.item === item ? 'none' : 'transform 0.15s ease-out'
-                }}
-                onPointerDown={(e) => handlePointerDown(e, item, 'placed')}
-                onPointerUp={handlePointerUp}
-                onPointerMove={handlePointerMove}
               >
-                {/* Placed Item emoji render */}
-                <div className="relative">
-                  <span className="text-7xl filter drop-shadow-[0_12px_8px_rgba(0,0,0,0.3)] block transform hover:scale-105 transition-transform duration-200">
-                    {item.emoji}
-                  </span>
-
-                  {/* Alarm Waves ripple */}
-                  {item.id === 'i5' && (
-                    <>
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-4 border-red-500/20 rounded-full animate-alarm-ripple pointer-events-none -z-10" />
-                      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-32 h-32 border-2 border-red-500/10 rounded-full animate-alarm-ripple pointer-events-none -z-10" style={{ animationDelay: '0.5s' }} />
-                    </>
-                  )}
-
-                  {/* Ambient sound particle indicator (music waves symbol) */}
-                  {item.type === 'sound' && item.calmScore > 0 && (
-                    <div className="absolute -top-3 -right-3 flex gap-1 pointer-events-none bg-background/90 border border-foreground/10 rounded-full px-1.5 py-0.5 shadow-sm">
-                      <Music className="w-3.5 h-3.5 text-primary animate-bounce" />
-                    </div>
-                  )}
-
-                  {/* Glow circle behind bulb lamps */}
-                  {item.type === 'light' && item.calmScore > 0 && (
-                    <div className="absolute inset-0 bg-amber-200/35 blur-xl -z-10 rounded-full animate-pulse-soft scale-150 pointer-events-none" />
-                  )}
-                </div>
-
-                {/* Selected Item Control Ring Menu */}
-                {isSelected && !draggedItem && (
-                  <div 
-                    className="absolute top-[-45px] left-1/2 -translate-x-1/2 flex items-center gap-1.5 bg-background border-2 border-foreground rounded-full p-1 shadow-pop-sm z-50 pointer-events-auto"
-                    onPointerDown={(e) => e.stopPropagation()} // block drag triggering on click
-                  >
-                    <button 
-                      onClick={(e) => rotateItem(item.instanceId, e)}
-                      className="w-7 h-7 bg-muted hover:bg-primary hover:text-white rounded-full flex items-center justify-center border border-foreground/10 transition-colors"
-                      title="Rotate Item"
-                    >
-                      <RotateCw className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={(e) => scaleItem(item.instanceId, e)}
-                      className="w-7 h-7 bg-muted hover:bg-primary hover:text-white rounded-full flex items-center justify-center border border-foreground/10 transition-colors"
-                      title="Resize"
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </button>
-                    <button 
-                      onClick={(e) => deleteItem(item.instanceId, e)}
-                      className="w-7 h-7 bg-red-100 hover:bg-red-500 hover:text-white text-red-600 rounded-full flex items-center justify-center border border-foreground/10 transition-colors"
-                      title="Remove"
-                    >
-                      <Trash className="w-3.5 h-3.5" />
-                    </button>
+                {item ? (
+                  <div className="relative flex flex-col items-center justify-center gap-1.5 w-full h-full p-3">
+                    <span className="text-4xl leading-none">{item.emoji}</span>
+                    <span className="text-xs font-black text-foreground text-center leading-tight">{item.name}</span>
+                    <span className={cn(
+                      "text-[10px] font-black px-2 py-0.5 rounded-full border",
+                      item.bad ? "bg-red-100 text-red-600 border-red-300" : "bg-emerald-100 text-emerald-700 border-emerald-300"
+                    )}>{item.score > 0 ? `+${item.score}` : item.score}</span>
+                    <button onClick={(e) => removeItem(slot.id, e)}
+                      className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 hover:bg-red-600 text-white rounded-full text-xs font-black flex items-center justify-center border-2 border-white shadow z-10">×</button>
+                    {item.bad && <div className="absolute inset-0 rounded-xl bg-red-400/20 animate-pulse pointer-events-none" />}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center gap-1.5 opacity-40">
+                    <span className="text-2xl font-black text-foreground">+</span>
+                    <span className="text-[10px] font-black text-foreground text-center">{slot.label}</span>
                   </div>
                 )}
               </div>
             );
           })}
+        </div>
 
-          {/* Active Inventory Drag Ghost Preview */}
-          {draggedItem && (
-            <div 
-              className="absolute pointer-events-none z-50 scale-105 opacity-65 border-2 border-dashed border-primary rounded-full p-2 bg-primary/5"
-              style={{
-                left: pointerPos.x - draggedItem.offsetX,
-                top: pointerPos.y - draggedItem.offsetY,
-              }}
-            >
-              <span className="text-7xl block">{draggedItem.item.emoji}</span>
-            </div>
-          )}
+        {/* Tip popup */}
+        {lastTip && (
+          <div className="mt-3 bg-secondary/10 border-2 border-secondary rounded-2xl px-4 py-2.5 text-center animate-fade-up">
+            <p className="text-sm font-black text-foreground">{lastTip.emoji} {lastTip.text}</p>
+          </div>
+        )}
+      </div>
 
-          {/* Sound Music Note Particles */}
-          {notes.map(note => (
-            <div
-              key={note.id}
-              className="absolute pointer-events-none z-40 text-lg font-black animate-note select-none text-primary"
-              style={{
-                left: note.x,
-                top: note.y,
-                opacity: note.alpha
-              }}
+      {/* ── ITEM PICKER ── */}
+      <div className="bg-card border-4 border-foreground rounded-[2rem] overflow-hidden shadow-pop-lg">
+
+        {/* Category tabs */}
+        <div className="flex border-b-4 border-foreground overflow-x-auto scrollbar-none">
+          {CATEGORIES.map(cat => (
+            <button
+              key={cat.key}
+              onClick={() => setActiveCategory(cat.key)}
+              className={cn(
+                "flex-1 min-w-[80px] flex flex-col items-center gap-1 py-3 px-2 font-black text-xs transition-all border-r-2 border-foreground last:border-r-0 shrink-0",
+                activeCategory === cat.key
+                  ? cat.active
+                  : "bg-muted/50 text-muted-foreground hover:bg-muted"
+              )}
             >
-              {note.emoji}
-            </div>
+              <span className="text-xl">{cat.emoji}</span>
+              <span className="hidden sm:block">{cat.label}</span>
+            </button>
           ))}
+        </div>
 
-          {/* Win Screen */}
-          {isWin && (
-            <div className="absolute inset-0 z-50 bg-background/90 backdrop-blur-md flex flex-col items-center justify-center animate-fade-up">
-              <div className="bg-card border-[6px] border-foreground rounded-[2.5rem] p-8 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] max-w-md w-full flex flex-col items-center">
-                <Sparkles className="w-20 h-20 text-emerald-500 mb-4 animate-bounce-slow" />
-                <h2 className="text-3xl font-black text-foreground mb-3 text-center">Incredibly Cozy!</h2>
-                <p className="text-sm font-bold text-muted-foreground mb-6 text-center text-balance">
-                  You have constructed a perfectly balanced, relaxing environment for sensory peace.
-                </p>
-                <div className="bg-emerald-500/10 text-emerald-600 border-[3px] border-emerald-500/20 rounded-2xl px-6 py-3 mb-6 w-full text-center">
-                  <p className="text-xs font-black uppercase tracking-widest mb-0.5">Atmosphere Score</p>
-                  <p className="text-4xl font-black tabular-nums">{currentCalmScore}</p>
-                </div>
-                {onComplete && (
-                  <div className="flex flex-col items-center gap-3 w-full">
-                    <Button onClick={() => onComplete(currentCalmScore)} size="lg" className="w-full rounded-full font-black text-xl py-5 shadow-pop hover:-translate-y-1">
-                      Finish Level <Sparkles className="w-5 h-5 ml-2" />
-                    </Button>
-                    {autoReturn !== null && (
-                      <span className="text-sm text-muted-foreground font-black animate-pulse text-center">
-                        Returning to map in {autoReturn}s...
-                      </span>
-                    )}
-                  </div>
-                )}
-              </div>
+        {/* Items */}
+        <div className="p-4">
+          {!selectedSlot && (
+            <div className="bg-amber-50 border-2 border-amber-400 rounded-xl px-4 py-2.5 mb-4 text-center">
+              <p className="text-sm font-black text-amber-800">👆 Tap a slot in the room above first!</p>
             </div>
           )}
+          <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+            {ITEMS.filter(i => i.category === activeCategory).map(item => {
+              const isPlaced = Object.values(placed).some(p => p.id === item.id);
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => handleItemPick(item)}
+                  disabled={!selectedSlot}
+                  className={cn(
+                    "flex flex-col items-center gap-1.5 p-3 rounded-2xl border-4 transition-all duration-150 select-none relative",
+                    !selectedSlot
+                      ? "border-foreground/15 bg-muted/30 opacity-50 cursor-not-allowed"
+                      : item.bad
+                      ? "border-red-500 bg-red-50 hover:bg-red-100 hover:-translate-y-1.5 hover:shadow-pop cursor-pointer active:scale-95"
+                      : isPlaced
+                      ? "border-emerald-500 bg-emerald-50 hover:-translate-y-1.5 hover:shadow-pop cursor-pointer active:scale-95"
+                      : "border-foreground bg-card hover:bg-secondary/20 hover:-translate-y-1.5 hover:shadow-pop cursor-pointer active:scale-95"
+                  )}
+                >
+                  {isPlaced && (
+                    <div className="absolute top-1 right-1 w-4 h-4 bg-emerald-500 rounded-full flex items-center justify-center">
+                      <span className="text-[8px] text-white font-black">✓</span>
+                    </div>
+                  )}
+                  <span className="text-3xl leading-none">{item.emoji}</span>
+                  <span className="text-[10px] font-black text-center leading-tight text-foreground">{item.name}</span>
+                  <span className={cn(
+                    "text-[10px] font-black px-2 py-0.5 rounded-full border",
+                    item.bad
+                      ? "bg-red-100 text-red-600 border-red-300"
+                      : "bg-emerald-100 text-emerald-700 border-emerald-300"
+                  )}>
+                    {item.score > 0 ? `+${item.score}` : item.score}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
