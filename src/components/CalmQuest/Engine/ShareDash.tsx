@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { CinematicLevelData } from "@/lib/calmQuestData";
 import { Button } from "@/components/ui/button";
 import { Star, ArrowRight } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface Props {
   level: CinematicLevelData;
@@ -81,10 +82,14 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
   const [lumioHint, setLumioHint] = useState<string | null>(null);
   const [classroomMood, setClassroomMood] = useState(0); // 0-100
   const [resultBadge, setResultBadge] = useState("Helpful Friend");
+  const [nearItem, setNearItem] = useState<Item | null>(null);
+  const [nearStudent, setNearStudent] = useState<Student | null>(null);
+  const [wrongDelivery, setWrongDelivery] = useState(false);
   const keysRef = useRef<Set<string>>(new Set());
   const loopRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const hintRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const spawnRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const interactRef = useRef(false);
 
   const introLines = [
     "Today, kindness means helping each other.",
@@ -108,8 +113,19 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
   // keyboard
   useEffect(() => {
     if (scene !== "game") return;
-    const down = (e: KeyboardEvent) => keysRef.current.add(e.key);
-    const up   = (e: KeyboardEvent) => keysRef.current.delete(e.key);
+    const down = (e: KeyboardEvent) => {
+      keysRef.current.add(e.key);
+      if (e.key === "e" || e.key === "E" || e.key === " ") {
+        e.preventDefault();
+        interactRef.current = true;
+      }
+    };
+    const up = (e: KeyboardEvent) => {
+      keysRef.current.delete(e.key);
+      if (e.key === "e" || e.key === "E" || e.key === " ") {
+        interactRef.current = false;
+      }
+    };
     window.addEventListener("keydown", down);
     window.addEventListener("keyup", up);
     return () => { window.removeEventListener("keydown", down); window.removeEventListener("keyup", up); };
@@ -137,25 +153,25 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
     return () => { if (loopRef.current) clearInterval(loopRef.current); };
   }, [scene]);
 
-  // proximity check — pick up item or deliver
+  // proximity detection — update near item/student indicators
   useEffect(() => {
     if (scene !== "game") return;
 
-    // pick up item
     if (!carrying) {
-      const nearItem = ITEMS.find(item => Math.hypot(playerX - item.x, playerY - item.y) < 10);
-      if (nearItem) setCarrying(nearItem);
-    }
-
-    // deliver to student
-    if (carrying) {
-      const nearStudent = students.find(s =>
-        s.active && !s.helped && s.needsItem === carrying.label &&
-        Math.hypot(playerX - s.x, playerY - s.y) < 12
+      const found = ITEMS.find(item => Math.hypot(playerX - item.x, playerY - item.y) < 11);
+      setNearItem(found ?? null);
+      setNearStudent(null);
+    } else {
+      setNearItem(null);
+      // check near any active student (for delivery or wrong delivery)
+      const found = students.find(s =>
+        s.active && !s.helped &&
+        Math.hypot(playerX - s.x, playerY - s.y) < 13
       );
-      if (nearStudent) handleDeliver(nearStudent);
+      setNearStudent(found ?? null);
     }
   }, [playerX, playerY, scene, carrying, students]);
+
 
   // spawn more students
   useEffect(() => {
@@ -202,6 +218,51 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
     setLumioHint(LUMIO_HINTS[Math.floor(Math.random() * LUMIO_HINTS.length)]);
     hintRef.current = setTimeout(() => setLumioHint(null), 2500);
   }, []);
+
+  // Interact handler — called by key press OR click (must be after handleDeliver)
+  const handleInteract = useCallback(() => {
+    if (!carrying && nearItem) {
+      setCarrying(nearItem);
+      setNearItem(null);
+    } else if (carrying && nearStudent) {
+      if (nearStudent.needsItem === carrying.label) {
+        handleDeliver(nearStudent);
+      } else {
+        setWrongDelivery(true);
+        setTimeout(() => setWrongDelivery(false), 600);
+      }
+    }
+  }, [carrying, nearItem, nearStudent, handleDeliver]);
+
+  // E / Space key triggers interact
+  useEffect(() => {
+    if (scene !== "game") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "e" || e.key === "E" || e.key === " ") {
+        e.preventDefault();
+        handleInteract();
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [scene, handleInteract]);
+
+  // Q key = drop item
+  const handleDrop = useCallback(() => {
+    if (carrying) {
+      setCarrying(null);
+      setNearStudent(null);
+    }
+  }, [carrying]);
+
+  useEffect(() => {
+    if (scene !== "game") return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "q" || e.key === "Q") handleDrop();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [scene, handleDrop]);
 
   const progress = Math.min(100, Math.round((stats.helps / GOAL_HELPS) * 100));
   const moodBg = classroomMood < 30 ? "from-sky-200 via-yellow-50 to-green-50"
@@ -351,39 +412,73 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
         ))}
 
         {/* Item shelves */}
-        {ITEMS.map(item => (
-          <div key={item.id}
-            className={`absolute flex flex-col items-center gap-0.5 cursor-pointer transition-all duration-200 ${Math.hypot(playerX - item.x, playerY - item.y) < 10 ? "scale-125" : "hover:scale-110"}`}
-            style={{ left: `${item.x}%`, top: `${item.y}%`, transform: "translate(-50%,-50%)" }}>
-            <div className={`text-3xl rounded-xl border-2 border-foreground p-1.5 shadow-pop-sm ${Math.hypot(playerX - item.x, playerY - item.y) < 10 ? "bg-secondary animate-bounce-slow" : "bg-card"}`}>
-              {item.emoji}
+        {ITEMS.map(item => {
+          const isNear = nearItem?.id === item.id;
+          return (
+            <div key={item.id}
+              onClick={() => { if (isNear && !carrying) { setCarrying(item); setNearItem(null); } }}
+              className={`absolute flex flex-col items-center gap-0.5 transition-all duration-200 ${isNear ? "scale-125 cursor-pointer" : ""}`}
+              style={{ left: `${item.x}%`, top: `${item.y}%`, transform: "translate(-50%,-50%)" }}>
+              <div className={`text-3xl rounded-xl border-2 border-foreground p-1.5 shadow-pop-sm ${isNear ? "bg-secondary animate-bounce-slow" : "bg-card"}`}>
+                {item.emoji}
+              </div>
+              <span className="text-xs font-black bg-card border border-foreground rounded-full px-1.5 py-0.5 shadow-pop-sm whitespace-nowrap">{item.label}</span>
+              {isNear && (
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-primary text-primary-foreground text-[10px] font-black px-2 py-1 rounded-full border-2 border-foreground shadow-pop whitespace-nowrap animate-bounce-slow">
+                  Press E or Click!
+                </div>
+              )}
             </div>
-            <span className="text-xs font-black bg-card border border-foreground rounded-full px-1.5 py-0.5 shadow-pop-sm whitespace-nowrap">{item.label}</span>
-          </div>
-        ))}
+          );
+        })}
 
         {/* Students */}
-        {students.filter(s => s.active || s.responseText).map(s => (
-          <div key={s.id} className="absolute flex flex-col items-center gap-0.5 transition-all duration-300"
-            style={{ left: `${s.x}%`, top: `${s.y}%`, transform: "translate(-50%,-50%)" }}>
-            <div className={`text-4xl ${s.active ? "animate-bounce-slow" : ""}`}>{s.emoji}</div>
-            <span className="text-xs font-black bg-card border-2 border-foreground rounded-full px-2 py-0.5 shadow-pop-sm whitespace-nowrap">{s.name}</span>
+        {students.filter(s => s.active || s.responseText).map(s => {
+          const isNearThis = nearStudent?.id === s.id;
+          const canDeliver = isNearThis && carrying?.label === s.needsItem;
+          const isWrongTarget = isNearThis && carrying && carrying.label !== s.needsItem;
+          return (
+            <div key={s.id}
+              onClick={() => { if (isNearThis && carrying) handleInteract(); }}
+              className={`absolute flex flex-col items-center gap-0.5 transition-all duration-300 ${isNearThis ? "cursor-pointer" : ""}`}
+              style={{ left: `${s.x}%`, top: `${s.y}%`, transform: "translate(-50%,-50%)" }}>
+              <div className={`text-4xl ${s.active ? "animate-bounce-slow" : ""} ${wrongDelivery && isNearThis ? "animate-shake" : ""}`}>{s.emoji}</div>
+              <span className={`text-xs font-black border-2 rounded-full px-2 py-0.5 shadow-pop-sm whitespace-nowrap ${
+                canDeliver ? "bg-green-200 border-green-500 text-green-900" :
+                isWrongTarget ? "bg-red-100 border-red-400 text-red-700" :
+                "bg-card border-foreground"
+              }`}>{s.name}</span>
 
-            {/* Request bubble */}
-            {s.active && !s.responseText && (
-              <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-card border-4 border-foreground rounded-2xl px-3 py-2 shadow-pop-lg z-20 animate-scale-in whitespace-nowrap">
-                <p className="text-xs font-bold text-center">{s.requestEmoji} "{s.request}"</p>
-              </div>
-            )}
+              {/* Request bubble */}
+              {s.active && !s.responseText && (
+                <div className="absolute -top-16 left-1/2 -translate-x-1/2 bg-card border-4 border-foreground rounded-2xl px-3 py-2 shadow-pop-lg z-20 animate-scale-in whitespace-nowrap">
+                  <p className="text-xs font-bold text-center">{s.requestEmoji} "{s.request}"</p>
+                </div>
+              )}
 
-            {/* Response */}
-            {s.responseText && (
-              <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-secondary border-2 border-foreground rounded-2xl px-3 py-1.5 text-xs font-bold shadow-pop whitespace-nowrap animate-fade-up z-20">
-                {s.responseText}
-              </div>
-            )}
-          </div>
-        ))}
+              {/* Deliver prompt */}
+              {canDeliver && !s.responseText && (
+                <div className="absolute -top-24 left-1/2 -translate-x-1/2 bg-green-500 text-white text-[10px] font-black px-2 py-1 rounded-full border-2 border-foreground shadow-pop whitespace-nowrap animate-bounce-slow z-30">
+                  Press E or Click to Deliver! ✅
+                </div>
+              )}
+
+              {/* Wrong item warning */}
+              {isWrongTarget && carrying && !s.responseText && (
+                <div className="absolute -top-24 left-1/2 -translate-x-1/2 bg-red-500 text-white text-[10px] font-black px-2 py-1 rounded-full border-2 border-foreground shadow-pop whitespace-nowrap z-30">
+                  Wrong item! Needs {s.requestEmoji}
+                </div>
+              )}
+
+              {/* Response */}
+              {s.responseText && (
+                <div className="absolute -top-12 left-1/2 -translate-x-1/2 bg-secondary border-2 border-foreground rounded-2xl px-3 py-1.5 text-xs font-bold shadow-pop whitespace-nowrap animate-fade-up z-20">
+                  {s.responseText}
+                </div>
+              )}
+            </div>
+          );
+        })}
 
         {/* Player */}
         <div className="absolute flex flex-col items-center gap-0.5 transition-none z-30"
@@ -395,6 +490,12 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
             )}
           </div>
           <div className="text-xs font-black bg-primary text-primary-foreground border-2 border-foreground rounded-full px-2 py-0.5 shadow-pop-sm">You</div>
+          {/* Drop hint above player when carrying wrong item near a student */}
+          {carrying && nearStudent && nearStudent.needsItem !== carrying.label && (
+            <div className="absolute -top-10 left-1/2 -translate-x-1/2 bg-orange-400 text-white text-[10px] font-black px-2 py-1 rounded-full border-2 border-foreground shadow-pop whitespace-nowrap animate-bounce-slow">
+              Press Q to drop {carrying.emoji}
+            </div>
+          )}
         </div>
 
         {/* Lumio hint */}
@@ -406,24 +507,50 @@ export const ShareDash = ({ level, onComplete, onBack }: Props) => {
       </div>
 
       {/* Controls */}
-      <div className="flex items-center justify-center gap-3">
-        <div className="flex flex-col gap-1">
-          <button onPointerDown={() => keysRef.current.add("ArrowUp")}   onPointerUp={() => keysRef.current.delete("ArrowUp")}
-            className="w-12 h-12 bg-card border-4 border-foreground rounded-xl shadow-pop text-xl font-black hover:bg-accent active:scale-95 transition-all select-none mx-auto">↑</button>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        {/* D-pad */}
+        <div className="flex flex-col items-center gap-1">
+          <button onPointerDown={() => keysRef.current.add("ArrowUp")} onPointerUp={() => keysRef.current.delete("ArrowUp")} onPointerLeave={() => keysRef.current.delete("ArrowUp")}
+            className="w-12 h-12 bg-card border-4 border-foreground rounded-xl shadow-pop text-xl font-black hover:bg-accent active:scale-95 transition-all select-none">↑</button>
           <div className="flex gap-1">
-            <button onPointerDown={() => keysRef.current.add("ArrowLeft")}  onPointerUp={() => keysRef.current.delete("ArrowLeft")}
+            <button onPointerDown={() => keysRef.current.add("ArrowLeft")} onPointerUp={() => keysRef.current.delete("ArrowLeft")} onPointerLeave={() => keysRef.current.delete("ArrowLeft")}
               className="w-12 h-12 bg-card border-4 border-foreground rounded-xl shadow-pop text-xl font-black hover:bg-accent active:scale-95 transition-all select-none">←</button>
-            <button onPointerDown={() => keysRef.current.add("ArrowDown")}  onPointerUp={() => keysRef.current.delete("ArrowDown")}
+            <button onPointerDown={() => keysRef.current.add("ArrowDown")} onPointerUp={() => keysRef.current.delete("ArrowDown")} onPointerLeave={() => keysRef.current.delete("ArrowDown")}
               className="w-12 h-12 bg-card border-4 border-foreground rounded-xl shadow-pop text-xl font-black hover:bg-accent active:scale-95 transition-all select-none">↓</button>
-            <button onPointerDown={() => keysRef.current.add("ArrowRight")} onPointerUp={() => keysRef.current.delete("ArrowRight")}
+            <button onPointerDown={() => keysRef.current.add("ArrowRight")} onPointerUp={() => keysRef.current.delete("ArrowRight")} onPointerLeave={() => keysRef.current.delete("ArrowRight")}
               className="w-12 h-12 bg-card border-4 border-foreground rounded-xl shadow-pop text-xl font-black hover:bg-accent active:scale-95 transition-all select-none">→</button>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground font-medium text-center ml-4">
-          <p className="font-black text-sm mb-1">How to play</p>
-          <p>🚶 Walk to an item shelf to pick it up</p>
-          <p>📦 Then walk to the student who needs it</p>
-          <p>💛 Help {GOAL_HELPS} classmates to complete!</p>
+
+        {/* Action button */}
+        <button onClick={handleInteract}
+          className={cn(
+            "w-20 h-20 rounded-2xl border-4 border-foreground font-black text-center shadow-pop-lg active:scale-95 transition-all flex flex-col items-center justify-center gap-1",
+            nearItem && !carrying ? "bg-secondary text-secondary-foreground animate-bounce-slow" :
+            nearStudent && carrying?.label === nearStudent.needsItem ? "bg-green-400 text-white animate-bounce-slow" :
+            "bg-card text-foreground"
+          )}>
+          <span className="text-2xl">⚡</span>
+          <span className="text-[10px] uppercase tracking-wider">Action<br/>(E / Space)</span>
+        </button>
+
+        {/* Drop button — only shown when carrying */}
+        {carrying && (
+          <button onClick={handleDrop}
+            className="w-20 h-20 rounded-2xl border-4 border-orange-400 bg-orange-100 text-orange-800 font-black text-center shadow-pop-lg active:scale-95 transition-all flex flex-col items-center justify-center gap-1 animate-fade-up">
+            <span className="text-2xl">🗑️</span>
+            <span className="text-[10px] uppercase tracking-wider">Drop<br/>(Q key)</span>
+          </button>
+        )}
+
+        {/* Instructions */}
+        <div className="text-xs text-muted-foreground font-medium">
+          <p className="font-black text-sm mb-1 text-foreground">How to play</p>
+          <p>① Walk near an item shelf</p>
+          <p>② Press <kbd className="px-1 bg-muted border border-foreground/20 rounded font-mono">E</kbd> or click ⚡ or click the item</p>
+          <p>③ Walk to the student who needs it</p>
+          <p>④ Press <kbd className="px-1 bg-muted border border-foreground/20 rounded font-mono">E</kbd> or click ⚡ to deliver</p>
+          <p className="text-orange-600 font-bold mt-1">Wrong item? Press <kbd className="px-1 bg-muted border border-foreground/20 rounded font-mono">Q</kbd> or tap 🗑️ to drop</p>
         </div>
       </div>
 

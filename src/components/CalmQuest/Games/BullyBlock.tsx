@@ -325,7 +325,7 @@ export const BullyBlock = ({ onComplete }: BullyBlockProps) => {
             }
 
             // walk timer triggers after 5 seconds near group
-            let nextWalkTimer = fg.walkTimer + (1 / 60);
+            const nextWalkTimer = fg.walkTimer + (1 / 60);
             let nextX = fg.x;
             let nextY = fg.y;
             let walking = fg.hasStartedWalking;
@@ -434,12 +434,12 @@ export const BullyBlock = ({ onComplete }: BullyBlockProps) => {
       // 6. Update Stress & Confidence
       setIsSpotted(spotted);
       setStress(s => {
-        let diff = spotted ? 0.25 : nearFriends ? -0.08 : isHidden ? -0.1 : -0.02;
+        const diff = spotted ? 0.25 : nearFriends ? -0.08 : isHidden ? -0.1 : -0.02;
         return Math.min(100, Math.max(10, s + diff));
       });
 
       setConfidence(c => {
-        let diff = nearFriends ? 0.05 : spotted ? -0.06 : 0.01;
+        const diff = nearFriends ? 0.05 : spotted ? -0.06 : 0.01;
         return Math.min(100, Math.max(10, c + diff));
       });
 

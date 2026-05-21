@@ -11,6 +11,8 @@ import { MyCalmSpace } from "./Games/MyCalmSpace";
 import { BullyBlock } from "./Games/BullyBlock";
 import { PeerPressurePanic } from "./Games/PeerPressurePanic";
 import { SafeStrangerQuest } from "./Games/SafeStrangerQuest";
+import { DynamicLumio } from "./DynamicLumio";
+import { TeamTask } from "./Engine/TeamTask";
 import { Button } from "@/components/ui/button";
 import { ArrowLeft } from "lucide-react";
 
@@ -150,9 +152,14 @@ export const LevelRunner = ({ worldId, levelId, onBack, onLevelComplete }: Props
     return <GreetingRun level={level} onComplete={onLevelComplete} onBack={onBack} worldId={worldId} levelId={levelId} />;
   }
 
-  // World 1 Level 2 — ShareDash (custom, handles its own intro)
+  // World 1 Level 2 — ShareDash
   if (worldId === 1 && levelId === 2) {
     return <ShareDash level={level} onComplete={onLevelComplete} onBack={onBack} />;
+  }
+
+  // World 1 Level 3 — TeamTask
+  if (worldId === 1 && levelId === 3) {
+    return <TeamTask onComplete={onLevelComplete} onBack={onBack} />;
   }
 
   return (
