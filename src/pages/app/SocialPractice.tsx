@@ -21,9 +21,8 @@ const SocialPractice = () => {
   const currentWorld = worlds.find(w => w.id === currentWorldId);
 
   useEffect(() => {
-    // Skip onboarding if user has played before
-    if (progress.xp > 0) setView("worldSelect");
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // Always show the CalmQuest title screen when clicking the tab, as requested.
+    // if (progress.xp > 0) setView("worldSelect");
   }, []);
 
   const handleWorldSelect = (world: CinematicWorldData) => {

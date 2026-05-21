@@ -324,7 +324,7 @@ export const EmotionPop = ({ onComplete }: EmotionPopProps) => {
 
       // Wait for pop animation before executing gravity
       setTimeout(() => {
-        let updatedBoard = [...newBoard].filter(t => !t.isMatched);
+        const updatedBoard = [...newBoard].filter(t => !t.isMatched);
         
         // Gravity shifts tiles down
         for (let c = 0; c < COLS; c++) {
