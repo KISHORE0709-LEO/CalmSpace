@@ -17,9 +17,9 @@ const mockInitialMessages: Record<string, MessageType[]> = {
 
 const Chat = () => {
   return (
-    <DoctorShell title="Chat Space" subtitle="WhatsApp-style communication with the parents">
+    <DoctorShell fullWidth>
       <RoleOnboardingModal role="doctor" />
-      <div className="animate-fade-up max-w-[1200px] mx-auto w-full">
+      <div className="animate-fade-up w-full">
         <WhatsAppClone 
           currentRole="doctor" 
           threads={mockThreads} 

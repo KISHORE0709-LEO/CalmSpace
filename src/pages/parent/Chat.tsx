@@ -21,8 +21,8 @@ const mockInitialMessages: Record<string, MessageType[]> = {
 
 const Chat = () => {
   return (
-    <ParentShell title="Chat Space" subtitle="WhatsApp-style communication with your care circle">
-      <div className="animate-fade-up max-w-[1200px] mx-auto w-full">
+    <ParentShell fullWidth>
+      <div className="animate-fade-up w-full">
         <WhatsAppClone 
           currentRole="parent" 
           threads={mockThreads} 
