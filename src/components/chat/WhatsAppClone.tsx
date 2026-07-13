@@ -73,7 +73,7 @@ export const WhatsAppClone = ({ currentRole, threads, initialMessages }: WhatsAp
   };
 
   return (
-    <div className="flex h-[75vh] min-h-[600px] border-2 border-foreground rounded-2xl shadow-pop-lg overflow-hidden bg-background">
+    <div className="flex h-[calc(100vh-160px)] min-h-[600px] border-2 border-foreground rounded-2xl shadow-pop-lg overflow-hidden bg-background">
       
       {/* LEFT SIDEBAR (Thread List) */}
       <div className="w-[350px] flex-shrink-0 border-r-2 border-foreground flex flex-col bg-muted/20">
