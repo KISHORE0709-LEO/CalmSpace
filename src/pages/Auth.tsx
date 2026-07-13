@@ -59,9 +59,9 @@ const Auth = () => {
 
   const roleRedirect: Record<string, string> = {
     child:  "/app/feelings",
-    parent: "/app/feelings",
-    caregiver: "/app/feelings",
-    doctor: "/app/feelings",
+    parent: "/parent/chat",
+    caregiver: "/caregiver/chat",
+    doctor: "/doctor/chat",
   };
 
   const handleSubmit = (e: React.FormEvent) => {

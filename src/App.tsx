@@ -14,6 +14,28 @@ import CheckIns from "./pages/app/CheckIns.tsx";
 import Alerts from "./pages/app/Alerts.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
+// Parent Pages
+import ParentChat from "./pages/parent/Chat.tsx";
+import ParentEmotionalTrend from "./pages/parent/EmotionalTrend.tsx";
+import ParentCrisisAlerts from "./pages/parent/CrisisAlerts.tsx";
+import ParentSessionReports from "./pages/parent/SessionReports.tsx";
+import ParentSocialConfidence from "./pages/parent/SocialConfidence.tsx";
+import ParentHistory from "./pages/parent/History.tsx";
+
+// Caregiver Pages
+import CaregiverChat from "./pages/caregiver/Chat.tsx";
+import CaregiverLiveEmotion from "./pages/caregiver/LiveEmotion.tsx";
+import CaregiverAssignedTasks from "./pages/caregiver/AssignedTasks.tsx";
+import CaregiverIncidentLogging from "./pages/caregiver/IncidentLogging.tsx";
+import CaregiverHandoffNotes from "./pages/caregiver/HandoffNotes.tsx";
+
+// Doctor Pages
+import DoctorChat from "./pages/doctor/Chat.tsx";
+import DoctorAnalytics from "./pages/doctor/Analytics.tsx";
+import DoctorRiskScore from "./pages/doctor/RiskScore.tsx";
+import DoctorExport from "./pages/doctor/Export.tsx";
+import DoctorCarePlan from "./pages/doctor/CarePlan.tsx";
+import DoctorPatients from "./pages/doctor/Patients.tsx";
 
 const queryClient = new QueryClient();
 
@@ -28,12 +50,38 @@ const App = () => (
           <Route path="/auth" element={<Auth />} />
           <Route path="/how-it-works" element={<HowItWorks />} />
           <Route path="/about" element={<About />} />
+          
+          {/* Child App Routes */}
           <Route path="/app/feelings" element={<Feelings />} />
           <Route path="/app/mitra" element={<Mitra />} />
           <Route path="/app/social" element={<SocialPractice />} />
           <Route path="/app/caregiver" element={<Caregiver />} />
           <Route path="/app/checkins" element={<CheckIns />} />
           <Route path="/app/alerts" element={<Alerts />} />
+          
+          {/* Parent Routes */}
+          <Route path="/parent/chat" element={<ParentChat />} />
+          <Route path="/parent/emotional-trend" element={<ParentEmotionalTrend />} />
+          <Route path="/parent/crisis-alerts" element={<ParentCrisisAlerts />} />
+          <Route path="/parent/session-reports" element={<ParentSessionReports />} />
+          <Route path="/parent/social-confidence" element={<ParentSocialConfidence />} />
+          <Route path="/parent/history" element={<ParentHistory />} />
+          
+          {/* Caregiver Routes */}
+          <Route path="/caregiver/chat" element={<CaregiverChat />} />
+          <Route path="/caregiver/live-emotion" element={<CaregiverLiveEmotion />} />
+          <Route path="/caregiver/tasks" element={<CaregiverAssignedTasks />} />
+          <Route path="/caregiver/incident-logging" element={<CaregiverIncidentLogging />} />
+          <Route path="/caregiver/handoff-notes" element={<CaregiverHandoffNotes />} />
+          
+          {/* Doctor Routes */}
+          <Route path="/doctor/chat" element={<DoctorChat />} />
+          <Route path="/doctor/analytics" element={<DoctorAnalytics />} />
+          <Route path="/doctor/risk-score" element={<DoctorRiskScore />} />
+          <Route path="/doctor/export" element={<DoctorExport />} />
+          <Route path="/doctor/care-plan" element={<DoctorCarePlan />} />
+          <Route path="/doctor/patients" element={<DoctorPatients />} />
+
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
