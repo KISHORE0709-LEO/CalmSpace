@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PublicNav } from "@/components/PublicNav";
-import { Smile, Stethoscope, Heart, ArrowRight } from "lucide-react";
+import { Smile, Stethoscope, Heart, HandHeart, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
-type Role = "child" | "doctor" | "parent" | null;
+type Role = "child" | "doctor" | "parent" | "caregiver" | null;
 
 const floatingEmojis = [
   // Top section
@@ -60,6 +60,7 @@ const Auth = () => {
   const roleRedirect: Record<string, string> = {
     child:  "/app/feelings",
     parent: "/app/feelings",
+    caregiver: "/app/feelings",
     doctor: "/app/feelings",
   };
 
@@ -78,8 +79,15 @@ const Auth = () => {
     },
     {
       id: "parent",
-      title: "Parent / Caretaker",
+      title: "Parent",
       icon: Heart,
+      color: "bg-secondary text-secondary-foreground",
+      description: "Monitor progress and provide support.",
+    },
+    {
+      id: "caregiver",
+      title: "Caregiver",
+      icon: HandHeart,
       color: "bg-secondary text-secondary-foreground",
       description: "Monitor progress and provide support.",
     },
@@ -103,7 +111,7 @@ const Auth = () => {
       ))}
 
       <div className="py-12 md:py-16 flex flex-col items-center justify-center animate-fade-up relative z-10">
-        <div className="max-w-6xl w-full px-6 text-center space-y-16">
+        <div className="max-w-[1600px] w-full px-6 text-center space-y-16">
           
           {!selectedRole ? (
             <>
@@ -116,7 +124,7 @@ const Auth = () => {
                 </p>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-10 pt-6">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-8 md:gap-10 pt-6">
                 {roles.map((role, index) => {
                   const Icon = role.icon;
                   return (
