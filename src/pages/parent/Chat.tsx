@@ -1,17 +1,33 @@
 import { ParentShell } from "@/components/ParentShell";
-import { MessageCircle } from "lucide-react";
+import { WhatsAppClone, ThreadType, MessageType } from "@/components/chat/WhatsAppClone";
+
+const mockThreads: ThreadType[] = [
+  { id: "parent_caregiver", name: "Sarah Jenkins", role: "caregiver", unreadCount: 0, avatarColor: "bg-secondary text-secondary-foreground", lastMessageTime: new Date(Date.now() - 3500000) },
+  { id: "parent_doctor", name: "Dr. Mehta", role: "doctor", unreadCount: 2, avatarColor: "bg-accent text-accent-foreground", lastMessageTime: new Date(Date.now() - 7100000) },
+];
+
+const mockInitialMessages: Record<string, MessageType[]> = {
+  "parent_caregiver": [
+    { id: "1", senderName: "Sarah Jenkins", senderRole: "caregiver", content: "Hi! The session went really well today. We focused on emotional regulation.", timestamp: new Date(Date.now() - 3600000), isSelf: false, status: "read" },
+    { id: "2", senderName: "You", senderRole: "parent", content: "That's great to hear! Did any specific triggers come up?", timestamp: new Date(Date.now() - 3500000), isSelf: true, status: "read" },
+  ],
+  "parent_doctor": [
+    { id: "3", senderName: "Dr. Mehta", senderRole: "doctor", content: "I've reviewed the latest LSTM risk scores. Everything looks stable.", timestamp: new Date(Date.now() - 7200000), isSelf: false, status: "read" },
+    { id: "4", senderName: "You", senderRole: "parent", content: "Thank you doctor. Should we adjust any routines?", timestamp: new Date(Date.now() - 7100000), isSelf: true, status: "read" },
+    { id: "5", senderName: "Dr. Mehta", senderRole: "doctor", content: "Not at this moment, but let's keep an eye on sleep patterns.", timestamp: new Date(Date.now() - 3600000), isSelf: false, status: "delivered" },
+    { id: "6", senderName: "Dr. Mehta", senderRole: "doctor", content: "I will check in again tomorrow.", timestamp: new Date(Date.now() - 3500000), isSelf: false, status: "delivered" },
+  ],
+};
 
 const Chat = () => {
   return (
-    <ParentShell title="Chat" subtitle="Communicate with Doctors and Caregivers">
-      <div className="calm-card p-10 text-center animate-fade-up">
-        <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6 shadow-pop-sm">
-          <MessageCircle size={40} className="text-secondary-foreground" />
-        </div>
-        <h2 className="text-2xl font-black mb-4">Chat Space</h2>
-        <p className="text-muted-foreground text-lg">
-          This is a placeholder for the WhatsApp-like chat space where parents can communicate with doctors and caregivers.
-        </p>
+    <ParentShell title="Chat Space" subtitle="WhatsApp-style communication with your care circle">
+      <div className="animate-fade-up max-w-[1200px] mx-auto w-full">
+        <WhatsAppClone 
+          currentRole="parent" 
+          threads={mockThreads} 
+          initialMessages={mockInitialMessages} 
+        />
       </div>
     </ParentShell>
   );

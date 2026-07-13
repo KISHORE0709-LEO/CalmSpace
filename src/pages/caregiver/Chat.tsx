@@ -1,17 +1,28 @@
 import { CaregiverShell } from "@/components/CaregiverShell";
-import { MessageCircle } from "lucide-react";
+import { WhatsAppClone, ThreadType, MessageType } from "@/components/chat/WhatsAppClone";
+import { RoleOnboardingModal } from "@/components/RoleOnboardingModal";
+
+const mockThreads: ThreadType[] = [
+  { id: "parent_caregiver", name: "The Jenkins Family", role: "parent", unreadCount: 1, avatarColor: "bg-primary text-primary-foreground", lastMessageTime: new Date(Date.now() - 3500000) },
+];
+
+const mockInitialMessages: Record<string, MessageType[]> = {
+  "parent_caregiver": [
+    { id: "1", senderName: "You", senderRole: "caregiver", content: "Hi! The session went really well today. We focused on emotional regulation.", timestamp: new Date(Date.now() - 3600000), isSelf: true, status: "read" },
+    { id: "2", senderName: "Mrs. Jenkins", senderRole: "parent", content: "That's great to hear! Did any specific triggers come up?", timestamp: new Date(Date.now() - 3500000), isSelf: false, status: "read" },
+  ],
+};
 
 const Chat = () => {
   return (
-    <CaregiverShell title="Chat" subtitle="Communicate with Doctors and Parents">
-      <div className="calm-card p-10 text-center animate-fade-up">
-        <div className="w-20 h-20 bg-secondary rounded-full flex items-center justify-center mx-auto mb-6 shadow-pop-sm">
-          <MessageCircle size={40} className="text-secondary-foreground" />
-        </div>
-        <h2 className="text-2xl font-black mb-4">Chat Space</h2>
-        <p className="text-muted-foreground text-lg">
-          This is a placeholder for the WhatsApp-like chat space where caregivers can communicate with doctors and parents.
-        </p>
+    <CaregiverShell title="Chat Space" subtitle="WhatsApp-style communication with the parents">
+      <RoleOnboardingModal role="caregiver" />
+      <div className="animate-fade-up max-w-[1200px] mx-auto w-full">
+        <WhatsAppClone 
+          currentRole="caregiver" 
+          threads={mockThreads} 
+          initialMessages={mockInitialMessages} 
+        />
       </div>
     </CaregiverShell>
   );

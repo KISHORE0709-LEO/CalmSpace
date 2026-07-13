@@ -1,7 +1,8 @@
 import { Link, NavLink } from "react-router-dom";
-import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activity, History } from "lucide-react";
+import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activity, History, Users } from "lucide-react";
 
 const links = [
+  { to: "/parent/care-circle", label: "Care Circle", icon: Users },
   { to: "/parent/chat", label: "Chat", icon: MessageCircle },
   { to: "/parent/emotional-trend", label: "Emotional Trend", icon: TrendingUp },
   { to: "/parent/crisis-alerts", label: "Crisis Alerts", icon: AlertTriangle },
