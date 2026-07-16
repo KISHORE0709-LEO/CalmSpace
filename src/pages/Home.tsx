@@ -160,7 +160,7 @@ const Home = () => {
           </h1>
           <div className="flex flex-wrap justify-center gap-3 animate-fade-up-delay-1">
             <Button asChild size="lg" className="rounded-2xl px-8 h-14 text-base font-black border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
-              <Link to="/app/feelings">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
+              <Link to="/auth">Get Started <ArrowRight className="w-4 h-4 ml-1" /></Link>
             </Button>
             <Button asChild size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-base font-black bg-background/90 backdrop-blur border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
               <Link to="/how-it-works">See how it works</Link>
@@ -361,7 +361,7 @@ const Home = () => {
             </p>
             <div className="flex flex-wrap justify-center gap-3 relative z-10">
               <Button asChild size="lg" className="rounded-2xl px-8 h-14 text-base font-black border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
-                <Link to="/app/feelings">Get Started Free <ArrowRight className="w-4 h-4 ml-1" /></Link>
+                <Link to="/auth">Get Started Free <ArrowRight className="w-4 h-4 ml-1" /></Link>
               </Button>
               <Button asChild size="lg" variant="outline" className="rounded-2xl px-8 h-14 text-base font-black bg-background/80 border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 transition-all">
                 <Link to="/how-it-works">Learn more</Link>

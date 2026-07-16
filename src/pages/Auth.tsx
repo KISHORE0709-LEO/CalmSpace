@@ -113,6 +113,14 @@ const Auth = () => {
 
   const handleGoogleSignIn = async () => {
     if (!selectedRole) return;
+
+    if (!isLogin && (selectedRole === "parent" || selectedRole === "caregiver")) {
+      if (!childEmail || !childEmail.trim()) {
+        toast.error("Please enter your child's email address in the form before continuing with Google.");
+        return;
+      }
+    }
+
     try {
       const result = await signInWithPopup(auth, googleProvider);
       const user = result.user;
