@@ -171,7 +171,7 @@ const HowItWorks = () => {
             <div className="absolute top-3 right-5 text-3xl animate-float opacity-40">🚀</div>
             <div className="absolute bottom-3 left-5 text-2xl animate-bounce-slow opacity-40">🌟</div>
             <p className="text-lg text-muted-foreground font-semibold mb-6">Ready to find your calm space?</p>
-            <a href="/app/feelings" className="group inline-flex items-center gap-3 bg-foreground text-background text-lg font-black px-10 py-5 rounded-2xl border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 active:translate-y-0 transition-all">
+            <a href="/auth" className="group inline-flex items-center gap-3 bg-foreground text-background text-lg font-black px-10 py-5 rounded-2xl border-2 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-1 active:translate-y-0 transition-all">
               Get Started <Rocket size={20} className="group-hover:rotate-12 group-hover:scale-110 transition-transform animate-bounce-slow" />
             </a>
           </div>
