@@ -14,6 +14,7 @@ import CheckIns from "./pages/app/CheckIns.tsx";
 import Alerts from "./pages/app/Alerts.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
+import { AuthProvider } from "./contexts/AuthContext.tsx";
 // Parent Pages
 import ParentCareCircle from "./pages/parent/CareCircle.tsx";
 import ParentChat from "./pages/parent/Chat.tsx";
@@ -45,6 +46,7 @@ const App = () => (
     <TooltipProvider>
       <Toaster />
       <Sonner />
+      <AuthProvider>
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
@@ -87,6 +89,7 @@ const App = () => (
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
+      </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>
 );
