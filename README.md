@@ -54,6 +54,7 @@ CalmSpace/
 │   ├── database.py           # Database connection and configuration
 │   ├── main.py               # FastAPI application entry point
 │   ├── models.py             # ORM models (e.g., SQLAlchemy)
+│   ├── requirements.txt      # Python dependencies
 │   └── schemas.py            # Pydantic models for data validation
 │
 ├── frontend/                 # React + Vite Frontend
@@ -95,7 +96,11 @@ The backend is powered by **Python** and **FastAPI**.
      ```bash
      source venv/bin/activate
      ```
-3. Start the FastAPI server:
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Start the FastAPI server:
    ```bash
    uvicorn main:app --reload
    ```
