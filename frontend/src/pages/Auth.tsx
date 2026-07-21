@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PublicNav } from "@/components/PublicNav";
-import { Smile, Stethoscope, Heart, HandHeart, ArrowRight, Eye, EyeOff } from "lucide-react";
+import { Smile, Stethoscope, Heart, HandHeart, ArrowRight, ArrowLeft, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail } from "firebase/auth";
@@ -272,20 +272,23 @@ const Auth = () => {
             </>
           ) : (
             <div className="max-w-xl mx-auto w-full">
-              <button 
-                onClick={() => setSelectedRole(null)}
-                className="mb-8 text-base font-bold text-muted-foreground hover:text-foreground transition-colors flex items-center justify-center w-full"
-              >
-                ← Back to role selection
-              </button>
-
               <div className="calm-card p-10 md:p-14 animate-scale-in relative overflow-hidden">
                 {/* Decorative element based on role */}
                 <div className={`absolute top-0 right-0 w-48 h-48 -mr-24 -mt-24 rounded-full opacity-20 ${roles.find(r => r.id === selectedRole)?.color}`} />
                 
-                <h2 className="text-4xl font-black mb-3">
-                  {isLogin ? "Welcome Back!" : "Create Account"}
-                </h2>
+                <div className="flex items-center mb-3 relative z-10 gap-4 -ml-2">
+                  <button 
+                    onClick={() => setSelectedRole(null)}
+                    className="p-2 rounded-full hover:bg-secondary/50 text-muted-foreground hover:text-foreground transition-colors group"
+                    aria-label="Back to role selection"
+                    title="Back to role selection"
+                  >
+                    <ArrowLeft className="w-8 h-8 group-hover:-translate-x-1 transition-transform" />
+                  </button>
+                  <h2 className="text-4xl font-black">
+                    {isLogin ? "Welcome Back!" : "Create Account"}
+                  </h2>
+                </div>
                 <p className="text-lg text-muted-foreground font-medium mb-10">
                   {isLogin 
                     ? "Enter your details to continue your journey."
