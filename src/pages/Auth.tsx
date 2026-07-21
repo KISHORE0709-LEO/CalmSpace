@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { PublicNav } from "@/components/PublicNav";
-import { Smile, Stethoscope, Heart, HandHeart, ArrowRight } from "lucide-react";
+import { Smile, Stethoscope, Heart, HandHeart, ArrowRight, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 type Role = "child" | "doctor" | "parent" | "caregiver" | null;
 
@@ -61,8 +62,11 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [childEmail, setChildEmail] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
 
   const navigate = useNavigate();
+  const { user, profile, loading } = useAuth();
 
   const roleRedirect: Record<string, string> = {
     child:  "/app/feelings",
@@ -71,11 +75,20 @@ const Auth = () => {
     doctor: "/doctor/chat",
   };
 
+  useEffect(() => {
+    if (!loading && user && profile) {
+      toast.success(`Welcome back, ${profile.name}!`);
+      navigate(roleRedirect[profile.role] || "/");
+    }
+  }, [user, profile, loading, navigate]);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!selectedRole) return;
 
     try {
+      await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
+      
       if (isLogin) {
         await signInWithEmailAndPassword(auth, email, password);
         toast.success("Logged in successfully!");
@@ -107,7 +120,26 @@ const Auth = () => {
         navigate(roleRedirect[selectedRole]);
       }
     } catch (error: any) {
-      toast.error(error.message || "An error occurred");
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        toast.error("Could not connect to the server. Please ensure the Python backend is running.");
+      } else if (error.code === "auth/invalid-credential") {
+        toast.error("Invalid email or password. If you signed up with Google, please click 'Continue with Google' or use 'Forgot Password' to set a password.");
+      } else {
+        toast.error(error.message || "An error occurred");
+      }
+    }
+  };
+
+  const handleForgotPassword = async () => {
+    if (!email) {
+      toast.error("Please enter your email address to reset your password.");
+      return;
+    }
+    try {
+      await sendPasswordResetEmail(auth, email);
+      toast.success("Password reset email sent! Please check your inbox.");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to send reset email");
     }
   };
 
@@ -154,7 +186,11 @@ const Auth = () => {
       
       navigate(roleRedirect[selectedRole]);
     } catch (error: any) {
-      toast.error(error.message || "An error occurred with Google Sign In");
+      if (error instanceof TypeError && error.message === "Failed to fetch") {
+        toast.error("Could not connect to the server. Please ensure the Python backend is running.");
+      } else {
+        toast.error(error.message || "An error occurred with Google Sign In");
+      }
     }
   };
 
@@ -299,14 +335,47 @@ const Auth = () => {
 
                   <div className="space-y-3 text-left">
                     <label className="text-base font-bold ml-1">Password</label>
-                    <Input 
-                      type="password" 
-                      placeholder="••••••••"
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      required
-                      className="h-14 text-lg border-2 border-foreground shadow-pop-sm focus-visible:ring-primary rounded-xl"
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"} 
+                        placeholder="Enter password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        required
+                        className="h-14 text-lg border-2 border-foreground shadow-pop-sm focus-visible:ring-primary rounded-xl pr-12"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                      </button>
+                    </div>
+                    {isLogin && (
+                      <div className="flex justify-end mt-2">
+                        <button 
+                          type="button" 
+                          onClick={handleForgotPassword}
+                          className="text-sm font-bold text-primary hover:underline underline-offset-4"
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex items-center space-x-2 text-left">
+                    <input 
+                      type="checkbox" 
+                      id="rememberMe" 
+                      checked={rememberMe}
+                      onChange={(e) => setRememberMe(e.target.checked)}
+                      className="w-5 h-5 rounded border-2 border-foreground accent-primary" 
                     />
+                    <label htmlFor="rememberMe" className="text-sm font-bold cursor-pointer">
+                      Remember me
+                    </label>
                   </div>
 
                   <Button 

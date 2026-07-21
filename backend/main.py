@@ -73,8 +73,14 @@ def signup(request: schemas.SignupRequest, db: Session = Depends(get_db)):
         )
         db.add(link)
         db.commit()
-
     return new_user
+
+@app.get("/api/auth/me", response_model=schemas.UserResponse)
+def get_user_profile(firebase_uid: str, db: Session = Depends(get_db)):
+    user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    return user
 
 @app.get("/api/dashboard/guardian", response_model=List[schemas.ChildDataResponse])
 def get_guardian_dashboard(firebase_uid: str, db: Session = Depends(get_db)):
