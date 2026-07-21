@@ -1,10 +1,12 @@
 import { useState, useMemo } from "react";
 import { DoctorShell } from "@/components/DoctorShell";
-import { Users, Search, Filter, AlertCircle, Clock, CheckCircle2, MessageCircle } from "lucide-react";
+import { Users, Search, Filter, AlertCircle, Clock, CheckCircle2, MessageCircle, ArrowRight } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose } from "@/components/ui/dialog";
 
 type RiskLevel = "High" | "Medium" | "Low";
 type EmotionState = "Calm" | "Anxious" | "Overloaded";
@@ -20,7 +22,7 @@ interface Patient {
   unreadMessages: number;
 }
 
-const mockPatients: Patient[] = [
+const initialMockPatients: Patient[] = [
   { id: "1", name: "Leo Jenkins", age: 8, riskLevel: "Low", emotion: "Calm", lastCheckIn: "2 hours ago", guardianName: "Mr. Jenkins", unreadMessages: 0 },
   { id: "2", name: "Mia Wong", age: 10, riskLevel: "High", emotion: "Overloaded", lastCheckIn: "10 mins ago", guardianName: "Mrs. Wong", unreadMessages: 3 },
   { id: "3", name: "Samira Patel", age: 7, riskLevel: "Medium", emotion: "Anxious", lastCheckIn: "Yesterday", guardianName: "Dr. Patel", unreadMessages: 1 },
@@ -43,12 +45,14 @@ const emotionConfig = {
 };
 
 const Patients = () => {
+  const [patients, setPatients] = useState<Patient[]>(initialMockPatients);
   const [search, setSearch] = useState("");
   const [needsAttention, setNeedsAttention] = useState(false);
   const [sortBy, setSortBy] = useState("risk-high");
+  const [selectedPatientId, setSelectedPatientId] = useState<string | null>(null);
 
   const filteredPatients = useMemo(() => {
-    let result = mockPatients.filter(p => 
+    let result = patients.filter(p => 
       p.name.toLowerCase().includes(search.toLowerCase())
     );
 
@@ -69,21 +73,28 @@ const Patients = () => {
     });
 
     return result;
-  }, [search, needsAttention, sortBy]);
+  }, [patients, search, needsAttention, sortBy]);
 
   const stats = {
-    total: mockPatients.length,
-    highRisk: mockPatients.filter(p => p.riskLevel === "High").length,
-    checkInsToday: mockPatients.filter(p => p.lastCheckIn.includes("ago") || p.lastCheckIn.includes("now")).length,
-    unread: mockPatients.reduce((acc, p) => acc + p.unreadMessages, 0)
+    total: patients.length,
+    highRisk: patients.filter(p => p.riskLevel === "High").length,
+    checkInsToday: patients.filter(p => p.lastCheckIn.includes("ago") || p.lastCheckIn.includes("now")).length,
+    unread: patients.reduce((acc, p) => acc + p.unreadMessages, 0)
   };
 
-  const handlePatientClick = (id: string) => {
-    console.log(`Navigating to patient dashboard for ID: ${id}`);
-  };
+  const selectedPatient = useMemo(() => 
+    patients.find(p => p.id === selectedPatientId), 
+  [patients, selectedPatientId]);
 
   return (
-    <DoctorShell title="Multi-Patient View" subtitle="Overview of all patients under your care" fullWidth>
+    <DoctorShell fullWidth>
+      <div className="text-center mb-12 animate-fade-up">
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Multi-Patient View</h1>
+        <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto">
+          Overview of all patients under your care
+        </p>
+      </div>
+
       {/* Top Summary Strip */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="calm-card p-6 flex items-center gap-4 animate-fade-up">
@@ -168,8 +179,7 @@ const Patients = () => {
         {filteredPatients.map((patient, index) => (
           <div 
             key={patient.id}
-            onClick={() => handlePatientClick(patient.id)}
-            className={`calm-card p-6 cursor-pointer group hover:-translate-y-1 hover:shadow-pop transition-all relative animate-fade-up-delay-${(index % 4) + 1}`}
+            className={`calm-card p-6 group hover:-translate-y-1 hover:shadow-pop transition-all relative animate-fade-up-delay-${(index % 4) + 1}`}
           >
             {patient.unreadMessages > 0 && (
               <div className="absolute -top-3 -right-3 w-8 h-8 rounded-full bg-accent border-2 border-foreground shadow-pop-sm flex items-center justify-center z-10 animate-bounce-slow">
@@ -215,9 +225,13 @@ const Patients = () => {
             </div>
 
             <div className="mt-6 pt-4 border-t-2 border-border/50 flex justify-end">
-              <span className="text-sm font-black text-primary group-hover:underline flex items-center gap-1">
-                View Details <span className="text-lg leading-none transition-transform group-hover:translate-x-1">→</span>
-              </span>
+              <Button 
+                onClick={() => setSelectedPatientId(patient.id)}
+                variant="ghost" 
+                className="text-sm font-black text-primary hover:text-primary-foreground hover:bg-primary"
+              >
+                View Details <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Button>
             </div>
           </div>
         ))}
@@ -227,6 +241,74 @@ const Patients = () => {
           </div>
         )}
       </div>
+
+      {/* Patient Details Modal */}
+      <Dialog open={!!selectedPatientId} onOpenChange={(open) => !open && setSelectedPatientId(null)}>
+        <DialogContent className="sm:max-w-xl bg-card border-2 border-foreground shadow-pop sm:rounded-[1.5rem] p-0 overflow-hidden">
+          {selectedPatient && (
+            <>
+              <div className="p-8 bg-muted border-b-2 border-foreground relative">
+                <div className="flex items-start gap-6">
+                  <div className={`w-24 h-24 rounded-full ${selectedPatient.riskLevel === 'High' ? 'bg-red-100 text-red-600' : 'bg-primary/10 text-primary'} border-2 border-foreground flex items-center justify-center shadow-pop-sm text-4xl font-black shrink-0`}>
+                    {selectedPatient.name.charAt(0)}
+                  </div>
+                  <div>
+                    <DialogTitle className="text-3xl font-black mb-1">{selectedPatient.name}</DialogTitle>
+                    <DialogDescription className="text-lg font-bold text-muted-foreground mb-4">
+                      {selectedPatient.age} years old • Guardian: {selectedPatient.guardianName}
+                    </DialogDescription>
+                    <div className="flex items-center gap-3">
+                      <span className={`px-4 py-1.5 rounded-full text-sm font-bold border-2 ${riskConfig[selectedPatient.riskLevel].color}`}>
+                        {riskConfig[selectedPatient.riskLevel].label}
+                      </span>
+                      <div className="flex items-center gap-2 font-bold bg-background px-4 py-1.5 rounded-full text-sm border-2 border-border/50">
+                        <span className="text-lg leading-none">{emotionConfig[selectedPatient.emotion].icon}</span>
+                        {emotionConfig[selectedPatient.emotion].label}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 space-y-8">
+                <div className="space-y-4">
+                  <h4 className="text-xl font-black border-b-2 border-border/50 pb-2">Set Patient Status</h4>
+                  <div className="flex items-center gap-4">
+                    <span className="font-bold text-muted-foreground">Update Risk Level:</span>
+                    <Select 
+                      value={selectedPatient.riskLevel} 
+                      onValueChange={(val: RiskLevel) => {
+                        setPatients(prev => prev.map(p => p.id === selectedPatient.id ? { ...p, riskLevel: val } : p));
+                      }}
+                    >
+                      <SelectTrigger className="w-[200px] border-2 border-foreground shadow-pop-sm font-bold h-12 rounded-xl">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Low">Stable (Low Risk)</SelectItem>
+                        <SelectItem value="Medium">Mild Concern</SelectItem>
+                        <SelectItem value="High">High Risk</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-xl font-black border-b-2 border-border/50 pb-2">Quick Actions</h4>
+                  <div className="flex flex-wrap gap-4">
+                    <Button className="h-12 border-2 border-foreground shadow-pop-sm hover:-translate-y-1 hover:shadow-pop transition-all bg-primary text-primary-foreground font-black">
+                      <MessageCircle className="w-5 h-5 mr-2" /> Message Guardian
+                    </Button>
+                    <Button variant="outline" className="h-12 border-2 border-foreground shadow-pop-sm hover:-translate-y-1 hover:shadow-pop transition-all font-black">
+                      <Clock className="w-5 h-5 mr-2" /> View Full History
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </DoctorShell>
   );
 };
