@@ -87,9 +87,9 @@ The backend is powered by **Python** and **FastAPI**.
    ```bash
    cd backend
    ```
-2. Create a virtual environment (if you haven't already):
+2. Create a virtual environment using a **stable Python version** (e.g., 3.11, 3.12, or 3.13). *Avoid pre-release versions (like 3.14) as they often lack pre-built binaries for dependencies, leading to `ModuleNotFoundError` issues:*
    ```bash
-   python3 -m venv venv
+   python -m venv venv
    ```
 3. Activate the virtual environment:
    - **Windows:**
@@ -133,16 +133,21 @@ The frontend is built with **React**, **Vite**, and **TailwindCSS**.
 
 ### 🛠️ Troubleshooting
 
-#### ModuleNotFoundError (pydantic-core, cffi, etc.) after pulling code
-If you encounter a `ModuleNotFoundError` when running `uvicorn` (especially related to `_pydantic_core` or `_cffi_backend`) after pulling new code from your teammate, it is likely due to **cross-contamination of cached Python files** across different OS/Python versions.
+#### ModuleNotFoundError (pydantic-core, sqlalchemy, etc.)
+If you encounter a `ModuleNotFoundError` when running `uvicorn` (especially related to `_pydantic_core` or missing packages like `sqlalchemy` despite installing requirements), the most common causes are:
 
-To fix this permanently on your machine, you must recreate your virtual environment from scratch:
+1. **Using an unstable/pre-release Python version (e.g., Python 3.14):** Pre-release versions often lack compiled binaries for dependencies like `pydantic-core`. Check your version with `python --version` and ensure you use a stable release like 3.12 or 3.13.
+2. **Global Uvicorn Conflict:** If you run `python3 -m uvicorn`, it might bypass your virtual environment and use a global Python installation. Ensure you use just `uvicorn main:app --reload` with the environment activated.
+3. **Cross-OS Cache Contamination:** Pulling cached `.pyc` files from a teammate on a different operating system.
+
+**The Ultimate Fix (Recreating the Environment):**
+To resolve these issues permanently, recreate your virtual environment from scratch using a stable Python version:
 
 1. Stop any running Uvicorn server in your terminal (press `CTRL+C`).
 2. Delete your corrupted virtual environment completely:
    - **Windows:** `rmdir /s /q venv` (or delete the folder manually)
    - **Mac/Linux:** `rm -rf venv`
-3. Create a fresh virtual environment:
+3. Create a fresh virtual environment (ensure `python` points to a stable version):
    ```bash
    python -m venv venv
    ```
@@ -152,7 +157,6 @@ To fix this permanently on your machine, you must recreate your virtual environm
    ```bash
    pip install -r requirements.txt
    ```
-*Note: A fix was recently applied to stop `.pyc` cache files from being tracked in git, which caused this issue. Following these steps one time will resolve the issue for good!*
 
 ---
 
