@@ -131,6 +131,29 @@ The frontend is built with **React**, **Vite**, and **TailwindCSS**.
    ```
    *The frontend will typically run on `http://localhost:5173`.*
 
+### 🛠️ Troubleshooting
+
+#### ModuleNotFoundError (pydantic-core, cffi, etc.) after pulling code
+If you encounter a `ModuleNotFoundError` when running `uvicorn` (especially related to `_pydantic_core` or `_cffi_backend`) after pulling new code from your teammate, it is likely due to **cross-contamination of cached Python files** across different OS/Python versions.
+
+To fix this permanently on your machine, you must recreate your virtual environment from scratch:
+
+1. Stop any running Uvicorn server in your terminal (press `CTRL+C`).
+2. Delete your corrupted virtual environment completely:
+   - **Windows:** `rmdir /s /q venv` (or delete the folder manually)
+   - **Mac/Linux:** `rm -rf venv`
+3. Create a fresh virtual environment:
+   ```bash
+   python -m venv venv
+   ```
+4. Activate it and cleanly reinstall all dependencies:
+   - **Windows:** `.\venv\Scripts\activate`
+   - **Mac/Linux:** `source venv/bin/activate`
+   ```bash
+   pip install -r requirements.txt
+   ```
+*Note: A fix was recently applied to stop `.pyc` cache files from being tracked in git, which caused this issue. Following these steps one time will resolve the issue for good!*
+
 ---
 
 ## 🛠️ Technology Stack
