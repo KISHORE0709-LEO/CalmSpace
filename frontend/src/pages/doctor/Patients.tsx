@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { DoctorShell } from "@/components/DoctorShell";
-import { Users, Search, Filter, AlertCircle, Clock, CheckCircle2, MessageCircle, ArrowRight } from "lucide-react";
+import { Users, Search, Filter, AlertCircle, Clock, CheckCircle2, MessageCircle, ArrowRight, FileText, BarChart3 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
@@ -45,6 +46,7 @@ const emotionConfig = {
 };
 
 const Patients = () => {
+  const navigate = useNavigate();
   const [patients, setPatients] = useState<Patient[]>(initialMockPatients);
   const [search, setSearch] = useState("");
   const [needsAttention, setNeedsAttention] = useState(false);
@@ -219,13 +221,19 @@ const Patients = () => {
               </div>
             </div>
 
-            <div className="mt-6 pt-4 border-t-2 border-border/50 flex justify-end">
+            <div className="mt-6 pt-4 border-t-2 border-border/50 flex flex-col xl:flex-row gap-3">
               <Button 
-                onClick={() => setSelectedPatientId(patient.id)}
-                variant="ghost" 
-                className="text-sm font-black text-primary hover:text-primary-foreground hover:bg-primary"
+                onClick={() => navigate(`/doctor/patients/${patient.id}/info`)}
+                variant="outline" 
+                className="flex-1 h-10 border-2 border-foreground shadow-pop-sm hover:-translate-y-1 transition-all text-sm font-black rounded-xl"
               >
-                View Details <ArrowRight className="ml-2 w-4 h-4 transition-transform group-hover:translate-x-1" />
+                <FileText className="w-4 h-4 mr-2 shrink-0" /> Patient Info
+              </Button>
+              <Button 
+                onClick={() => navigate(`/doctor/patients/${patient.id}/analytics`)}
+                className="flex-1 h-10 border-2 border-foreground shadow-pop-sm hover:-translate-y-1 transition-all bg-primary text-primary-foreground text-sm font-black rounded-xl"
+              >
+                <BarChart3 className="w-4 h-4 mr-2 shrink-0" /> Analytics
               </Button>
             </div>
           </div>

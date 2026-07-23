@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { DoctorShell } from "@/components/DoctorShell";
+// Removed DoctorShell import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -54,7 +54,7 @@ export default function CarePlan() {
   };
 
   return (
-    <DoctorShell fullWidth>
+    <div className="w-full">
       {/* Patient Selector & Top Controls (Reused Header Style) */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4 animate-fade-up">
         <div className="flex items-center gap-4">
@@ -352,6 +352,6 @@ export default function CarePlan() {
           </div>
         </div>
       </div>
-    </DoctorShell>
+    </div>
   );
 }

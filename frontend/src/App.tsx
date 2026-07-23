@@ -33,11 +33,9 @@ import CaregiverHandoffNotes from "./pages/caregiver/HandoffNotes.tsx";
 
 // Doctor Pages
 import DoctorChat from "./pages/doctor/Chat.tsx";
-import DoctorAnalytics from "./pages/doctor/Analytics.tsx";
-import DoctorRiskScore from "./pages/doctor/RiskScore.tsx";
-import DoctorExport from "./pages/doctor/Export.tsx";
-import DoctorCarePlan from "./pages/doctor/CarePlan.tsx";
 import DoctorPatients from "./pages/doctor/Patients.tsx";
+import PatientInfo from "./pages/doctor/PatientInfo.tsx";
+import PatientAnalytics from "./pages/doctor/PatientAnalytics.tsx";
 
 const queryClient = new QueryClient();
 
@@ -80,11 +78,9 @@ const App = () => (
           
           {/* Doctor Routes */}
           <Route path="/doctor/chat" element={<DoctorChat />} />
-          <Route path="/doctor/analytics" element={<DoctorAnalytics />} />
-          <Route path="/doctor/risk-score" element={<DoctorRiskScore />} />
-          <Route path="/doctor/export" element={<DoctorExport />} />
-          <Route path="/doctor/care-plan" element={<DoctorCarePlan />} />
           <Route path="/doctor/patients" element={<DoctorPatients />} />
+          <Route path="/doctor/patients/:id/info" element={<PatientInfo />} />
+          <Route path="/doctor/patients/:id/analytics" element={<PatientAnalytics />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>

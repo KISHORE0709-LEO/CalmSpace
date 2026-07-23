@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DoctorShell } from "@/components/DoctorShell";
+// Removed DoctorShell import
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from "recharts";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -107,7 +107,7 @@ const Analytics = () => {
   }, [dateRange]);
 
   return (
-    <DoctorShell fullWidth>
+    <div className="w-full">
       {/* Top Header & Controls */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4 animate-fade-up">
         <div className="flex items-center gap-4">
@@ -307,7 +307,7 @@ const Analytics = () => {
         </div>
 
       </div>
-    </DoctorShell>
+    </div>
   );
 };
 

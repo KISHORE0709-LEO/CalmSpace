@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { DoctorShell } from "@/components/DoctorShell";
+// Removed DoctorShell import
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer, ReferenceArea, PieChart, Pie, Cell } from "recharts";
 import { AlertTriangle, ActivitySquare, FileText, Download, Bell, AlertCircle, Save } from "lucide-react";
@@ -62,7 +62,7 @@ const RiskScore = () => {
   ];
 
   return (
-    <DoctorShell fullWidth>
+    <div className="w-full">
       {/* Top Header & Controls */}
       <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between mb-8 gap-4 animate-fade-up">
         <div className="flex items-center gap-4">
@@ -299,7 +299,7 @@ const RiskScore = () => {
         </div>
       </div>
       
-    </DoctorShell>
+    </div>
   );
 };
 

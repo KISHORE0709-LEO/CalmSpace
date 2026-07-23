@@ -2,12 +2,8 @@ import { Link, NavLink } from "react-router-dom";
 import { Stethoscope, Bell, MessageCircle, BarChart3, ActivitySquare, Download, ClipboardEdit, Users } from "lucide-react";
 
 const links = [
-  { to: "/doctor/chat", label: "Chat", icon: MessageCircle },
-  { to: "/doctor/analytics", label: "Clinical Analytics", icon: BarChart3 },
-  { to: "/doctor/risk-score", label: "LSTM Risk Score", icon: ActivitySquare },
-  { to: "/doctor/export", label: "Export Reports", icon: Download },
-  { to: "/doctor/care-plan", label: "Care Plan Editor", icon: ClipboardEdit },
   { to: "/doctor/patients", label: "Multi-Patient View", icon: Users },
+  { to: "/doctor/chat", label: "Chat", icon: MessageCircle },
 ];
 
 export const DoctorNav = () => {

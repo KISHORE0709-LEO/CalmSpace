@@ -72,7 +72,7 @@ const Auth = () => {
     child:  "/app/feelings",
     parent: "/parent/chat",
     caregiver: "/caregiver/chat",
-    doctor: "/doctor/chat",
+    doctor: "/doctor/patients",
   };
 
   useEffect(() => {
