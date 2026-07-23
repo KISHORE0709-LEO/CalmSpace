@@ -90,10 +90,14 @@ const Patients = () => {
 
   return (
     <DoctorShell fullWidth>
+      <div className="pt-8">
+        <div className="mb-8 animate-fade-up">
+          <h1 className="text-4xl font-black tracking-tight mb-2">Multi-Patient View</h1>
+          <p className="text-muted-foreground font-bold text-lg">Overview of all assigned patients</p>
+        </div>
 
-
-      {/* Top Summary Strip */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {/* Top Summary Strip */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <div className="calm-card p-6 flex items-center gap-4 animate-fade-up">
           <div className="w-12 h-12 rounded-xl bg-primary/20 text-primary flex items-center justify-center border-2 border-primary/20">
             <Users className="w-6 h-6" />
@@ -312,6 +316,7 @@ const Patients = () => {
           )}
         </DialogContent>
       </Dialog>
+      </div>
     </DoctorShell>
   );
 };

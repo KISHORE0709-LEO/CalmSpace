@@ -211,16 +211,19 @@ export default function PatientInfo() {
               </div>
             </div>
 
-            <div className="calm-card p-6 lg:col-span-2 bg-primary/5 border-primary/20">
-              <h3 className="text-xl font-black mb-4 text-primary">Strengths & Coping Strategies</h3>
+            <div className="calm-card p-6 lg:col-span-2">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-full bg-green-100 text-green-600 border-2 border-green-200 flex items-center justify-center">
+                  <Activity className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-black">Strengths & Coping Strategies</h3>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm font-medium leading-relaxed">
                 <div>
-                  <span className="font-bold text-primary block mb-1">Special Interests</span>
-                  Deeply interested in engineering, building complex models, and memorizing local transit maps.
+                  <span className="font-bold text-muted-foreground">Special Interests:</span> Deeply interested in engineering, building complex models, and memorizing local transit maps.
                 </div>
                 <div>
-                  <span className="font-bold text-primary block mb-1">Effective Calming Strategies</span>
-                  Responds well to deep pressure therapy, sorting lego blocks by color/size, and listening to familiar music.
+                  <span className="font-bold text-muted-foreground">Effective Calming Strategies:</span> Responds well to deep pressure therapy, sorting lego blocks by color/size, and listening to familiar music.
                 </div>
               </div>
             </div>
