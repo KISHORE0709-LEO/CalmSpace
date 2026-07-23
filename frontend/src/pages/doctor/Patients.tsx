@@ -88,12 +88,7 @@ const Patients = () => {
 
   return (
     <DoctorShell fullWidth>
-      <div className="text-center mb-12 animate-fade-up">
-        <h1 className="text-4xl md:text-5xl font-black tracking-tight mb-4">Multi-Patient View</h1>
-        <p className="text-xl text-muted-foreground font-medium max-w-2xl mx-auto">
-          Overview of all patients under your care
-        </p>
-      </div>
+
 
       {/* Top Summary Strip */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
