@@ -87,7 +87,11 @@ The backend is powered by **Python** and **FastAPI**.
    ```bash
    cd backend
    ```
-2. Activate the virtual environment:
+2. Create a virtual environment (if you haven't already):
+   ```bash
+   python3 -m venv venv
+   ```
+3. Activate the virtual environment:
    - **Windows:**
      ```bash
      .\venv\Scripts\activate
@@ -96,14 +100,17 @@ The backend is powered by **Python** and **FastAPI**.
      ```bash
      source venv/bin/activate
      ```
-3. Install dependencies:
+4. Install dependencies:
    ```bash
    pip install -r requirements.txt
    ```
-4. Start the FastAPI server:
+5. Start the FastAPI server:
    ```bash
    uvicorn main:app --reload
    ```
+   > [!NOTE]
+   > **Mac Users:** If you encounter a `ModuleNotFoundError` (e.g., `No module named 'sqlalchemy'`), it means your terminal is using the global `uvicorn`. Run `python3 -m uvicorn main:app --reload` instead to force it to use your virtual environment.
+
    *The backend will typically run on `http://localhost:8000`.*
 
 ### 2️⃣ Starting the Frontend
