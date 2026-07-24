@@ -1,9 +1,10 @@
 import { Link, NavLink } from "react-router-dom";
-import { Stethoscope, Bell, MessageCircle, BarChart3, ActivitySquare, Download, ClipboardEdit, Users } from "lucide-react";
+import { Stethoscope, Bell, MessageCircle, BarChart3, ActivitySquare, Download, ClipboardEdit, Users, Video } from "lucide-react";
 
 const links = [
   { to: "/doctor/patients", label: "Multi-Patient View", icon: Users },
   { to: "/doctor/chat", label: "Chat", icon: MessageCircle },
+  { to: "/doctor/therapy/setup", label: "Therapy Session", icon: Video },
 ];
 
 export const DoctorNav = () => {

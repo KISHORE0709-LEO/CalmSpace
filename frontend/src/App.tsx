@@ -36,6 +36,9 @@ import DoctorChat from "./pages/doctor/Chat.tsx";
 import DoctorPatients from "./pages/doctor/Patients.tsx";
 import PatientInfo from "./pages/doctor/PatientInfo.tsx";
 import PatientAnalytics from "./pages/doctor/PatientAnalytics.tsx";
+import TherapySetup from "./pages/doctor/TherapySetup.tsx";
+import TherapyRoom from "./pages/doctor/TherapyRoom.tsx";
+import TherapyReport from "./pages/doctor/TherapyReport.tsx";
 
 const queryClient = new QueryClient();
 
@@ -81,6 +84,9 @@ const App = () => (
           <Route path="/doctor/patients" element={<DoctorPatients />} />
           <Route path="/doctor/patients/:id/info" element={<PatientInfo />} />
           <Route path="/doctor/patients/:id/analytics" element={<PatientAnalytics />} />
+          <Route path="/doctor/therapy/setup" element={<TherapySetup />} />
+          <Route path="/doctor/therapy/room" element={<TherapyRoom />} />
+          <Route path="/doctor/therapy/report" element={<TherapyReport />} />
 
           <Route path="*" element={<NotFound />} />
         </Routes>
