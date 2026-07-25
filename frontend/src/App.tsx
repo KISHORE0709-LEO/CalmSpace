@@ -22,6 +22,9 @@ import ParentCrisisAlerts from "./pages/parent/CrisisAlerts.tsx";
 import ParentSessionReports from "./pages/parent/SessionReports.tsx";
 import ParentSocialConfidence from "./pages/parent/SocialConfidence.tsx";
 import ParentHistory from "./pages/parent/History.tsx";
+import ParentTherapySessions from "./pages/parent/TherapySessions.tsx";
+import ParentTherapyRoom from "./pages/parent/TherapyRoom.tsx";
+import ParentTherapySummary from "./pages/parent/TherapySummary.tsx";
 
 // Caregiver Pages
 import CaregiverChat from "./pages/caregiver/Chat.tsx";
@@ -66,6 +69,9 @@ const App = () => (
           <Route path="/parent/chat" element={<ParentChat />} />
           <Route path="/parent/emotional-trend" element={<ParentEmotionalTrend />} />
           <Route path="/parent/crisis-alerts" element={<ParentCrisisAlerts />} />
+          <Route path="/parent/therapy" element={<ParentTherapySessions />} />
+          <Route path="/parent/therapy/room" element={<ParentTherapyRoom />} />
+          <Route path="/parent/therapy/summary" element={<ParentTherapySummary />} />
           <Route path="/parent/session-reports" element={<ParentSessionReports />} />
           <Route path="/parent/social-confidence" element={<ParentSocialConfidence />} />
           <Route path="/parent/history" element={<ParentHistory />} />

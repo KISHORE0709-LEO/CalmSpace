@@ -1,11 +1,12 @@
 import { Link, NavLink } from "react-router-dom";
-import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activity, History, Users } from "lucide-react";
+import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activity, History, Users, Video } from "lucide-react";
 
 const links = [
   { to: "/parent/care-circle", label: "Care Circle", icon: Users },
   { to: "/parent/chat", label: "Chat", icon: MessageCircle },
   { to: "/parent/emotional-trend", label: "Emotional Trend", icon: TrendingUp },
   { to: "/parent/crisis-alerts", label: "Crisis Alerts", icon: AlertTriangle },
+  { to: "/parent/therapy", label: "Therapy Session", icon: Video },
   { to: "/parent/session-reports", label: "Session Reports", icon: FileText },
   { to: "/parent/social-confidence", label: "Social Confidence", icon: Activity },
   { to: "/parent/history", label: "Historical Access", icon: History },
@@ -27,7 +28,7 @@ export const ParentNav = () => {
         </div>
 
         {/* Center: Nav Links */}
-        <nav className="flex items-center justify-center pill-nav overflow-x-auto scrollbar-none !p-1.5 shrink-0">
+        <nav className="flex items-center justify-center pill-nav overflow-x-auto scrollbar-none !p-1.5 shrink-0 max-w-full">
           {links.map((l) => {
             const Icon = l.icon;
             return (
