@@ -35,7 +35,7 @@ interface WhatsAppCloneProps {
 }
 
 export const WhatsAppClone = ({ currentRole, threads, initialMessages }: WhatsAppCloneProps) => {
-  const [activeThreadId, setActiveThreadId] = useState<string>(threads[0]?.id);
+  const [activeThreadId, setActiveThreadId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Record<string, MessageType[]>>(initialMessages);
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -47,8 +47,8 @@ export const WhatsAppClone = ({ currentRole, threads, initialMessages }: WhatsAp
   const [inviteRole, setInviteRole] = useState<"caregiver" | "doctor">("caregiver");
   const [inviteCode, setInviteCode] = useState<string | null>(null);
 
-  const activeThread = threads.find(t => t.id === activeThreadId);
-  const currentMessages = messages[activeThreadId] || [];
+  const activeThread = activeThreadId ? threads.find(t => t.id === activeThreadId) : null;
+  const currentMessages = activeThreadId ? messages[activeThreadId] || [] : [];
 
   const handleGenerateInvite = () => {
     setInviteCode(Math.random().toString(36).substring(2, 10).toUpperCase());
@@ -160,9 +160,10 @@ export const WhatsAppClone = ({ currentRole, threads, initialMessages }: WhatsAp
         {currentRole === 'parent' && (
           <button 
             onClick={() => setIsCareCircleOpen(true)}
-            className="absolute bottom-6 left-6 w-14 h-14 rounded-full bg-primary text-primary-foreground border-2 border-foreground flex items-center justify-center shadow-pop-lg hover:-translate-y-1 transition-all z-20 group"
+            className="absolute bottom-6 left-6 px-4 h-14 rounded-full bg-primary text-primary-foreground border-2 border-foreground flex items-center gap-3 shadow-pop-lg hover:-translate-y-1 transition-all z-20 group"
           >
-            <HeartPulse size={28} className="group-hover:scale-110 transition-transform" />
+            <HeartPulse size={24} className="group-hover:scale-110 transition-transform" />
+            <span className="font-black text-sm tracking-wide">Care Circle</span>
           </button>
         )}
       </div>
@@ -259,12 +260,34 @@ export const WhatsAppClone = ({ currentRole, threads, initialMessages }: WhatsAp
             </form>
           </>
         ) : (
-          <div className="flex-1 flex flex-col items-center justify-center text-muted-foreground z-10">
-            <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center border-2 border-foreground/20 mb-6">
-              <UserCircle2 size={48} className="opacity-50" />
+          <div className="flex-1 flex flex-col items-center justify-center p-8 text-center z-10">
+            <div className="w-24 h-24 bg-primary/20 rounded-full flex items-center justify-center border-2 border-primary mb-8 shadow-pop-sm">
+              <HeartPulse size={40} className="text-primary" />
             </div>
-            <h2 className="text-2xl font-black mb-2">WhatsApp for CalmSpace</h2>
-            <p className="font-medium text-lg text-center max-w-sm">Select a chat from the sidebar to start messaging.</p>
+            
+            <h2 className="text-3xl font-black mb-4">Welcome to Secure Chat</h2>
+            <p className="text-lg text-muted-foreground max-w-md mb-10">
+              This is your direct line to everyone involved in your child's care. Keep everyone on the same page securely.
+            </p>
+
+            <div className="grid sm:grid-cols-2 gap-4 max-w-2xl text-left">
+              <div className="bg-background p-5 rounded-xl border-2 border-foreground shadow-pop-sm hover:-translate-y-1 transition-transform">
+                <div className="font-black text-primary mb-2 text-lg">1. Select a Thread</div>
+                <div className="text-sm font-bold text-muted-foreground leading-relaxed">Click any conversation on the left to securely message doctors and caregivers.</div>
+              </div>
+              <div className="bg-background p-5 rounded-xl border-2 border-foreground shadow-pop-sm hover:-translate-y-1 transition-transform">
+                <div className="font-black text-secondary mb-2 text-lg">2. Manage Circle</div>
+                <div className="text-sm font-bold text-muted-foreground leading-relaxed">Use the button at the bottom left to generate secure invite codes for new members.</div>
+              </div>
+              <div className="bg-background p-5 rounded-xl border-2 border-foreground shadow-pop-sm hover:-translate-y-1 transition-transform">
+                <div className="font-black text-accent mb-2 text-lg">3. Privacy First</div>
+                <div className="text-sm font-bold text-muted-foreground leading-relaxed">All messages are strictly scoped to the roles of the participants involved.</div>
+              </div>
+              <div className="bg-background p-5 rounded-xl border-2 border-foreground shadow-pop-sm hover:-translate-y-1 transition-transform">
+                <div className="font-black text-foreground mb-2 text-lg">4. Crisis Alerts</div>
+                <div className="text-sm font-bold text-muted-foreground leading-relaxed">Automated insights will notify this chat if an anomaly is detected.</div>
+              </div>
+            </div>
           </div>
         )}
       </div>
