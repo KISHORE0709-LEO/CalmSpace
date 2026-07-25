@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, 
   Settings, Maximize, Activity, Sparkles, Pencil,
   AlertCircle, Smile, StopCircle, ChevronRight, Share2,
-  MonitorUp, Hand, SmilePlus, Type, MoreVertical, X, CheckCircle2, Eraser, MousePointer2
+  MonitorUp, Hand, SmilePlus, Type, MoreVertical, X, CheckCircle2, Eraser, MousePointer2, ChevronLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -31,9 +31,95 @@ export default function TherapyRoom() {
     navigate("/doctor/therapy/report");
   };
 
+  // Emotion Cards Game Logic
+  const emotions = [
+    { emoji: '😄', title: 'Happy', desc: 'Can you make a happy face?' },
+    { emoji: '😢', title: 'Sad', desc: 'Show me a sad face.' },
+    { emoji: '😠', title: 'Angry', desc: 'What does an angry face look like?' },
+    { emoji: '😲', title: 'Surprised', desc: 'Make a surprised face!' },
+    { emoji: '😨', title: 'Scared', desc: 'Show me a scared expression.' }
+  ];
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+
+  const nextCard = () => setCurrentCardIndex(prev => (prev + 1) % emotions.length);
+  const prevCard = () => setCurrentCardIndex(prev => (prev === 0 ? emotions.length - 1 : prev - 1));
+
+  // Whiteboard Logic
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState(false);
+  const [drawingColor, setDrawingColor] = useState("#000000");
+  const [drawingMode, setDrawingMode] = useState<"draw" | "erase">("draw");
+
+  // Setup canvas size when whiteboard opens
+  useEffect(() => {
+    if (mainView === "whiteboard" && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const parent = canvas.parentElement;
+      if (parent) {
+        canvas.width = parent.clientWidth;
+        canvas.height = parent.clientHeight;
+        
+        // Fill with white background initially
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.fillStyle = "transparent";
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+        }
+      }
+    }
+  }, [mainView]);
+
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.beginPath();
+    ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    setIsDrawing(true);
+  };
+
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDrawing) return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
+    if (drawingMode === "erase") {
+      ctx.strokeStyle = "#ffffff";
+      ctx.lineWidth = 20;
+    } else {
+      ctx.strokeStyle = drawingColor;
+      ctx.lineWidth = 5;
+    }
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.stroke();
+  };
+
+  const stopDrawing = () => {
+    setIsDrawing(false);
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext("2d");
+      if (ctx) ctx.closePath();
+    }
+  };
+
+  const clearCanvas = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+  };
+
   return (
     <div className="h-screen w-screen max-h-screen bg-background flex flex-col font-sans overflow-hidden">
-      {/* Header (Overlaid slightly for full-bleed feel) */}
+      {/* Header */}
       <div className="h-16 px-6 flex items-center justify-between border-b-2 border-foreground bg-card shadow-sm shrink-0 z-20">
         <div className="flex items-center gap-4">
           <div className="w-10 h-10 rounded-xl bg-accent border-2 border-foreground shadow-pop-sm flex items-center justify-center font-black">
@@ -67,14 +153,12 @@ export default function TherapyRoom() {
           {/* View Switcher: Video */}
           {mainView === "video" && (
             <div className="flex-1 relative flex items-center justify-center bg-blue-50/50">
-              {/* Pulsing glow behind avatar */}
               <div className="absolute w-64 h-64 bg-green-400/20 rounded-full animate-pulse-soft blur-2xl"></div>
               
               <div className="relative w-48 h-48 rounded-full bg-blue-200 border-4 border-foreground shadow-pop-lg flex items-center justify-center text-7xl font-black text-blue-700 animate-float-slow z-10">
                 R
               </div>
               
-              {/* Live AI Overlay */}
               <div className="absolute top-6 left-6 flex flex-col gap-2 z-10">
                 <div className="bg-white/90 backdrop-blur border-2 border-foreground shadow-pop-sm px-3 py-1.5 rounded-xl flex items-center gap-2 font-bold text-sm">
                   <Smile className="w-4 h-4 text-green-500" /> Calm ({Math.round(emotionScore)}%)
@@ -93,55 +177,86 @@ export default function TherapyRoom() {
 
           {/* View Switcher: Whiteboard */}
           {mainView === "whiteboard" && (
-            <div className="flex-1 relative bg-[#fdfdfd] grid pattern-dots pattern-blue-500 pattern-bg-white pattern-size-4 pattern-opacity-10">
-              <div className="absolute top-4 left-4 bg-white border-2 border-foreground shadow-pop-sm rounded-xl p-2 flex flex-col gap-2 z-10">
-                <button className="p-2 bg-primary text-primary-foreground rounded-lg"><MousePointer2 className="w-5 h-5" /></button>
-                <button className="p-2 hover:bg-muted rounded-lg"><Pencil className="w-5 h-5" /></button>
-                <button className="p-2 hover:bg-muted rounded-lg"><Eraser className="w-5 h-5" /></button>
+            <div className="flex-1 relative bg-white flex flex-col">
+              <div className="absolute top-4 left-4 bg-white border-2 border-foreground shadow-pop-sm rounded-xl p-2 flex flex-col gap-2 z-10 animate-fade-up">
+                <button 
+                  onClick={() => setDrawingMode("draw")}
+                  className={`p-2 rounded-lg transition-colors ${drawingMode === "draw" ? "bg-primary text-primary-foreground border-2 border-foreground" : "hover:bg-muted"}`}
+                  title="Draw"
+                >
+                  <Pencil className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={() => setDrawingMode("erase")}
+                  className={`p-2 rounded-lg transition-colors ${drawingMode === "erase" ? "bg-primary text-primary-foreground border-2 border-foreground" : "hover:bg-muted"}`}
+                  title="Eraser"
+                >
+                  <Eraser className="w-5 h-5" />
+                </button>
+                <button 
+                  onClick={clearCanvas}
+                  className="p-2 hover:bg-red-100 hover:text-red-600 rounded-lg transition-colors"
+                  title="Clear Canvas"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+                
                 <div className="w-full h-px bg-border my-1"></div>
-                <button className="w-9 h-9 rounded-full bg-red-500 border-2 border-foreground"></button>
-                <button className="w-9 h-9 rounded-full bg-blue-500 border-2 border-foreground"></button>
-                <button className="w-9 h-9 rounded-full bg-green-500 border-2 border-foreground"></button>
-                <button className="w-9 h-9 rounded-full bg-yellow-500 border-2 border-foreground"></button>
+                
+                <button onClick={() => {setDrawingColor("#000000"); setDrawingMode("draw");}} className={`w-9 h-9 rounded-full bg-black border-2 ${drawingColor === "#000000" && drawingMode === "draw" ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent"}`}></button>
+                <button onClick={() => {setDrawingColor("#ef4444"); setDrawingMode("draw");}} className={`w-9 h-9 rounded-full bg-red-500 border-2 ${drawingColor === "#ef4444" && drawingMode === "draw" ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent"}`}></button>
+                <button onClick={() => {setDrawingColor("#3b82f6"); setDrawingMode("draw");}} className={`w-9 h-9 rounded-full bg-blue-500 border-2 ${drawingColor === "#3b82f6" && drawingMode === "draw" ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent"}`}></button>
+                <button onClick={() => {setDrawingColor("#22c55e"); setDrawingMode("draw");}} className={`w-9 h-9 rounded-full bg-green-500 border-2 ${drawingColor === "#22c55e" && drawingMode === "draw" ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent"}`}></button>
+                <button onClick={() => {setDrawingColor("#eab308"); setDrawingMode("draw");}} className={`w-9 h-9 rounded-full bg-yellow-500 border-2 ${drawingColor === "#eab308" && drawingMode === "draw" ? "border-primary ring-2 ring-primary ring-offset-2" : "border-transparent"}`}></button>
               </div>
+              
               <div className="absolute top-4 right-4 z-10">
                 <Button onClick={() => setMainView("video")} variant="outline" className="border-2 border-foreground shadow-pop-sm font-bold bg-white hover:bg-red-50 hover:text-red-600">
                   <X className="w-4 h-4 mr-2" /> Close Whiteboard
                 </Button>
               </div>
-              {/* Mock Drawing */}
-              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                <svg width="400" height="300" viewBox="0 0 400 300" className="opacity-80">
-                  <path d="M50,150 Q100,50 200,150 T350,150" fill="none" stroke="#ef4444" strokeWidth="8" strokeLinecap="round" className="animate-dash" />
-                  <circle cx="200" cy="150" r="40" fill="#eab308" stroke="#000" strokeWidth="4" />
-                </svg>
+              
+              {/* The Drawing Canvas */}
+              <div className="w-full h-full flex-1 cursor-crosshair relative">
+                {/* Visual grid background */}
+                <div className="absolute inset-0 pattern-dots pattern-blue-500 pattern-bg-transparent pattern-size-4 pattern-opacity-10 pointer-events-none"></div>
+                <canvas
+                  ref={canvasRef}
+                  onMouseDown={startDrawing}
+                  onMouseMove={draw}
+                  onMouseUp={stopDrawing}
+                  onMouseOut={stopDrawing}
+                  className="absolute inset-0 w-full h-full touch-none z-0"
+                />
               </div>
             </div>
           )}
 
           {/* View Switcher: Emotion Cards */}
           {mainView === "cards" && (
-            <div className="flex-1 relative bg-purple-50/50 flex flex-col items-center justify-center gap-8">
+            <div className="flex-1 relative bg-purple-50 flex flex-col items-center justify-center gap-8">
+              <div className="absolute inset-0 opacity-10 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-purple-500 via-transparent to-transparent pointer-events-none"></div>
+              
               <div className="absolute top-4 right-4 z-10">
                 <Button onClick={() => setMainView("video")} variant="outline" className="border-2 border-foreground shadow-pop-sm font-bold bg-white hover:bg-red-50 hover:text-red-600">
                   <X className="w-4 h-4 mr-2" /> Close Game
                 </Button>
               </div>
               
-              <h2 className="text-2xl font-black text-purple-900 absolute top-8">Emotion Cards Game</h2>
+              <h2 className="text-3xl font-black text-purple-900 absolute top-8 border-b-4 border-purple-200 pb-2">Emotion Cards Game</h2>
               
-              <div className="w-[300px] h-[400px] bg-white rounded-3xl border-4 border-foreground shadow-pop-lg flex flex-col items-center justify-center p-8 text-center animate-fade-up cursor-pointer hover:rotate-2 transition-all">
-                <div className="text-8xl mb-6">😄</div>
-                <h3 className="text-4xl font-black text-primary">Happy</h3>
-                <p className="text-muted-foreground font-bold mt-4">Can you make a happy face?</p>
+              <div className="w-[340px] h-[440px] bg-white rounded-[2rem] border-4 border-foreground shadow-pop-lg flex flex-col items-center justify-center p-8 text-center transition-all transform hover:scale-[1.02] active:scale-[0.98] cursor-pointer" onClick={nextCard}>
+                <div className="text-9xl mb-8 animate-bounce-slow" key={currentCardIndex}>{emotions[currentCardIndex].emoji}</div>
+                <h3 className="text-5xl font-black text-primary tracking-tight">{emotions[currentCardIndex].title}</h3>
+                <p className="text-muted-foreground font-bold mt-6 text-lg">{emotions[currentCardIndex].desc}</p>
               </div>
               
               <div className="flex gap-4">
-                <Button variant="outline" className="h-14 px-8 border-2 border-foreground shadow-pop-sm font-black text-lg bg-white hover:-translate-y-1 transition-all">
-                  Previous
+                <Button onClick={prevCard} variant="outline" className="h-16 px-8 border-2 border-foreground shadow-pop-sm font-black text-xl bg-white hover:-translate-y-1 transition-all rounded-xl">
+                  <ChevronLeft className="w-6 h-6 mr-2" /> Previous
                 </Button>
-                <Button className="h-14 px-8 border-2 border-foreground shadow-pop-sm font-black text-lg bg-purple-500 text-white hover:bg-purple-600 hover:-translate-y-1 transition-all">
-                  Next Card <ChevronRight className="w-5 h-5 ml-2" />
+                <Button onClick={nextCard} className="h-16 px-10 border-2 border-foreground shadow-pop-sm font-black text-xl bg-purple-500 text-white hover:bg-purple-600 hover:-translate-y-1 transition-all rounded-xl">
+                  Next Card <ChevronRight className="w-6 h-6 ml-2" />
                 </Button>
               </div>
             </div>
