@@ -1,10 +1,11 @@
 import { Link, NavLink } from "react-router-dom";
-import { HandHeart, Bell, MessageCircle, Activity, CheckSquare, ClipboardList, NotebookPen } from "lucide-react";
+import { HandHeart, Bell, MessageCircle, Activity, CheckSquare, ClipboardList, NotebookPen, Video } from "lucide-react";
 
 const links = [
   { to: "/caregiver/chat", label: "Chat", icon: MessageCircle },
   { to: "/caregiver/live-emotion", label: "Live Emotion", icon: Activity },
   { to: "/caregiver/tasks", label: "Assigned Tasks", icon: CheckSquare },
+  { to: "/caregiver/therapy", label: "Therapy Session", icon: Video },
   { to: "/caregiver/incident-logging", label: "Incident Logging", icon: ClipboardList },
   { to: "/caregiver/handoff-notes", label: "Handoff Notes", icon: NotebookPen },
 ];
@@ -25,7 +26,7 @@ export const CaregiverNav = () => {
         </div>
 
         {/* Center: Nav Links */}
-        <nav className="flex items-center justify-center pill-nav overflow-x-auto scrollbar-none !p-1.5 shrink-0">
+        <nav className="flex items-center justify-center pill-nav overflow-x-auto scrollbar-none !p-1.5 shrink-0 max-w-full">
           {links.map((l) => {
             const Icon = l.icon;
             return (
