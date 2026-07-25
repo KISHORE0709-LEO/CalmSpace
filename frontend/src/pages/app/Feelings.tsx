@@ -98,14 +98,12 @@ const Feelings = () => {
           {/* 2. Emotion Map */}
           <div className="calm-card relative overflow-hidden bg-gradient-to-tr from-background to-primary/15 flex flex-col border-2 border-foreground shadow-pop p-4">
             <h3 className="text-sm font-black tracking-widest text-muted-foreground uppercase mb-4 relative z-10">Emotion Map</h3>
-            
             <div className="absolute -bottom-10 -right-10 w-48 h-48 bg-secondary/20 rounded-full blur-3xl pointer-events-none" />
 
             <div className="flex flex-col items-center gap-4 relative z-10 mt-2">
-              <div className="w-20 h-20 shrink-0 rounded-full bg-accent border-4 border-background shadow-pop flex items-center justify-center">
-                <span className="text-4xl animate-bounce-slow">😌</span>
+              <div className="flex items-center justify-center shrink-0 py-2">
+                <span className="text-[80px] leading-none animate-bounce-slow drop-shadow-xl" style={{ filter: 'drop-shadow(0px 10px 8px rgba(0,0,0,0.2))' }}>😌</span>
               </div>
-              
               <div className="space-y-3 w-full">
                 <div>
                   <div className="flex justify-between text-xs font-bold mb-1">
