@@ -1,13 +1,12 @@
 import { Link, NavLink } from "react-router-dom";
-import { Heart, Bell, Sparkles, Users, MessageCircle, ClipboardCheck, AlertTriangle } from "lucide-react";
+import { Heart, Bell, Sparkles, Users, MessageCircle, ClipboardCheck, Video } from "lucide-react";
 
 const links = [
   { to: "/app/feelings", label: "Feelings & Comfort", icon: Sparkles },
   { to: "/app/mitra", label: "Mitra", icon: MessageCircle },
   { to: "/app/social", label: "Social Practice", icon: Users },
-  { to: "/app/caregiver", label: "Caregiver View", icon: Heart },
   { to: "/app/checkins", label: "Check-ins", icon: ClipboardCheck },
-  { to: "/app/alerts", label: "Alerts", icon: AlertTriangle },
+  { to: "/app/therapy", label: "Therapy Session", icon: Video },
 ];
 
 export const AppNav = () => {
