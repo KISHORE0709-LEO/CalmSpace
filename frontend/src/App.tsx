@@ -17,6 +17,7 @@ import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
 // Parent Pages
+import ParentLiveEmotion from "./pages/parent/LiveEmotion.tsx";
 import ParentChat from "./pages/parent/Chat.tsx";
 import ParentEmotionalTrend from "./pages/parent/EmotionalTrend.tsx";
 import ParentCrisisAlerts from "./pages/parent/CrisisAlerts.tsx";
@@ -71,6 +72,7 @@ const App = () => (
           <Route path="/app/therapy/summary" element={<ChildTherapySummary />} />
           
           {/* Parent Routes */}
+          <Route path="/parent/live-emotion" element={<ParentLiveEmotion />} />
           <Route path="/parent/chat" element={<ParentChat />} />
           <Route path="/parent/emotional-trend" element={<ParentEmotionalTrend />} />
           <Route path="/parent/crisis-alerts" element={<ParentCrisisAlerts />} />
