@@ -31,8 +31,8 @@ import ParentTherapySummary from "./pages/parent/TherapySummary.tsx";
 // Caregiver Pages
 import CaregiverChat from "./pages/caregiver/Chat.tsx";
 import CaregiverLiveEmotion from "./pages/caregiver/LiveEmotion.tsx";
+import CaregiverCrisisAlerts from "./pages/caregiver/CrisisAlerts.tsx";
 import CaregiverAssignedTasks from "./pages/caregiver/AssignedTasks.tsx";
-import CaregiverIncidentLogging from "./pages/caregiver/IncidentLogging.tsx";
 import CaregiverHandoffNotes from "./pages/caregiver/HandoffNotes.tsx";
 import CaregiverTherapySessions from "./pages/caregiver/TherapySessions.tsx";
 import CaregiverTherapyRoom from "./pages/caregiver/TherapyRoom.tsx";
@@ -86,8 +86,8 @@ const App = () => (
           {/* Caregiver Routes */}
           <Route path="/caregiver/chat" element={<CaregiverChat />} />
           <Route path="/caregiver/live-emotion" element={<CaregiverLiveEmotion />} />
+          <Route path="/caregiver/crisis-alerts" element={<CaregiverCrisisAlerts />} />
           <Route path="/caregiver/tasks" element={<CaregiverAssignedTasks />} />
-          <Route path="/caregiver/incident-logging" element={<CaregiverIncidentLogging />} />
           <Route path="/caregiver/handoff-notes" element={<CaregiverHandoffNotes />} />
           <Route path="/caregiver/therapy" element={<CaregiverTherapySessions />} />
           <Route path="/caregiver/therapy/room" element={<CaregiverTherapyRoom />} />

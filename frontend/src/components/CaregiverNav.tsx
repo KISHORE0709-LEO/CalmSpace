@@ -1,9 +1,10 @@
 import { Link, NavLink } from "react-router-dom";
-import { HandHeart, Bell, MessageCircle, Activity, CheckSquare, ClipboardList, NotebookPen, Video } from "lucide-react";
+import { HandHeart, Bell, MessageCircle, Activity, CheckSquare, ClipboardList, NotebookPen, Video, ShieldAlert } from "lucide-react";
 
 const links = [
   { to: "/caregiver/chat", label: "Chat", icon: MessageCircle },
   { to: "/caregiver/live-emotion", label: "Live Emotion", icon: Activity },
+  { to: "/caregiver/crisis-alerts", label: "Crisis Alerts", icon: ShieldAlert },
   { to: "/caregiver/tasks", label: "Assigned Tasks", icon: CheckSquare },
   { to: "/caregiver/therapy", label: "Therapy Session", icon: Video },
   { to: "/caregiver/handoff-notes", label: "Handoff Notes", icon: NotebookPen },
