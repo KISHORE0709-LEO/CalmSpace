@@ -45,8 +45,24 @@ const SocialPractice = () => {
 
   return (
     <AppShell title="" subtitle="">
-      <div className="relative w-full">
+      {/* Full Page Illustrative Background (Only after onboarding) */}
+      {view !== "onboarding" && (
+        <>
+          <div 
+            className="fixed inset-0 z-0 opacity-70"
+            style={{
+              backgroundImage: "url('/backgrounds/social_bg.png')",
+              backgroundSize: '1000px', // Larger pattern
+              backgroundRepeat: 'repeat',
+              backgroundPosition: 'top center'
+            }}
+          />
+          {/* Light soft overlay to ensure readability without hiding the background */}
+          <div className="fixed inset-0 z-0 bg-background/60 backdrop-blur-[1px]" />
+        </>
+      )}
 
+      <div className="relative z-10 w-full min-h-[calc(100vh-6rem)] flex flex-col">
         {view === "onboarding" && (
           <OnboardingSequence onComplete={() => setView("worldSelect")} />
         )}
@@ -65,11 +81,11 @@ const SocialPractice = () => {
         {view === "levelSelect" && currentWorldId && currentWorld && (
           <div className="w-full max-w-5xl mx-auto animate-fade-up mt-4">
             <div className="w-full mb-8 text-left flex items-center justify-between">
-              <div>
+              <div className="bg-background/80 backdrop-blur-md p-4 rounded-2xl border-2 border-foreground/10 shadow-sm">
                 <h2 className="text-3xl md:text-4xl font-black tracking-tight mb-1">{currentWorld.title}</h2>
                 <p className="text-muted-foreground font-medium">CalmQuest — Level Select</p>
               </div>
-              <Button variant="outline" size="sm" onClick={() => setView("worldSelect")} className="rounded-full shadow-pop-sm">
+              <Button variant="outline" size="sm" onClick={() => setView("worldSelect")} className="rounded-full shadow-pop-sm bg-background/90 hover:bg-background">
                 <ArrowLeft className="w-4 h-4 mr-2" /> Back to Realms
               </Button>
             </div>
