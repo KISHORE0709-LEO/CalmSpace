@@ -424,12 +424,43 @@ const CheckIns = () => {
         <div className="flex-1 flex flex-col gap-6 relative w-full rounded-[2.5rem] border-2 border-transparent lg:border-foreground/10 lg:bg-background/40 lg:shadow-inner lg:p-8 overflow-y-auto overflow-x-hidden backdrop-blur-sm h-full scrollbar-hide">
           
           {/* Abstract background elements */}
-          <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary/10 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow" style={{ animationDuration: '8s' }} />
-          <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-secondary/10 rounded-full blur-3xl pointer-events-none -z-10 animate-pulse-glow" style={{ animationDuration: '6s', animationDelay: '2s' }} />
+          <div className="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl pointer-events-none -z-20 animate-pulse-glow" style={{ animationDuration: '8s' }} />
+          <div className="absolute bottom-[-10%] left-[-10%] w-[500px] h-[500px] bg-secondary/5 rounded-full blur-3xl pointer-events-none -z-20 animate-pulse-glow" style={{ animationDuration: '6s', animationDelay: '2s' }} />
           
           {/* Dynamic Grid Pattern Background */}
-          <div className="absolute inset-0 pointer-events-none -z-20 opacity-30" 
+          <div className="absolute inset-0 pointer-events-none -z-30 opacity-30" 
                style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, rgba(0,0,0,0.1) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+
+          {/* Cute Floating Background Icons */}
+          <div className="absolute top-[5%] right-[5%] w-48 h-48 opacity-40 pointer-events-none -z-10 animate-float-slow">
+            <img src="/icons/cloud.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply' }} />
+          </div>
+          <div className="absolute bottom-[10%] left-[8%] w-32 h-32 opacity-50 pointer-events-none -z-10 animate-float-fast">
+            <img src="/icons/star.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply' }} />
+          </div>
+          <div className="absolute top-[45%] right-[25%] w-40 h-40 opacity-25 pointer-events-none -z-10 animate-float-slow" style={{ animationDelay: '2s' }}>
+            <img src="/icons/owl.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply' }} />
+          </div>
+          <div className="absolute top-[25%] left-[15%] w-36 h-36 opacity-30 pointer-events-none -z-10 animate-float-fast" style={{ animationDelay: '1s' }}>
+            <img src="/icons/cloud.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply', transform: 'scaleX(-1)' }} />
+          </div>
+          
+          {/* Duplicated Icons */}
+          <div className="absolute bottom-[25%] right-[10%] w-24 h-24 opacity-40 pointer-events-none -z-10 animate-float-slow" style={{ animationDelay: '3s' }}>
+            <img src="/icons/star.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply', transform: 'rotate(15deg)' }} />
+          </div>
+          <div className="absolute top-[15%] left-[40%] w-28 h-28 opacity-20 pointer-events-none -z-10 animate-float-fast" style={{ animationDelay: '1.5s' }}>
+            <img src="/icons/owl.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply', transform: 'scaleX(-1)' }} />
+          </div>
+          <div className="absolute bottom-[40%] left-[2%] w-40 h-40 opacity-25 pointer-events-none -z-10 animate-float-slow" style={{ animationDelay: '4s' }}>
+            <img src="/icons/cloud.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply' }} />
+          </div>
+          <div className="absolute top-[60%] left-[30%] w-20 h-20 opacity-45 pointer-events-none -z-10 animate-float-fast" style={{ animationDelay: '2.5s' }}>
+            <img src="/icons/star.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply', transform: 'rotate(-20deg)' }} />
+          </div>
+          <div className="absolute bottom-[5%] right-[40%] w-32 h-32 opacity-30 pointer-events-none -z-10 animate-float-slow" style={{ animationDelay: '0.5s' }}>
+            <img src="/icons/cloud.png" alt="" className="w-full h-full object-contain" style={{ mixBlendMode: 'multiply', transform: 'scaleX(-1)' }} />
+          </div>
 
           {activeTab === "Check-in" && renderCheckInTab()}
           {activeTab === "My Plan" && renderMyPlan()}
