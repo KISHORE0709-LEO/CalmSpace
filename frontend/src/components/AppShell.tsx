@@ -12,7 +12,7 @@ export const AppShell = ({ title, subtitle, children, fullWidth = false }: Props
   <div className="min-h-screen bg-background">
     <AppNav />
     <main className="pt-28 pb-16">
-      <div className={fullWidth ? "w-full max-w-[1800px] mx-auto px-4 md:px-6" : "container max-w-6xl"}>
+      <div className={fullWidth ? "w-full max-w-[1800px] mx-auto px-6 md:px-12 lg:px-20" : "container max-w-6xl"}>
         {title && (
           <header className="mb-8">
             <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">{title}</h1>

@@ -170,8 +170,8 @@ export const WhatsAppClone = ({ currentRole, threads, initialMessages }: WhatsAp
 
       {/* RIGHT SIDE (Active Chat) */}
       <div className="flex-1 flex flex-col bg-[#efeae2] relative">
-        {/* WhatsApp Pattern Background Overlay */}
-        <div className="absolute inset-0 opacity-[0.03] pointer-events-none" style={{ backgroundImage: 'url("https://web.whatsapp.com/img/bg-chat-tile-dark_a4be512e7195b6b733d9110b408f075d.png")', backgroundSize: '400px' }} />
+        {/* Chat Pattern Background Overlay */}
+        <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(rgba(0,0,0,0.2) 1px, transparent 1px)', backgroundSize: '24px 24px' }} />
         
         {activeThread ? (
           <>
