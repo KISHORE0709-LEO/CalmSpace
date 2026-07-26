@@ -35,7 +35,7 @@ const Mitra = () => {
     setMessages((m) => [...m, { role: "user", text }]);
     setInput("");
     setIsTyping(true);
-    setCharacterId((prev) => (prev % 16) + 1);
+    setCharacterId((prev) => (prev % 18) + 1);
     
     setTimeout(() => {
       setIsTyping(false);
@@ -49,11 +49,11 @@ const Mitra = () => {
       {/* Large Character fixed on the left side */}
       <div className="fixed bottom-0 left-0 w-[25vw] max-w-[400px] h-[80vh] pointer-events-none z-0 flex items-end justify-center pl-8 pb-8 hidden lg:flex">
         <img 
-          src={`/photos/${characterId}.${characterId === 1 ? 'png' : 'svg'}`} 
+          src={`/photos/${characterId}.png`} 
           alt="Companion Character"
           className={`w-full h-auto object-contain transition-all duration-700 ease-in-out ${isTyping ? "animate-spline-talk" : "animate-spline-idle"}`}
           style={{ 
-            mixBlendMode: characterId === 1 ? 'normal' : 'multiply',
+            mixBlendMode: 'normal',
             filter: "drop-shadow(0 25px 35px rgba(0,0,0,0.15))", 
             transformOrigin: "bottom center" 
           }}
@@ -67,10 +67,10 @@ const Mitra = () => {
             <div className="relative">
               <div className="w-12 h-12 flex items-center justify-center overflow-visible">
                 <img 
-                  src={`/photos/${characterId}.${characterId === 1 ? 'png' : 'svg'}`} 
+                  src={`/photos/${characterId}.png`} 
                   alt="Avatar"
                   className={`w-full h-full object-contain transition-transform scale-150 drop-shadow-md ${isTyping ? "animate-talking" : ""}`}
-                  style={{ mixBlendMode: characterId === 1 ? 'normal' : 'multiply' }}
+                  style={{ mixBlendMode: 'normal' }}
                 />
               </div>
               <span className="absolute -bottom-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-transparent animate-pulse" />
@@ -99,10 +99,10 @@ const Mitra = () => {
               {m.role === "mitra" && (
                 <div className="w-10 h-10 flex items-center justify-center mr-2 flex-shrink-0 self-end overflow-visible">
                   <img 
-                    src={`/photos/${characterId}.${characterId === 1 ? 'png' : 'svg'}`} 
+                    src={`/photos/${characterId}.png`} 
                     alt="Mitra"
                     className={`w-full h-full object-contain transition-transform scale-[1.6] drop-shadow-md ${isTyping ? "animate-talking" : ""}`}
-                    style={{ mixBlendMode: characterId === 1 ? 'normal' : 'multiply' }}
+                    style={{ mixBlendMode: 'normal' }}
                   />
                 </div>
               )}
@@ -121,10 +121,10 @@ const Mitra = () => {
             <div className="flex justify-start" style={{ animation: "fade-up 0.3s ease forwards" }}>
               <div className="w-10 h-10 flex items-center justify-center mr-2 flex-shrink-0 self-end overflow-visible">
                 <img 
-                  src={`/photos/${characterId}.${characterId === 1 ? 'png' : 'svg'}`} 
+                  src={`/photos/${characterId}.png`} 
                   alt="Mitra"
                   className="w-full h-full object-contain scale-[1.6] drop-shadow-md animate-talking"
-                  style={{ mixBlendMode: characterId === 1 ? 'normal' : 'multiply' }}
+                  style={{ mixBlendMode: 'normal' }}
                 />
               </div>
               <div className="bg-card border-2 border-foreground rounded-[1rem] rounded-bl-sm px-4 py-3 shadow-pop-sm flex items-center gap-1.5">
