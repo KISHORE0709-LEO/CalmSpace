@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, PlayCircle, Clock, User, Sparkles } from "lucide-react";
+import { Search, PlayCircle, Clock, User, Sparkles, Video } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 
 const therapyVideos = [
@@ -83,6 +83,34 @@ const Therapy = () => {
           onChange={(e) => setSearchQuery(e.target.value)}
         />
         <div className="absolute -top-6 -right-6 w-20 h-20 bg-primary/10 rounded-full blur-xl animate-pulse-soft pointer-events-none" />
+      </div>
+
+      {/* Live Session Banner */}
+      <div className="mb-10 max-w-4xl mx-auto" style={{ animation: "fade-up 0.4s ease 100ms forwards" }}>
+        <div className="calm-card bg-gradient-to-br from-green-300 via-green-200 to-green-100 border-4 border-foreground shadow-pop-lg p-6 sm:p-10 flex flex-col sm:flex-row items-center gap-8 relative overflow-hidden group">
+          
+          <div className="absolute -right-10 -bottom-10 w-40 h-40 bg-white/30 rounded-full blur-2xl animate-pulse-soft pointer-events-none" />
+          <div className="absolute top-4 left-4 w-12 h-12 bg-white/40 rounded-full blur-xl animate-float pointer-events-none" />
+
+          <div className="w-32 h-32 shrink-0 bg-white border-4 border-foreground rounded-full shadow-pop flex items-center justify-center animate-wiggle relative z-10">
+            <span className="text-6xl">🧑‍⚕️</span>
+            <div className="absolute -bottom-2 -right-2 bg-green-500 border-2 border-foreground w-8 h-8 rounded-full flex items-center justify-center shadow-sm">
+              <div className="w-3 h-3 bg-white rounded-full animate-ping"></div>
+            </div>
+          </div>
+          
+          <div className="flex-1 text-center sm:text-left z-10">
+            <h2 className="text-3xl sm:text-4xl font-black text-foreground mb-2">Live Session Today!</h2>
+            <p className="text-xl font-bold text-foreground/80 mb-6">Dr. Mehta is ready to play some fun games with you.</p>
+            
+            <a 
+              href="/app/therapy/room" 
+              className="inline-flex items-center justify-center h-16 px-10 text-2xl font-black rounded-2xl bg-primary text-primary-foreground border-4 border-foreground shadow-pop hover:shadow-pop-lg hover:-translate-y-2 transition-all active:translate-y-1 active:shadow-pop-sm group-hover:animate-bounce-slow"
+            >
+              <Video className="w-8 h-8 mr-3" /> Join Now
+            </a>
+          </div>
+        </div>
       </div>
 
       {/* Featured / Empty State */}

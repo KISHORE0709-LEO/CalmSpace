@@ -11,6 +11,8 @@ import Mitra from "./pages/app/Mitra.tsx";
 import SocialPractice from "./pages/app/SocialPractice.tsx";
 import CheckIns from "./pages/app/CheckIns.tsx";
 import Therapy from "./pages/app/Therapy.tsx";
+import ChildTherapyRoom from "./pages/app/ChildTherapyRoom.tsx";
+import ChildTherapySummary from "./pages/app/ChildTherapySummary.tsx";
 import Auth from "./pages/Auth.tsx";
 import NotFound from "./pages/NotFound.tsx";
 import { AuthProvider } from "./contexts/AuthContext.tsx";
@@ -65,6 +67,8 @@ const App = () => (
           <Route path="/app/social" element={<SocialPractice />} />
           <Route path="/app/checkins" element={<CheckIns />} />
           <Route path="/app/therapy" element={<Therapy />} />
+          <Route path="/app/therapy/room" element={<ChildTherapyRoom />} />
+          <Route path="/app/therapy/summary" element={<ChildTherapySummary />} />
           
           {/* Parent Routes */}
           <Route path="/parent/chat" element={<ParentChat />} />
