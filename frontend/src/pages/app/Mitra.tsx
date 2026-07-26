@@ -112,7 +112,7 @@ const Mitra = () => {
               <div className="relative">
                 <div className="w-12 h-12 flex items-center justify-center overflow-visible">
                   <img 
-                    src={`/photos/${characterId}.png`} 
+                    src={`/photos/19.png`} 
                     alt="Avatar"
                     className={`w-full h-full object-contain transition-transform scale-150 drop-shadow-md ${isTyping ? "animate-talking" : ""}`}
                     style={{ mixBlendMode: 'normal' }}
@@ -144,7 +144,7 @@ const Mitra = () => {
                   {m.role === "mitra" && (
                     <div className="w-10 h-10 flex items-center justify-center mr-3 flex-shrink-0 self-end overflow-visible">
                       <img 
-                        src={`/photos/${characterId}.png`} 
+                        src={`/photos/19.png`} 
                         alt="Mitra"
                         className={`w-full h-full object-contain transition-transform scale-[1.6] drop-shadow-md ${isTyping ? "animate-talking" : ""}`}
                         style={{ mixBlendMode: 'normal' }}
@@ -166,7 +166,7 @@ const Mitra = () => {
                 <div className="flex justify-start" style={{ animation: "fade-up 0.3s ease forwards" }}>
                   <div className="w-10 h-10 flex items-center justify-center mr-3 flex-shrink-0 self-end overflow-visible">
                     <img 
-                      src={`/photos/${characterId}.png`} 
+                      src={`/photos/19.png`} 
                       alt="Mitra"
                       className="w-full h-full object-contain scale-[1.6] drop-shadow-md animate-talking"
                       style={{ mixBlendMode: 'normal' }}
