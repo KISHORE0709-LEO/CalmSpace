@@ -47,7 +47,7 @@ export const RoleOnboardingModal = ({ role }: Props) => {
           
           <div className="bg-muted p-4 rounded-xl border-2 border-foreground/10 text-sm font-medium">
             {role === "caregiver" ? (
-              <p>You have access to the live emotion state and incident logging. Your chat space is private between you and the parents (unless explicitly enabled for doctors).</p>
+              <p>You have access to the live emotion state. Your chat space is private between you and the parents (unless explicitly enabled for doctors).</p>
             ) : (
               <p>You have access to historical analytics, LSTM risk scores, and the care plan editor. Your chat space is private between you and the parents.</p>
             )}
