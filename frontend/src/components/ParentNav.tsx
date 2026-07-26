@@ -3,12 +3,10 @@ import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activi
 
 const links = [
   { to: "/parent/chat", label: "Chat", icon: MessageCircle },
-  { to: "/parent/emotional-trend", label: "Emotional Trend", icon: TrendingUp },
   { to: "/parent/crisis-alerts", label: "Crisis Alerts", icon: AlertTriangle },
   { to: "/parent/therapy", label: "Therapy Session", icon: Video },
   { to: "/parent/session-reports", label: "Session Reports", icon: FileText },
-  { to: "/parent/social-confidence", label: "Social Confidence", icon: Activity },
-  { to: "/parent/history", label: "Historical Access", icon: History },
+  { to: "/parent/history", label: "Activity check", icon: History },
 ];
 
 export const ParentNav = () => {

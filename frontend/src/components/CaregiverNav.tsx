@@ -6,7 +6,6 @@ const links = [
   { to: "/caregiver/live-emotion", label: "Live Emotion", icon: Activity },
   { to: "/caregiver/tasks", label: "Assigned Tasks", icon: CheckSquare },
   { to: "/caregiver/therapy", label: "Therapy Session", icon: Video },
-  { to: "/caregiver/incident-logging", label: "Incident Logging", icon: ClipboardList },
   { to: "/caregiver/handoff-notes", label: "Handoff Notes", icon: NotebookPen },
 ];
 
