@@ -46,8 +46,8 @@ const Mitra = () => {
 
   return (
     <>
-      {/* Large Character fixed on the left side */}
-      <div className="fixed bottom-0 left-0 w-[25vw] max-w-[400px] h-[80vh] pointer-events-none z-0 flex items-end justify-center pl-8 pb-8 hidden lg:flex">
+      {/* Large Character fixed on the right side */}
+      <div className="fixed bottom-0 right-0 w-[25vw] max-w-[400px] h-[80vh] pointer-events-none z-0 flex items-end justify-center pr-8 pb-8 hidden lg:flex">
         <img 
           src={`/photos/${characterId}.png`} 
           alt="Companion Character"
