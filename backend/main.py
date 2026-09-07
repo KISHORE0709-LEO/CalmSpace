@@ -1,14 +1,24 @@
-from fastapi import FastAPI, Depends, HTTPException, status
+from fastapi import FastAPI, Depends, HTTPException, status, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
-import firebase_admin
-from firebase_admin import credentials, auth as firebase_auth
+try:
+    import firebase_admin
+    from firebase_admin import credentials, auth as firebase_auth
+    FIREBASE_AVAILABLE = True
+except ImportError:
+    FIREBASE_AVAILABLE = False
 from typing import List
 import os
+import sys
+
+# Ensure backend directory is in path
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
 import models
 import schemas
 from database import engine, get_db
+from app.routes.sensing_routes import router as sensing_router, handle_facial_sensing_ws
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -24,13 +34,19 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Sensing Layer - Facial Emotion CNN Branch
+app.include_router(sensing_router)
+app.add_api_websocket_route("/ws/facial-sensing", handle_facial_sensing_ws)
+
 # Firebase Admin Setup
 # You must provide the path to your Firebase service account JSON key
 # e.g., os.environ["FIREBASE_CREDENTIALS"] = "/path/to/serviceAccountKey.json"
 try:
-    if os.environ.get("FIREBASE_CREDENTIALS"):
+    if FIREBASE_AVAILABLE and os.environ.get("FIREBASE_CREDENTIALS"):
         cred = credentials.Certificate(os.environ.get("FIREBASE_CREDENTIALS"))
         firebase_admin.initialize_app(cred)
+    elif not FIREBASE_AVAILABLE:
+        print("Note: firebase_admin library not installed. Running in standalone sensing/auth simulation mode.")
     else:
         print("Warning: FIREBASE_CREDENTIALS environment variable not set. Firebase Admin SDK not initialized.")
 except Exception as e:
