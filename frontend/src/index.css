@@ -1,0 +1,186 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 48 95% 92%;
+    --foreground: 0 0% 8%;
+
+    --card: 48 100% 97%;
+    --card-foreground: 0 0% 8%;
+
+    --popover: 48 100% 97%;
+    --popover-foreground: 0 0% 8%;
+
+    --primary: 205 85% 68%;
+    --primary-foreground: 215 60% 15%;
+    --primary-hover: 205 85% 60%;
+    --primary-glow: 200 95% 80%;
+
+    --secondary: 45 100% 60%;
+    --secondary-foreground: 0 0% 8%;
+
+    --muted: 45 90% 85%;
+    --muted-foreground: 0 0% 25%;
+
+    --accent: 45 100% 88%;
+    --accent-foreground: 40 90% 25%;
+
+    --destructive: 0 75% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 0 0% 8%;
+    --input: 0 0% 85%;
+    --ring: 205 85% 68%;
+
+    --radius: 0.875rem;
+
+    --shadow-pop: 4px 4px 0 0 hsl(0 0% 8%);
+    --shadow-pop-sm: 3px 3px 0 0 hsl(0 0% 8%);
+    --shadow-pop-lg: 6px 6px 0 0 hsl(0 0% 8%);
+    --shadow-soft: 0 12px 40px -10px hsl(0 0% 8% / 0.18);
+  }
+
+  .dark {
+    --background: 0 0% 6%;
+    --foreground: 60 30% 97%;
+    --card: 0 0% 10%;
+    --card-foreground: 60 30% 97%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 60 30% 97%;
+    --primary: 205 85% 68%;
+    --primary-foreground: 215 60% 15%;
+    --primary-hover: 205 85% 75%;
+    --secondary: 45 100% 60%;
+    --secondary-foreground: 0 0% 8%;
+    --muted: 0 0% 14%;
+    --muted-foreground: 60 10% 70%;
+    --accent: 205 50% 22%;
+    --accent-foreground: 205 90% 85%;
+    --destructive: 0 60% 45%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 60 30% 97%;
+    --input: 0 0% 18%;
+    --ring: 205 85% 68%;
+  }
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { scroll-behavior: smooth; font-size: 15px; }
+  body {
+    @apply bg-background text-foreground;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3, h4 { font-weight: 900; letter-spacing: -0.03em; }
+}
+
+@layer utilities {
+  .shadow-pop { box-shadow: var(--shadow-pop); }
+  .shadow-pop-sm { box-shadow: var(--shadow-pop-sm); }
+  .shadow-pop-lg { box-shadow: var(--shadow-pop-lg); }
+  .shadow-soft { box-shadow: var(--shadow-soft); }
+
+  .animate-float { animation: float 4s ease-in-out infinite; }
+  .animate-float-slow { animation: float 6s ease-in-out infinite; }
+  .animate-float-delay { animation: float 4s ease-in-out infinite 1.5s; }
+  .animate-spin-slow { animation: spin 12s linear infinite; }
+  .animate-bounce-slow { animation: bounce-slow 3s ease-in-out infinite; }
+  .animate-pulse-soft { animation: pulse-soft 3s ease-in-out infinite; }
+  .animate-wiggle { animation: wiggle 2s ease-in-out infinite; }
+  .animate-fade-up { animation: fade-up 0.7s ease-out forwards; }
+  .animate-fade-up-delay-1 { animation: fade-up 0.7s ease-out 0.15s forwards; opacity: 0; }
+  .animate-fade-up-delay-2 { animation: fade-up 0.7s ease-out 0.3s forwards; opacity: 0; }
+  .animate-fade-up-delay-3 { animation: fade-up 0.7s ease-out 0.45s forwards; opacity: 0; }
+  .animate-scale-in { animation: scale-in 0.5s ease-out forwards; }
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-18px) rotate(3deg); }
+}
+@keyframes bounce-slow {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-12px); }
+}
+@keyframes pulse-soft {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.08); }
+}
+@keyframes wiggle {
+  0%, 100% { transform: rotate(-6deg); }
+  50% { transform: rotate(6deg); }
+}
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(32px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+@keyframes scale-in {
+  from { opacity: 0; transform: scale(0.85); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes talking {
+  0%, 100% { transform: scaleY(1); }
+  50% { transform: scaleY(1.15) scaleX(0.95); }
+}
+.animate-talking {
+  animation: talking 0.3s ease-in-out infinite;
+}
+@keyframes spline-idle {
+  0%, 100% { transform: translateY(0) rotate(0deg) scale(1); }
+  33% { transform: translateY(-8px) rotate(1deg) scale(1.02); }
+  66% { transform: translateY(5px) rotate(-1deg) scale(0.98); }
+}
+@keyframes spline-talk {
+  0%, 100% { transform: scaleY(1) rotate(0deg); }
+  25% { transform: scaleY(1.03) scaleX(0.98) rotate(-1.5deg); }
+  75% { transform: scaleY(0.98) scaleX(1.02) rotate(1.5deg); }
+}
+.animate-spline-idle { animation: spline-idle 5s ease-in-out infinite; }
+.animate-spline-talk { animation: spline-talk 0.8s ease-in-out infinite; }
+@keyframes cinematic-in {
+  0%   { opacity: 0; filter: blur(16px); letter-spacing: 0.3em; transform: scale(1.08); }
+  40%  { opacity: 1; filter: blur(0px);  letter-spacing: normal; transform: scale(1); }
+  80%  { opacity: 1; filter: blur(0px);  letter-spacing: normal; transform: scale(1); }
+  100% { opacity: 0; filter: blur(4px);  letter-spacing: 0.05em; transform: scale(0.97); }
+}
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+
+@layer components {
+  .calm-card {
+    @apply bg-card border-2 border-foreground rounded-[1.5rem] p-6 transition-all duration-300 shadow-pop;
+  }
+  .calm-card:hover { 
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-pop-lg); 
+  }
+
+  .pill-nav {
+    @apply inline-flex items-center gap-2 bg-background/90 backdrop-blur border-2 border-foreground rounded-full p-1.5 shadow-pop-sm;
+  }
+  .pill-nav-item {
+    @apply px-5 py-2 rounded-full text-sm font-bold text-foreground transition-all duration-200 hover:bg-accent;
+  }
+  .pill-nav-item[data-active="true"] {
+    @apply bg-primary text-primary-foreground border-2 border-foreground shadow-pop-sm;
+  }
+}
+
+@keyframes slide-bounce-across {
+  0% { transform: translateX(-150%) scale(0.5) rotate(-45deg); opacity: 0; }
+  20% { transform: translateX(-50%) scale(1.2) rotate(15deg); opacity: 1; }
+  50% { transform: translateX(0%) scale(1.5) rotate(0deg); opacity: 1; }
+  80% { transform: translateX(50%) scale(1.2) rotate(-15deg); opacity: 1; }
+  100% { transform: translateX(150%) scale(0.5) rotate(45deg); opacity: 0; }
+}
+.animate-slide-bounce-across {
+  animation: slide-bounce-across 1.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

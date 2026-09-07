@@ -1,0 +1,26 @@
+import { ReactNode } from "react";
+import { AppNav } from "./AppNav";
+
+interface Props {
+  title?: string;
+  subtitle?: string;
+  children: ReactNode;
+  fullWidth?: boolean;
+}
+
+export const AppShell = ({ title, subtitle, children, fullWidth = false }: Props) => (
+  <div className="min-h-screen bg-background">
+    <AppNav />
+    <main className="pt-28 pb-16">
+      <div className={fullWidth ? "w-full max-w-[1800px] mx-auto px-6 md:px-12 lg:px-20" : "container max-w-6xl"}>
+        {title && (
+          <header className="mb-8">
+            <h1 className="text-3xl md:text-4xl font-black tracking-tight mb-2">{title}</h1>
+            {subtitle && <p className="text-muted-foreground font-medium">{subtitle}</p>}
+          </header>
+        )}
+        {children}
+      </div>
+    </main>
+  </div>
+);
