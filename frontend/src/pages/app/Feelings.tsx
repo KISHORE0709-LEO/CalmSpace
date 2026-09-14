@@ -24,6 +24,7 @@ import {
 } from "lucide-react";
 import { AppShell } from "@/components/AppShell";
 import { useEmotion } from "@/context/EmotionContext";
+import { API_BASE_URL } from "@/lib/api";
 
 const emotionEmojis: Record<string, string> = {
   Calm: "😌",
@@ -110,9 +111,10 @@ const Feelings = () => {
   } = useEmotion();
 
   const fetchMultiFaceHistory = async () => {
+    if (!API_BASE_URL) return;
     setLoadingHistory(true);
     try {
-      const res = await fetch("http://localhost:8000/api/sensing/multiple-faces-history");
+      const res = await fetch(`${API_BASE_URL}/api/sensing/multiple-faces-history`);
       if (res.ok) {
         const data = await res.json();
         setMultiFaceHistory(data.events || []);

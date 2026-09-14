@@ -22,6 +22,8 @@ import models
 import schemas
 from database import engine, get_db
 from app.routes.sensing_routes import router as sensing_router, handle_facial_sensing_ws
+from app.routes.care_circles import router as care_circles_router
+from app.routes.care_circle_ws import handle_care_circle_ws
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -40,6 +42,10 @@ app.add_middleware(
 # Sensing Layer - Facial Emotion CNN Branch
 app.include_router(sensing_router)
 app.add_api_websocket_route("/ws/facial-sensing", handle_facial_sensing_ws)
+
+# Care Circle & Group Chat
+app.include_router(care_circles_router)
+app.add_api_websocket_route("/ws/care-circle/{circle_id}", handle_care_circle_ws)
 
 # Firebase Admin Setup
 # You must provide the path to your Firebase service account JSON key
@@ -92,6 +98,17 @@ def signup(request: schemas.SignupRequest, db: Session = Depends(get_db)):
         )
         db.add(link)
         db.commit()
+
+    # Auto-link any pending Care Circle invites addressed to this email
+    pending_invites = db.query(models.CareCircleMember).filter(
+        models.CareCircleMember.invited_email == new_user.email.lower(),
+        models.CareCircleMember.user_id.is_(None)
+    ).all()
+    for pinv in pending_invites:
+        pinv.user_id = new_user.id
+    if pending_invites:
+        db.commit()
+
     return new_user
 
 @app.get("/api/auth/me", response_model=schemas.UserResponse)

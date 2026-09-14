@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "@/lib/firebase";
+import { API_BASE_URL } from "@/lib/api";
 import { onAuthStateChanged, User } from "firebase/auth";
 
 interface UserProfile {
@@ -34,8 +35,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       setUser(firebaseUser);
       if (firebaseUser) {
+        if (!API_BASE_URL) {
+          // If no remote backend is configured yet, build basic fallback profile from Firebase
+          setProfile({
+            id: 0,
+            firebase_uid: firebaseUser.uid,
+            email: firebaseUser.email || "",
+            name: firebaseUser.displayName || "User",
+            role: "child",
+            created_at: new Date().toISOString(),
+          });
+          setLoading(false);
+          return;
+        }
+
         try {
-          const response = await fetch(`http://localhost:8000/api/auth/me?firebase_uid=${firebaseUser.uid}`);
+          const response = await fetch(`${API_BASE_URL}/api/auth/me?firebase_uid=${firebaseUser.uid}`);
           if (response.ok) {
             const data = await response.json();
             setProfile(data);

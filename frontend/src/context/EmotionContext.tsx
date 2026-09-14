@@ -139,9 +139,15 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
     if (import.meta.env.VITE_WS_URL) {
       return import.meta.env.VITE_WS_URL;
     }
-    const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-    const protocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${host}:8000/ws/facial-sensing`;
+    const isLocal =
+      typeof window !== "undefined" &&
+      (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+    if (isLocal) {
+      const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+      return `${protocol}//${window.location.hostname}:8000/ws/facial-sensing`;
+    }
+    // In production (e.g. Vercel) without VITE_WS_URL, avoid connecting to vercel.app:8000
+    return null;
   };
 
   const connectWebSocket = useCallback(() => {
@@ -150,6 +156,11 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const wsUrl = getWsUrl();
+    if (!wsUrl) {
+      setConnectionStatus("disconnected");
+      return;
+    }
+
     setConnectionStatus("connecting");
 
     try {
@@ -233,6 +244,11 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
         setConnectionStatus("disconnected");
         setIsLive(false);
         socketRef.current = null;
+
+        if (!getWsUrl()) {
+          return;
+        }
+
         // Exponential backoff reconnect: 2s -> 3s -> 4.5s -> max 10s
         const delay = Math.min(10000, 2000 * Math.pow(1.5, reconnectAttemptsRef.current));
         reconnectAttemptsRef.current += 1;

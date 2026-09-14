@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signInWithPopup, setPersistence, browserLocalPersistence, browserSessionPersistence, sendPasswordResetEmail } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
+import { API_BASE_URL } from "@/lib/api";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 
@@ -96,7 +97,7 @@ const Auth = () => {
       } else {
         const userCred = await createUserWithEmailAndPassword(auth, email, password);
         
-        // Send data to our new FastAPI backend to create user & link child
+        // Send data to our new FastAPI backend to create user & link child if backend available
         const payload = {
           firebase_uid: userCred.user.uid,
           name,
@@ -105,15 +106,17 @@ const Auth = () => {
           child_email: (selectedRole === "parent" || selectedRole === "caregiver") ? childEmail : null
         };
         
-        const response = await fetch("http://localhost:8000/api/auth/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        if (API_BASE_URL) {
+          const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.detail || "Signup failed on backend");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.detail || "Signup failed on backend");
+          }
         }
 
         toast.success("Account created successfully!");
@@ -166,17 +169,19 @@ const Auth = () => {
           child_email: (selectedRole === "parent" || selectedRole === "caregiver") ? childEmail : null
         };
         
-        const response = await fetch("http://localhost:8000/api/auth/signup", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
+        if (API_BASE_URL) {
+          const response = await fetch(`${API_BASE_URL}/api/auth/signup`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload)
+          });
 
-        if (!response.ok) {
-          const errorData = await response.json();
-          // It's okay if email is already registered since they are signing in with Google
-          if (errorData.detail !== "Email already registered") {
-            throw new Error(errorData.detail || "Signup failed on backend");
+          if (!response.ok) {
+            const errorData = await response.json();
+            // It's okay if email is already registered since they are signing in with Google
+            if (errorData.detail !== "Email already registered") {
+              throw new Error(errorData.detail || "Signup failed on backend");
+            }
           }
         }
         toast.success("Account created successfully with Google!");
