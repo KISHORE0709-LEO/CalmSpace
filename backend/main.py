@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException, status, WebSocket
+from fastapi import FastAPI, Depends, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 try:
@@ -7,6 +7,9 @@ try:
     FIREBASE_AVAILABLE = True
 except ImportError:
     FIREBASE_AVAILABLE = False
+    firebase_admin = None  # type: ignore
+    credentials = None  # type: ignore
+    firebase_auth = None  # type: ignore
 from typing import List
 import os
 import sys
@@ -42,8 +45,8 @@ app.add_api_websocket_route("/ws/facial-sensing", handle_facial_sensing_ws)
 # You must provide the path to your Firebase service account JSON key
 # e.g., os.environ["FIREBASE_CREDENTIALS"] = "/path/to/serviceAccountKey.json"
 try:
-    if FIREBASE_AVAILABLE and os.environ.get("FIREBASE_CREDENTIALS"):
-        cred = credentials.Certificate(os.environ.get("FIREBASE_CREDENTIALS"))
+    if FIREBASE_AVAILABLE and credentials is not None and firebase_admin is not None and os.environ.get("FIREBASE_CREDENTIALS"):
+        cred = credentials.Certificate(os.environ["FIREBASE_CREDENTIALS"])
         firebase_admin.initialize_app(cred)
     elif not FIREBASE_AVAILABLE:
         print("Note: firebase_admin library not installed. Running in standalone sensing/auth simulation mode.")

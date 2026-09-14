@@ -8,7 +8,6 @@ import json
 import base64
 import io
 import unittest
-import numpy as np
 from PIL import Image
 from fastapi.testclient import TestClient
 
@@ -19,7 +18,7 @@ if BACKEND_DIR not in sys.path:
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-from main import app
+from main import app  # noqa: E402
 
 
 class TestSensingAPIEndpoints(unittest.TestCase):

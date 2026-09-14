@@ -22,13 +22,14 @@ async def get_current_user(authorization: Optional[str] = Header(None)):
     token = authorization.split(" ")[1]
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        circle_id: int = payload.get("circle_id")
-        role: str = payload.get("role")
-        if user_id is None:
+        user_id_raw = payload.get("sub")
+        circle_id = payload.get("circle_id")
+        role_raw = payload.get("role")
+        if user_id_raw is None:
             raise HTTPException(status_code=401, detail="Could not validate credentials")
-        return TokenData(user_id=user_id, circle_id=circle_id, role=role)
-    except jwt.PyJWTError:
+        parsed_role = RoleEnum(role_raw) if role_raw else None
+        return TokenData(user_id=int(user_id_raw), circle_id=circle_id, role=parsed_role)
+    except (jwt.PyJWTError, ValueError):
         raise HTTPException(status_code=401, detail="Could not validate credentials")
 
 def require_role(allowed_roles: list[RoleEnum]):

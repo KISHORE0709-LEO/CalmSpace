@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from datetime import datetime, timedelta
+from datetime import datetime
 import secrets
 
 from ..database import get_db
@@ -54,8 +54,8 @@ async def join_circle(
     if not invite_data:
         raise HTTPException(status_code=400, detail="Invalid or expired invite code")
         
-    circle_id = invite_data["circle_id"]
-    role = invite_data["role"]
+    circle_id = int(invite_data["circle_id"])
+    role = RoleEnum(invite_data["role"])
     
     # Check if already a member
     existing_member = db.query(CircleMember).filter(
@@ -79,6 +79,8 @@ async def join_circle(
     
     # Create necessary chat threads
     circle = db.query(CareCircle).filter(CareCircle.id == circle_id).first()
+    if not circle:
+        raise HTTPException(status_code=404, detail="Care circle not found")
     
     # Determine which threads to create based on role joined
     thread_types_needed = []

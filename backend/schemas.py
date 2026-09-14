@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr
-from typing import Optional, List
+from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Optional
 from datetime import datetime
 
 class SignupRequest(BaseModel):
@@ -17,8 +17,7 @@ class UserResponse(BaseModel):
     role: str
     created_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 class ChildDataResponse(BaseModel):
     id: int

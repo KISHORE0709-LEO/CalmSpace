@@ -25,24 +25,21 @@ if BACKEND_DIR not in sys.path:
 
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 
-from app.sensing.config import (
+from app.sensing.config import (  # noqa: E402
     AFFECTNET_CLASSES,
-    CALMSPACE_STATES,
-    CLASS_TO_CALMSPACE_MAP,
     AUTISM_AWARENESS_CONFIG
 )
-from app.sensing.dataset import (
+from app.sensing.dataset import (  # noqa: E402
     parse_yolo_line,
     extract_face_crop,
     YOLOAnnotation
 )
-from app.sensing.quality_assessor import FaceQualityAssessor
-from app.sensing.model import (
-    CalmSpaceLightFaceCNN,
+from app.sensing.quality_assessor import FaceQualityAssessor  # noqa: E402
+from app.sensing.model import (  # noqa: E402
     map_raw_to_calmspace,
     evaluate_autism_ambiguity
 )
-from app.sensing.inference_engine import FacialEmotionEngine
+from app.sensing.inference_engine import FacialEmotionEngine  # noqa: E402
 
 
 class TestYOLOAnnotationParser(unittest.TestCase):
@@ -65,19 +62,22 @@ class TestYOLOAnnotationParser(unittest.TestCase):
         line = "9 0.5 0.5 0.2 0.2"
         anno = parse_yolo_line(line)
         self.assertFalse(anno.is_valid)
-        self.assertIn("outside valid range", anno.validation_error)
+        self.assertIsNotNone(anno.validation_error)
+        self.assertIn("outside valid range", anno.validation_error or "")
 
     def test_negative_or_zero_dimensions(self):
         line = "0 0.5 0.5 -0.1 0.2"
         anno = parse_yolo_line(line)
         self.assertFalse(anno.is_valid)
-        self.assertIn("Degenerate dimension", anno.validation_error)
+        self.assertIsNotNone(anno.validation_error)
+        self.assertIn("Degenerate dimension", anno.validation_error or "")
 
     def test_out_of_bounds_center(self):
         line = "2 1.25 0.5 0.3 0.3"
         anno = parse_yolo_line(line)
         self.assertFalse(anno.is_valid)
-        self.assertIn("out of [0, 1]", anno.validation_error)
+        self.assertIsNotNone(anno.validation_error)
+        self.assertIn("out of [0, 1]", anno.validation_error or "")
 
     def test_corrupted_tokens(self):
         line = "invalid tokens here"
@@ -101,6 +101,7 @@ class TestFaceCropping(unittest.TestCase):
         )
         crop = extract_face_crop(test_img, anno, margin_ratio=0.1)
         self.assertIsNotNone(crop)
+        assert crop is not None
         # Expected w = 640 * 0.2 = 128 + padding
         self.assertGreater(crop.size[0], 100)
         self.assertGreater(crop.size[1], 100)
@@ -119,6 +120,7 @@ class TestFaceCropping(unittest.TestCase):
         )
         crop = extract_face_crop(test_img, anno, margin_ratio=0.1)
         self.assertIsNotNone(crop)
+        assert crop is not None
         self.assertGreater(crop.size[0], 0)
         self.assertGreater(crop.size[1], 0)
 
@@ -178,7 +180,7 @@ class TestTaxonomyMappingAndAutismAwareness(unittest.TestCase):
         total_prob = sum(mapped.values())
         self.assertAlmostEqual(total_prob, 1.0, places=3)
         # Happy dominant -> Calm should be dominant mapped state
-        self.assertEqual(max(mapped, key=mapped.get), "Calm")
+        self.assertEqual(max(mapped, key=lambda k: mapped[k]), "Calm")
 
     def test_atypical_flat_affect_entropy_detection(self):
         # Flat affect: near-uniform distribution across all 8 classes

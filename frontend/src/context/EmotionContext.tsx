@@ -132,7 +132,7 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
 
   const socketRef = useRef<WebSocket | null>(null);
   const reconnectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
+  const reconnectAttemptsRef = useRef<number>(0);
   const lastPacketTimeRef = useRef<number | null>(null);
 
   const getWsUrl = () => {
@@ -140,7 +140,8 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
       return import.meta.env.VITE_WS_URL;
     }
     const host = typeof window !== "undefined" ? window.location.hostname : "localhost";
-    return `ws://${host}:8000/ws/facial-sensing`;
+    const protocol = typeof window !== "undefined" && window.location.protocol === "https:" ? "wss:" : "ws:";
+    return `${protocol}//${host}:8000/ws/facial-sensing`;
   };
 
   const connectWebSocket = useCallback(() => {
@@ -157,6 +158,7 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
 
       ws.onopen = () => {
         setConnectionStatus("connected");
+        reconnectAttemptsRef.current = 0;
       };
 
       ws.onmessage = (event) => {
@@ -231,10 +233,12 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
         setConnectionStatus("disconnected");
         setIsLive(false);
         socketRef.current = null;
-        // Reconnect after 2.5s
+        // Exponential backoff reconnect: 2s -> 3s -> 4.5s -> max 10s
+        const delay = Math.min(10000, 2000 * Math.pow(1.5, reconnectAttemptsRef.current));
+        reconnectAttemptsRef.current += 1;
         reconnectTimeoutRef.current = setTimeout(() => {
           connectWebSocket();
-        }, 2500);
+        }, delay);
       };
     } catch (e) {
       console.error("[EmotionContext] Failed to initialize WebSocket:", e);

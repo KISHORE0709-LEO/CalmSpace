@@ -441,8 +441,8 @@ class AffectNetYOLODataset(Dataset):
     def __len__(self) -> int:
         return len(self.samples)
 
-    def __getitem__(self, idx: int):
-        img_path, anno = self.samples[idx]
+    def __getitem__(self, index: int):
+        img_path, anno = self.samples[index]
 
         try:
             with Image.open(img_path) as img:

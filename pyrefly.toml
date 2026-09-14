@@ -1,0 +1,11 @@
+preset = "basic"
+
+project-includes = [
+    "backend/**/*.py*",
+]
+
+search-path = [
+    "backend",
+    "backend/app",
+    ".",
+]

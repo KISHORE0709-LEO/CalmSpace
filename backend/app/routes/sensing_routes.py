@@ -7,10 +7,10 @@ import json
 import base64
 import io
 import logging
-from typing import Optional
+from typing import Optional, List
 from PIL import Image
 
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel
 
 from app.sensing.inference_engine import FacialEmotionEngine
@@ -35,8 +35,8 @@ def get_sensing_engine() -> FacialEmotionEngine:
 class SensingStatusResponse(BaseModel):
     status: str
     device: str
-    affectnet_classes: list
-    calmspace_states: list
+    affectnet_classes: List[str]
+    calmspace_states: List[str]
     autism_domain_shift_notice: str
     review_log_count: int
     multiple_faces_events_count: int

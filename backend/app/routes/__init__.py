@@ -1,0 +1,1 @@
+"""CalmSpace app routes package."""

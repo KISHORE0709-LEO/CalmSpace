@@ -1,0 +1,129 @@
+ERROR Cannot find module `app.sensing.inference_engine` [missing-import]
+  --> backend\app\routes\sensing_routes.py:16:1
+   |
+16 | from app.sensing.inference_engine import FacialEmotionEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.sensing.config` [missing-import]
+  --> backend\app\routes\sensing_routes.py:17:1
+   |
+17 | from app.sensing.config import AFFECTNET_CLASSES, CALMSPACE_STATES, ASD_DOMAIN_SHIFT_NOTICE
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `models` [missing-import]
+  --> backend\main.py:21:8
+   |
+21 | import models
+   |        ^^^^^^
+   |
+  Did you mean `codecs`?
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `schemas` [missing-import]
+  --> backend\main.py:22:8
+   |
+22 | import schemas
+   |        ^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `database` [missing-import]
+  --> backend\main.py:23:1
+   |
+23 | from database import engine, get_db
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.routes.sensing_routes` [missing-import]
+  --> backend\main.py:24:1
+   |
+24 | from app.routes.sensing_routes import router as sensing_router, handle_facial_sensing_ws
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `database` [missing-import]
+ --> backend\models.py:4:1
+  |
+4 | from database import Base
+  | ^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `main` [missing-import]
+  --> backend\tests\test_api_endpoints.py:21:1
+   |
+21 | from main import app  # noqa: E402
+   | ^^^^^^^^^^^^^^^^^^^^
+   |
+  Did you mean `email`?
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.sensing.config` [missing-import]
+  --> backend\tests\test_facial_sensing.py:28:1
+   |
+28 | / from app.sensing.config import (  # noqa: E402
+29 | |     AFFECTNET_CLASSES,
+30 | |     AUTISM_AWARENESS_CONFIG
+31 | | )
+   | |_^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.sensing.dataset` [missing-import]
+  --> backend\tests\test_facial_sensing.py:32:1
+   |
+32 | / from app.sensing.dataset import (  # noqa: E402
+33 | |     parse_yolo_line,
+34 | |     extract_face_crop,
+35 | |     YOLOAnnotation
+36 | | )
+   | |_^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.sensing.quality_assessor` [missing-import]
+  --> backend\tests\test_facial_sensing.py:37:1
+   |
+37 | from app.sensing.quality_assessor import FaceQualityAssessor  # noqa: E402
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.sensing.model` [missing-import]
+  --> backend\tests\test_facial_sensing.py:38:1
+   |
+38 | / from app.sensing.model import (  # noqa: E402
+39 | |     map_raw_to_calmspace,
+40 | |     evaluate_autism_ambiguity
+41 | | )
+   | |_^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
+ERROR Cannot find module `app.sensing.inference_engine` [missing-import]
+  --> backend\tests\test_facial_sensing.py:42:1
+   |
+42 | from app.sensing.inference_engine import FacialEmotionEngine  # noqa: E402
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+  Looked in these locations:
+  Import root (inferred from project layout): "D:\\Kishore\\New_project\\CalmSpace"
+  Site package path queried from interpreter: ["C:\\Users\\KISHORE\\anaconda3\\DLLs", "C:\\Users\\KISHORE\\anaconda3", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\win32\\lib", "C:\\Users\\KISHORE\\anaconda3\\Lib\\site-packages\\Pythonwin"]
