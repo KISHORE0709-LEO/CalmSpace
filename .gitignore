@@ -1,6 +1,12 @@
 # Logs
 logs
 *.log
+
+# ML model weights (large binary — download separately from Kaggle)
+*.pth
+
+# Training dataset (large — not tracked in git)
+backend/dataset/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*

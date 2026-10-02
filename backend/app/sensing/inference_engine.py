@@ -105,20 +105,26 @@ class FacialEmotionEngine:
             else:
                 logger.warning(f"Face detector cascade not found (checked: {cascade_file}).")
 
-        # Initialize PyTorch model
-        self.model = create_facial_emotion_model(backbone=backbone, pretrained=False)
-        if weights_path and os.path.exists(weights_path):
-            try:
-                try:
-                    state_dict = torch.load(weights_path, map_location=self.device, weights_only=True)
-                except TypeError:
-                    state_dict = torch.load(weights_path, map_location=self.device)
+        # Initialize PyTorch model (MobileNetV2 with 4 classes)
+        self.model = None
+        try:
+            import torchvision.models as torch_models
+            from torch import nn
+            model = torch_models.mobilenet_v2(weights=None)
+            model.classifier[1] = nn.Linear(model.classifier[1].in_features, 4)
+            self.model = model
+            if weights_path is None:
+                # Resolve relative to the backend/ root regardless of working directory
+                _backend_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+                weights_path = os.path.join(_backend_dir, "best_model.pth")
+            if os.path.exists(weights_path):
+                state_dict = torch.load(weights_path, map_location=self.device, weights_only=True)
                 self.model.load_state_dict(state_dict)
                 logger.info(f"Loaded trained facial CNN weights from {weights_path}")
-            except Exception as e:
-                logger.warning(f"Could not load weights from {weights_path}: {e}")
-        self.model.to(self.device)
-        self.model.eval()
+            self.model.to(self.device)
+            self.model.eval()
+        except Exception as e:
+            logger.error(f"Failed to load MobileNetV2 model: {e}")
 
     def register_callback(self, callback: Callable[[Dict[str, Any]], None]):
         """Registers a listener function to receive real-time emotion telemetry packets."""
@@ -407,34 +413,37 @@ class FacialEmotionEngine:
             with torch.no_grad():
                 logits = self.model(input_tensor).squeeze(0)
                 
-                # AffectNet classes: 0=anger, 1=contempt, 2=disgust, 3=fear, 4=happy, 5=neutral, 6=sad, 7=surprise
-                adj = torch.zeros_like(logits)
-                adj[4] += delta_smile * 5.0                          # happy
-                adj[0] += delta_furrow * 4.0                         # anger
-                adj[2] += delta_furrow * 2.5                         # disgust
-                adj[7] += delta_mouth_open * 4.5                     # surprise
-                adj[3] += delta_mouth_open * 2.8                     # fear
+                # 4 Classes: 0: Calm, 1: Happy, 2: Distressed, 3: Overwhelmed
+                cur_probs = F.softmax(logits, dim=0).cpu().numpy()
                 
-                # Dynamic resting neutral baseline
-                dynamic_activity = delta_smile * 1.6 + delta_furrow * 1.6 + delta_mouth_open * 1.6
-                resting_weight = max(0.0, 1.0 - dynamic_activity)
-                adj[5] += resting_weight * 3.5                       # neutral
-                
-                cur_probs = F.softmax(logits + adj, dim=0).cpu().numpy()
-                
-                # Temporal smoothing (EMA alpha = 0.65) to suppress camera jitter while preserving rapid shifts
+                # Temporal smoothing
                 if self._smoothed_raw_probs is None:
                     self._smoothed_raw_probs = cur_probs
                 else:
                     self._smoothed_raw_probs = 0.65 * cur_probs + 0.35 * self._smoothed_raw_probs
                     
-            for idx, emotion in enumerate(AFFECTNET_CLASSES):
+            classes_4 = ["Calm", "Happy", "Distressed", "Overwhelmed"]
+            for idx, emotion in enumerate(classes_4):
                 raw_probs[emotion] = round(float(self._smoothed_raw_probs[idx]), 4)
         else:
-            raw_probs = {e: round(1.0 / len(AFFECTNET_CLASSES), 4) for e in AFFECTNET_CLASSES}
+            classes_4 = ["Calm", "Happy", "Distressed", "Overwhelmed"]
+            raw_probs = {e: 0.25 for e in classes_4}
 
-        # 8. Map to CalmSpace emotional regulation taxonomy
-        mapped_probs = map_raw_to_calmspace(raw_probs)
+        # 8. Direct mapping to CalmSpace emotional regulation taxonomy
+        # Map our 4 classes roughly to CalmSpace states
+        mapped_probs = {
+            "Calm": raw_probs.get("Calm", 0.0),
+            "Mildly_Stressed": raw_probs.get("Distressed", 0.0) * 0.5,
+            "Anxious": raw_probs.get("Distressed", 0.0) * 0.5,
+            "Overloaded": raw_probs.get("Overwhelmed", 0.0)
+        }
+        
+        # Add happy to calm as well
+        mapped_probs["Calm"] += raw_probs.get("Happy", 0.0)
+        
+        total = sum(mapped_probs.values())
+        if total > 0:
+            for k in mapped_probs: mapped_probs[k] /= total
 
         # 9. Autism atypical affect and entropy evaluation
         entropy, is_ambiguous, ambiguity_reason = evaluate_autism_ambiguity(raw_probs)

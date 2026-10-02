@@ -112,14 +112,17 @@ QUALITY_CONFIG = {
 }
 
 # Autism Ambiguity & Entropy Thresholds
+# NOTE: The inference engine uses a 4-class model (Calm, Happy, Distressed, Overwhelmed).
+# Maximum Shannon entropy for 4 classes is ln(4) ≈ 1.386.
+# The threshold must be below this maximum to be reachable.
 AUTISM_AWARENESS_CONFIG = {
-    # Maximum Shannon entropy for 8 classes is ln(8) ≈ 2.079.
-    # An entropy above 1.70 indicates high dispersion across emotions (atypical/subtle expression).
-    "entropy_threshold": 1.70,
-    # If the probability delta between rank-1 and rank-2 emotion is less than 0.10, mark ambiguous.
-    "top2_delta_threshold": 0.10,
+    # Threshold set to 1.10 (≈ 79% of max 4-class entropy).
+    # Above this indicates high dispersion across emotions (atypical/subtle expression).
+    "entropy_threshold": 1.10,
+    # If the probability delta between rank-1 and rank-2 emotion is less than 0.12, mark ambiguous.
+    "top2_delta_threshold": 0.12,
     # Overall detection confidence penalty applied when affect is marked atypical or ambiguous.
-    "atypical_confidence_discount": 0.40,
+    "atypical_confidence_discount": 0.20,
 }
 
 ASD_DOMAIN_SHIFT_NOTICE = (
