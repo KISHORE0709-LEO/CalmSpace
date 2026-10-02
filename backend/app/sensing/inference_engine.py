@@ -429,21 +429,53 @@ class FacialEmotionEngine:
             classes_4 = ["Calm", "Happy", "Distressed", "Overwhelmed"]
             raw_probs = {e: 0.25 for e in classes_4}
 
-        # 8. Direct mapping to CalmSpace emotional regulation taxonomy
-        # Map our 4 classes roughly to CalmSpace states
-        mapped_probs = {
-            "Calm": raw_probs.get("Calm", 0.0),
-            "Mildly_Stressed": raw_probs.get("Distressed", 0.0) * 0.5,
-            "Anxious": raw_probs.get("Distressed", 0.0) * 0.5,
-            "Overloaded": raw_probs.get("Overwhelmed", 0.0)
+        # 8. Fuse CNN output with expression signals for final CalmSpace state
+        # Expression signals correct the CNN when there is clear visual evidence.
+        # delta_smile > 0.15  → strong smile detected → boost Happy / Calm
+        # delta_furrow > 0.20 → strong brow furrow    → boost Distressed / Overwhelmed
+        # delta_mouth_open    → open mouth             → boost Distressed
+
+        cnn_calm       = raw_probs.get("Calm", 0.0)
+        cnn_happy      = raw_probs.get("Happy", 0.0)
+        cnn_distressed = raw_probs.get("Distressed", 0.0)
+        cnn_overwhelmed = raw_probs.get("Overwhelmed", 0.0)
+
+        # Smile boost: if strong smile detected, shift probability toward Happy
+        smile_boost   = min(delta_smile * 1.5, 0.40)
+        furrow_boost  = min(delta_furrow * 1.2, 0.30)
+        open_boost    = min(delta_mouth_open * 1.0, 0.20)
+
+        # Fused probabilities — expression signals add or subtract from CNN predictions
+        fused_happy      = min(1.0, cnn_happy + smile_boost)
+        fused_calm       = max(0.0, cnn_calm  + smile_boost * 0.3 - furrow_boost * 0.5)
+        fused_distressed = min(1.0, cnn_distressed + furrow_boost * 0.5 + open_boost)
+        fused_overwhelmed = max(0.0, cnn_overwhelmed - smile_boost * 1.2 + furrow_boost * 0.8)
+
+        fused = {
+            "Calm":       fused_calm,
+            "Happy":      fused_happy,
+            "Distressed": fused_distressed,
+            "Overwhelmed": fused_overwhelmed,
         }
-        
-        # Add happy to calm as well
-        mapped_probs["Calm"] += raw_probs.get("Happy", 0.0)
-        
+        total_f = sum(fused.values())
+        if total_f > 0:
+            fused = {k: v / total_f for k, v in fused.items()}
+
+        # Map fused 4-class → CalmSpace states
+        mapped_probs = {
+            "Calm":          fused["Calm"] + fused["Happy"],
+            "Mildly_Stressed": fused["Distressed"] * 0.5,
+            "Anxious":       fused["Distressed"] * 0.5,
+            "Overloaded":    fused["Overwhelmed"],
+        }
+
         total = sum(mapped_probs.values())
         if total > 0:
-            for k in mapped_probs: mapped_probs[k] /= total
+            for k in mapped_probs:
+                mapped_probs[k] = round(mapped_probs[k] / total, 4)
+
+        # Update raw_probs to reflect fused values (used for entropy / confidence below)
+        raw_probs = {k: round(v, 4) for k, v in fused.items()}
 
         # 9. Autism atypical affect and entropy evaluation
         entropy, is_ambiguous, ambiguity_reason = evaluate_autism_ambiguity(raw_probs)
