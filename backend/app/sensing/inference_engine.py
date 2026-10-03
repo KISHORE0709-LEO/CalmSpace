@@ -430,52 +430,58 @@ class FacialEmotionEngine:
             raw_probs = {e: 0.25 for e in classes_4}
 
         # 8. Fuse CNN output with expression signals for final CalmSpace state
-        # Expression signals correct the CNN when there is clear visual evidence.
-        # delta_smile > 0.15  → strong smile detected → boost Happy / Calm
-        # delta_furrow > 0.20 → strong brow furrow    → boost Distressed / Overwhelmed
-        # delta_mouth_open    → open mouth             → boost Distressed
+        # The CNN is the primary signal. Expression signals only correct it when
+        # there is STRONG visual evidence that contradicts the CNN output.
+        # Key case: CNN says Overwhelmed but a clear smile is visible → shift to Happy.
 
-        cnn_calm       = raw_probs.get("Calm", 0.0)
-        cnn_happy      = raw_probs.get("Happy", 0.0)
-        cnn_distressed = raw_probs.get("Distressed", 0.0)
+        cnn_calm        = raw_probs.get("Calm", 0.0)
+        cnn_happy       = raw_probs.get("Happy", 0.0)
+        cnn_distressed  = raw_probs.get("Distressed", 0.0)
         cnn_overwhelmed = raw_probs.get("Overwhelmed", 0.0)
 
-        # Smile boost: if strong smile detected, shift probability toward Happy
-        smile_boost   = min(delta_smile * 1.5, 0.40)
-        furrow_boost  = min(delta_furrow * 1.2, 0.30)
-        open_boost    = min(delta_mouth_open * 1.0, 0.20)
+        # Only apply expression correction when signal is strong enough to be meaningful
+        # delta_smile > 0.12 → a real smile is happening → boost Happy, suppress Overwhelmed
+        # delta_furrow > 0.18 → real brow furrow → gentle boost to Distressed
+        smile_strength   = max(0.0, delta_smile - 0.12)   # dead-zone below 0.12
+        furrow_strength  = max(0.0, delta_furrow - 0.18)  # dead-zone below 0.18
 
-        # Fused probabilities — expression signals add or subtract from CNN predictions
-        fused_happy      = min(1.0, cnn_happy + smile_boost)
-        fused_calm       = max(0.0, cnn_calm  + smile_boost * 0.3 - furrow_boost * 0.5)
-        fused_distressed = min(1.0, cnn_distressed + furrow_boost * 0.5 + open_boost)
-        fused_overwhelmed = max(0.0, cnn_overwhelmed - smile_boost * 1.2 + furrow_boost * 0.8)
+        smile_correction  = min(smile_strength * 2.0, 0.35)   # max 35% correction
+        furrow_correction = min(furrow_strength * 1.5, 0.20)   # max 20% correction
+
+        # Apply: smile pulls probability FROM Overwhelmed INTO Happy
+        transfer = min(smile_correction, cnn_overwhelmed * 0.8)
+        fused_happy       = cnn_happy + transfer
+        fused_overwhelmed = max(0.0, cnn_overwhelmed - transfer)
+
+        # Furrow gently shifts some Calm → Distressed
+        furrow_transfer = min(furrow_correction, cnn_calm * 0.5)
+        fused_calm       = max(0.0, cnn_calm - furrow_transfer)
+        fused_distressed = cnn_distressed + furrow_transfer
 
         fused = {
-            "Calm":       fused_calm,
-            "Happy":      fused_happy,
-            "Distressed": fused_distressed,
+            "Calm":        fused_calm,
+            "Happy":       fused_happy,
+            "Distressed":  fused_distressed,
             "Overwhelmed": fused_overwhelmed,
         }
         total_f = sum(fused.values())
         if total_f > 0:
-            fused = {k: v / total_f for k, v in fused.items()}
+            fused = {k: round(v / total_f, 4) for k, v in fused.items()}
 
         # Map fused 4-class → CalmSpace states
         mapped_probs = {
-            "Calm":          fused["Calm"] + fused["Happy"],
+            "Calm":           fused["Calm"] + fused["Happy"],
             "Mildly_Stressed": fused["Distressed"] * 0.5,
-            "Anxious":       fused["Distressed"] * 0.5,
-            "Overloaded":    fused["Overwhelmed"],
+            "Anxious":        fused["Distressed"] * 0.5,
+            "Overloaded":     fused["Overwhelmed"],
         }
-
         total = sum(mapped_probs.values())
         if total > 0:
             for k in mapped_probs:
                 mapped_probs[k] = round(mapped_probs[k] / total, 4)
 
-        # Update raw_probs to reflect fused values (used for entropy / confidence below)
-        raw_probs = {k: round(v, 4) for k, v in fused.items()}
+        # Update raw_probs to fused values (used for entropy/confidence below)
+        raw_probs = fused
 
         # 9. Autism atypical affect and entropy evaluation
         entropy, is_ambiguous, ambiguity_reason = evaluate_autism_ambiguity(raw_probs)
