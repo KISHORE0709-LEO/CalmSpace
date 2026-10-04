@@ -186,6 +186,12 @@ class FacialEmotionEngine:
         if len(all_faces) > 1:
             all_faces = sorted(all_faces, key=lambda b: b[2] * b[3], reverse=True)
 
+        # Filter out background/small faces — only keep faces whose area is at least
+        # 25% the size of the largest face. This removes background posters/people.
+        if len(all_faces) > 1:
+            largest_area = all_faces[0][2] * all_faces[0][3]
+            all_faces = [f for f in all_faces if (f[2] * f[3]) >= largest_area * 0.25]
+
         return all_faces
 
     def detect_face(self, frame_bgr: np.ndarray) -> Optional[Tuple[int, int, int, int]]:
