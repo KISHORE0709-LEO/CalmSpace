@@ -16,7 +16,6 @@ import {
   AlertTriangle,
   AlertCircle,
   Activity,
-  Users,
   History,
   Clock,
   X,
@@ -439,22 +438,16 @@ const Feelings = () => {
               <div className="absolute bottom-6 left-6 w-8 h-8 border-b-4 border-l-4 border-foreground/30 z-20" />
               <div className="absolute bottom-6 right-6 w-8 h-8 border-b-4 border-r-4 border-foreground/30 z-20" />
               
-              {/* Mesh Lock and Multi-Face Detection Badge */}
-              <div className="absolute top-6 left-1/2 -translate-x-1/2 flex items-center gap-2 z-30">
-                <div className="bg-foreground text-background text-[10px] font-black px-3 py-1 rounded-sm uppercase tracking-widest shadow-pop-sm flex items-center gap-2">
-                  <span className={`w-2 h-2 rounded-full ${
-                    !cameraOn ? 'bg-muted-foreground' : faceDetected && isLive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400 animate-pulse'
-                  }`} />
-                  Facial_Mesh_Lock: {!cameraOn ? 'OFF' : faceDetected && isLive ? (faceCount > 1 ? `LOCKED (${faceCount} FACES)` : 'LOCKED') : 'SEARCHING'}
+              {/* Simple status chip — top center */}
+              <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30">
+                <div className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest flex items-center gap-1.5 ${
+                  faceDetected && isLive
+                    ? 'bg-black/60 text-emerald-400'
+                    : 'bg-black/60 text-amber-400'
+                }`}>
+                  <span className={`w-1.5 h-1.5 rounded-full ${faceDetected && isLive ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400 animate-pulse'}`} />
+                  {faceDetected && isLive ? 'Face Locked' : 'Scanning...'}
                 </div>
-
-                {/* Multiple Faces Detected Alert Badge */}
-                {faceCount > 1 && isLive && (
-                  <div className="bg-purple-600 text-white text-[10px] font-black px-2.5 py-1 rounded-sm uppercase tracking-wider shadow-pop-sm flex items-center gap-1.5 animate-bounce-slow">
-                    <Users className="w-3 h-3" />
-                    <span>Multiple Faces In View ({faceCount})</span>
-                  </div>
-                )}
               </div>
 
               {/* Camera Permission / Device Error Banner */}
@@ -489,70 +482,71 @@ const Feelings = () => {
                 )}
               </div>
 
-              {/* Dynamic Tracking Overlay (scans faces dynamically, handles multiple faces) */}
+              {/* Dynamic Tracking Overlay — single clean colored bounding box */}
               {cameraOn && !cameraError && (
-                <div className="relative z-10 w-full h-full flex items-center justify-center pointer-events-none">
+                <div className="absolute inset-0 z-10 pointer-events-none">
                   {faceDetected && isLive ? (
-                    <div className="relative w-full h-full flex items-center justify-center pointer-events-none">
-                      {/* 1. Primary Face Scan Lock (User) */}
-                      <div className="w-56 h-64 border-2 border-emerald-400/90 rounded-2xl relative shadow-[0_0_25px_rgba(52,211,153,0.35)] animate-pulse-soft flex flex-col justify-between p-3 pointer-events-none">
-                        <div className="flex justify-between items-start">
-                          <span className="bg-emerald-400 text-black text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider shadow-sm flex items-center gap-1.5">
-                            <span className="w-1.5 h-1.5 rounded-full bg-black animate-ping" />
-                            {faceCount > 1 ? "PRIMARY USER" : "FACE DETECTED"}
-                          </span>
-                          <span className="bg-background/90 text-primary border border-primary/40 text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider backdrop-blur-sm">
-                            {Math.round(detectionConfidence * 100)}% CONF
-                          </span>
-                        </div>
+                    <>
+                      {/* Single emotion-colored rectangle — centered, clean */}
+                      {(() => {
+                        const boxColor =
+                          emotion === "Calm"           ? { border: "#22c55e", shadow: "rgba(34,197,94,0.5)",  label: "#22c55e", bg: "rgba(34,197,94,0.08)"  } :
+                          emotion === "Mildly_Stressed"? { border: "#eab308", shadow: "rgba(234,179,8,0.5)",  label: "#eab308", bg: "rgba(234,179,8,0.08)"  } :
+                          emotion === "Anxious"        ? { border: "#f97316", shadow: "rgba(249,115,22,0.5)", label: "#f97316", bg: "rgba(249,115,22,0.08)" } :
+                          emotion === "Overloaded"     ? { border: "#ef4444", shadow: "rgba(239,68,68,0.5)",  label: "#ef4444", bg: "rgba(239,68,68,0.08)"  } :
+                                                         { border: "#94a3b8", shadow: "rgba(148,163,184,0.3)",label: "#94a3b8", bg: "rgba(148,163,184,0.05)"};
+                        const emotionLabel =
+                          emotion === "Calm"            ? "CALM"
+                          : emotion === "Mildly_Stressed"? "MILD STRESS"
+                          : emotion === "Anxious"        ? "ANXIOUS"
+                          : emotion === "Overloaded"     ? "OVERLOADED"
+                          : "DETECTING";
+                        return (
+                          <div
+                            className="absolute inset-x-[18%] inset-y-[8%] rounded-2xl transition-all duration-500"
+                            style={{
+                              border: `2.5px solid ${boxColor.border}`,
+                              boxShadow: `0 0 24px ${boxColor.shadow}`,
+                              background: boxColor.bg,
+                            }}
+                          >
+                            {/* Top label — emotion name + confidence */}
+                            <div
+                              className="absolute -top-5 left-1/2 -translate-x-1/2 px-3 py-0.5 rounded-full text-[11px] font-black uppercase tracking-widest whitespace-nowrap"
+                              style={{ background: boxColor.border, color: "#000" }}
+                            >
+                              {emotionEmojis[emotion]} {emotionLabel} · {Math.round((calmspaceMappedProbabilities[emotion] || 0) * 100)}%
+                            </div>
 
-                        {/* Scanning crosshairs */}
-                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                          <div className="w-16 h-16 border border-emerald-400/30 rounded-full" />
-                          <div className="absolute w-2 h-2 bg-emerald-400 rounded-full animate-ping" />
-                          <div className="absolute top-1/4 left-1/4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" />
-                          <div className="absolute top-1/4 right-1/4 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping" style={{ animationDelay: '0.2s' }} />
-                        </div>
+                            {/* Corner brackets */}
+                            {[
+                              "top-0 left-0 border-t-2 border-l-2 rounded-tl-2xl",
+                              "top-0 right-0 border-t-2 border-r-2 rounded-tr-2xl",
+                              "bottom-0 left-0 border-b-2 border-l-2 rounded-bl-2xl",
+                              "bottom-0 right-0 border-b-2 border-r-2 rounded-br-2xl",
+                            ].map((cls, i) => (
+                              <div
+                                key={i}
+                                className={`absolute w-5 h-5 ${cls}`}
+                                style={{ borderColor: boxColor.border }}
+                              />
+                            ))}
 
-                        {/* Real-time Dynamic Emotion Banner directly on the primary scanning frame */}
-                        <div className="bg-foreground text-background text-xs font-black px-3 py-1.5 rounded-lg uppercase tracking-wider flex items-center justify-between shadow-pop-sm z-20">
-                          <span className="flex items-center gap-1.5">
-                            <span className="text-base leading-none">{emotionEmojis[emotion] || "😌"}</span>
-                            <span>{emotion.replace("_", " ")}</span>
-                          </span>
-                          <span className="text-[10px] text-primary font-bold">
-                            {Math.round((calmspaceMappedProbabilities[emotion] || 0) * 100)}%
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* 2. Secondary Face Companion Box when multiple faces are detected */}
-                      {faceCount > 1 && (
-                        <div className="absolute right-8 top-16 w-36 h-44 border-2 border-purple-400/90 bg-purple-950/20 backdrop-blur-[1px] rounded-xl relative shadow-[0_0_20px_rgba(192,132,252,0.4)] animate-pulse flex flex-col justify-between p-2 pointer-events-none">
-                          <div className="flex items-center justify-between">
-                            <span className="bg-purple-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded uppercase tracking-wider flex items-center gap-1">
-                              <Users className="w-2.5 h-2.5" />
-                              COMPANION
-                            </span>
-                            <span className="text-[9px] font-bold text-purple-200">
-                              FACE #2
-                            </span>
-                          </div>
-                          <div className="text-center py-2">
-                            <div className="text-[10px] font-black text-purple-200 uppercase tracking-wider bg-black/60 px-1 py-0.5 rounded">
-                              Caregiver / Peer
+                            {/* Confidence badge bottom-right */}
+                            <div
+                              className="absolute bottom-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-lg"
+                              style={{ background: "rgba(0,0,0,0.6)", color: boxColor.border }}
+                            >
+                              {Math.round(detectionConfidence * 100)}% CONF
                             </div>
                           </div>
-                          <div className="text-[8px] font-bold text-purple-300 text-center uppercase tracking-tight">
-                            Logged in History
-                          </div>
-                        </div>
-                      )}
-                    </div>
+                        );
+                      })()}
+                    </>
                   ) : (
-                    /* Dynamic Scanning state awaiting face lock */
-                    <div className="flex flex-col items-center justify-center relative">
-                      <div className="w-52 h-60 border-2 border-dashed border-amber-400/40 rounded-2xl flex flex-col items-center justify-center relative bg-accent/10">
+                    /* No face — scanning state */
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <div className="w-52 h-60 border-2 border-dashed border-amber-400/40 rounded-2xl flex flex-col items-center justify-center bg-accent/10">
                         <User className="w-28 h-28 text-foreground/20" strokeWidth={1} />
                         <span className="text-[10px] font-black text-amber-400 uppercase tracking-widest mt-2 px-2.5 py-0.5 bg-amber-400/15 rounded border border-amber-400/30 animate-pulse">
                           Scanning for Face...

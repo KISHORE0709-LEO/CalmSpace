@@ -422,11 +422,11 @@ class FacialEmotionEngine:
                 # 4 Classes: 0: Calm, 1: Happy, 2: Distressed, 3: Overwhelmed
                 cur_probs = F.softmax(logits, dim=0).cpu().numpy()
                 
-                # Temporal smoothing
+                # Temporal smoothing — 0.80 history weight keeps state stable on live camera
                 if self._smoothed_raw_probs is None:
                     self._smoothed_raw_probs = cur_probs
                 else:
-                    self._smoothed_raw_probs = 0.65 * cur_probs + 0.35 * self._smoothed_raw_probs
+                    self._smoothed_raw_probs = 0.20 * cur_probs + 0.80 * self._smoothed_raw_probs
                     
             classes_4 = ["Calm", "Happy", "Distressed", "Overwhelmed"]
             for idx, emotion in enumerate(classes_4):
