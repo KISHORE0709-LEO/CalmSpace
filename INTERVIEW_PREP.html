@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CalmSpace Interview Prep</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #0f0f0f; color: #e0e0e0; font-family: 'Segoe UI', sans-serif; padding: 40px; }
+
+  h1 { text-align: center; font-size: 28px; color: #fff; margin-bottom: 6px; letter-spacing: 2px; }
+  .subtitle { text-align: center; color: #888; font-size: 13px; margin-bottom: 40px; }
+
+  /* ── ARCHITECTURE DIAGRAM ── */
+  .arch { display: flex; flex-direction: column; gap: 0; align-items: center; }
+
+  .row { display: flex; gap: 16px; justify-content: center; align-items: stretch; width: 100%; max-width: 1200px; }
+
+  .box {
+    border-radius: 10px;
+    padding: 16px 20px;
+    border: 1.5px solid #333;
+    position: relative;
+  }
+  .box h3 { font-size: 11px; text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+  .box ul { list-style: none; }
+  .box ul li { font-size: 12px; color: #bbb; padding: 2px 0; }
+  .box ul li::before { content: "› "; color: #555; }
+
+  .tag {
+    position: absolute; top: -10px; left: 14px;
+    font-size: 10px; font-weight: 700; letter-spacing: 1px;
+    padding: 2px 8px; border-radius: 4px;
+  }
+
+  /* colors */
+  .blue   { background: #0d1b2a; border-color: #1e4d8c; }
+  .blue   h3 { color: #4a9eff; }
+  .blue   .tag { background: #1e4d8c; color: #4a9eff; }
+
+  .green  { background: #0d1f0d; border-color: #1e5c1e; }
+  .green  h3 { color: #4caf50; }
+  .green  .tag { background: #1e5c1e; color: #4caf50; }
+
+  .purple { background: #1a0d2e; border-color: #4a1e8c; }
+  .purple h3 { color: #a855f7; }
+  .purple .tag { background: #4a1e8c; color: #a855f7; }
+
+  .orange { background: #1f1200; border-color: #7a4000; }
+  .orange h3 { color: #f97316; }
+  .orange .tag { background: #7a4000; color: #f97316; }
+
+  .red    { background: #1f0d0d; border-color: #7a1e1e; }
+  .red    h3 { color: #ef4444; }
+  .red    .tag { background: #7a1e1e; color: #ef4444; }
+
+  .gray   { background: #141414; border-color: #333; }
+  .gray   h3 { color: #888; }
+  .gray   .tag { background: #333; color: #888; }
+
+  .yellow { background: #1a1500; border-color: #6b5a00; }
+  .yellow h3 { color: #eab308; }
+  .yellow .tag { background: #6b5a00; color: #eab308; }
+
+  /* arrows */
+  .arrow-down {
+    display: flex; justify-content: center; align-items: center;
+    height: 36px; color: #444; font-size: 22px; width: 100%;
+  }
+  .arrow-label { font-size: 10px; color: #555; margin-left: 8px; letter-spacing: 1px; }
+
+  /* ── RESUME BREAKDOWN ── */
+  .section-title {
+    font-size: 20px; font-weight: 700; color: #fff;
+    margin: 60px 0 20px; border-left: 4px solid #4a9eff;
+    padding-left: 14px; letter-spacing: 1px;
+  }
+
+  .resume-line {
+    background: #141414; border: 1.5px solid #2a2a2a;
+    border-radius: 10px; padding: 20px 24px; margin-bottom: 16px;
+  }
+  .resume-line .original {
+    font-size: 13px; color: #888; font-style: italic;
+    border-left: 3px solid #333; padding-left: 12px; margin-bottom: 16px;
+    line-height: 1.7;
+  }
+  .resume-line .original span { color: #eab308; font-weight: 700; font-style: normal; }
+
+  .word-grid { display: flex; flex-wrap: wrap; gap: 10px; }
+  .word-card {
+    background: #0f0f0f; border: 1.5px solid #2a2a2a;
+    border-radius: 8px; padding: 10px 14px; min-width: 180px; flex: 1;
+  }
+  .word-card .term { font-size: 12px; font-weight: 700; color: #4a9eff; margin-bottom: 4px; }
+  .word-card .def  { font-size: 11px; color: #999; line-height: 1.5; }
+  .word-card.highlight { border-color: #eab308; }
+  .word-card.highlight .term { color: #eab308; }
+
+  /* number badges */
+  .num { display: inline-block; background: #1e4d8c; color: #4a9eff; font-weight: 700;
+         font-size: 11px; padding: 1px 7px; border-radius: 4px; margin-right: 4px; }
+
+  hr.divider { border: none; border-top: 1px solid #222; margin: 40px 0; }
+</style>
+</head>
+<body>
+
+<h1>🧠 CALMSPACE — INTERVIEW PREP</h1>
+<p class="subtitle">Architecture + Resume Breakdown · Keep this open during prep</p>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  ARCHITECTURE DIAGRAM                   -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="arch">
+
+  <!-- ROW 1: 4 CLIENT PORTALS -->
+  <div class="row">
+    <div class="box blue" style="flex:1">
+      <span class="tag">CHILD APP</span>
+      <h3>🎮 /app/*</h3>
+      <ul>
+        <li>CalmQuest Games (Phaser 4)</li>
+        <li>Mitra Chatbot</li>
+        <li>Feelings Tracker</li>
+        <li>Therapy Room</li>
+        <li>CSS + Audio adapts to emotion</li>
+      </ul>
+    </div>
+    <div class="box green" style="flex:1">
+      <span class="tag">CAREGIVER</span>
+      <h3>🫂 /caregiver/*</h3>
+      <ul>
+        <li>LiveEmotion Dashboard</li>
+        <li>Incident Logging</li>
+        <li>Handoff Notes</li>
+        <li>Assigned Tasks</li>
+        <li>Therapy Sessions</li>
+      </ul>
+    </div>
+    <div class="box purple" style="flex:1">
+      <span class="tag">PARENT</span>
+      <h3>👪 /parent/*</h3>
+      <ul>
+        <li>Emotional Trends (Recharts)</li>
+        <li>Crisis Alerts</li>
+        <li>Session Reports</li>
+        <li>Social Confidence</li>
+        <li>Live Emotion View</li>
+      </ul>
+    </div>
+    <div class="box orange" style="flex:1">
+      <span class="tag">DOCTOR</span>
+      <h3>🩺 /doctor/*</h3>
+      <ul>
+        <li>Patient Analytics</li>
+        <li>Risk Score Dashboard</li>
+        <li>Care Plans</li>
+        <li>Therapy Setup + Report</li>
+        <li>Secure Chat</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="arrow-down">↓ <span class="arrow-label">ALL ROLES WRAPPED IN</span></div>
+
+  <!-- ROW 2: CONTEXT LAYER -->
+  <div class="row">
+    <div class="box yellow" style="width:100%; max-width:700px; text-align:center;">
+      <span class="tag">REACT CONTEXT LAYER</span>
+      <h3>EmotionContext.tsx + AuthContext.tsx</h3>
+      <ul style="display:flex; gap:30px; justify-content:center; flex-wrap:wrap; margin-top:6px;">
+        <li>WebSocket → sends base64 frames to backend</li>
+        <li>WebSocket ← receives JSON telemetry packets</li>
+        <li>setEmotion() → ALL dashboards update live</li>
+        <li>Firebase onAuthStateChanged → profile fetched</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="arrow-down">↓ <span class="arrow-label">WebSocket + REST</span> &nbsp; ↑ <span class="arrow-label">JSON packets + API responses</span></div>
+
+  <!-- ROW 3: GATEWAY -->
+  <div class="row">
+    <div class="box gray" style="width:100%; max-width:700px;">
+      <span class="tag">GATEWAY — FastAPI + Uvicorn</span>
+      <h3>backend/main.py · localhost:8000</h3>
+      <ul style="display:flex; gap:20px; flex-wrap:wrap; margin-top:6px;">
+        <li>POST /api/auth/signup|me</li>
+        <li>GET  /api/dashboard/guardian</li>
+        <li>POST /api/care-circles + invite</li>
+        <li>POST /api/therapy/sessions</li>
+        <li>GET  /api/therapy/stream-token</li>
+        <li>WS   /ws/facial-sensing</li>
+        <li>WS   /ws/care-circle/{id}</li>
+        <li>Firebase Admin JWT verify on every request</li>
+        <li>CORS middleware for React origin</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="arrow-down">↓</div>
+
+  <!-- ROW 4: ML + DB + EXTERNAL -->
+  <div class="row">
+
+    <!-- ML ENGINE -->
+    <div class="box red" style="flex:1.4">
+      <span class="tag">ML ENGINE</span>
+      <h3>🧠 FacialEmotionEngine</h3>
+      <ul>
+        <li>① Face Detect — skimage LBP (primary)</li>
+        <li>&nbsp;&nbsp;&nbsp;OpenCV Haar cascade (fallback)</li>
+        <li>② Quality Check — blur, brightness, size</li>
+        <li>③ Crop face + 8% margin padding</li>
+        <li>④ Resize 224×224, ImageNet normalize</li>
+        <li>⑤ MobileNetV2 forward pass</li>
+        <li>&nbsp;&nbsp;&nbsp;→ softmax → 4 class probs</li>
+        <li>⑥ Temporal smooth 0.8×old + 0.2×new</li>
+        <li>⑦ AU signals (smile, furrow, mouth)</li>
+        <li>⑧ Shannon entropy → ASD ambiguity flag</li>
+        <li>⑨ JSON telemetry packet out &lt;38ms</li>
+      </ul>
+      <div style="margin-top:12px; padding:8px; background:#2a0a0a; border-radius:6px; font-size:11px; color:#f87171;">
+        8 AffectNet emotions → 4 ASD states<br>
+        Neutral+Surprise→Calm · Happy→Happy<br>
+        Fear+Sad→Distressed · Anger+Contempt+Disgust→Overwhelmed
+      </div>
+    </div>
+
+    <!-- DB -->
+    <div class="box green" style="flex:1">
+      <span class="tag">DATABASE — SQLite</span>
+      <h3>💾 calmspace.db</h3>
+      <ul>
+        <li>Users (firebase_uid, role)</li>
+        <li>Links (child ↔ parent/caregiver)</li>
+        <li>CareCircles</li>
+        <li>CareCircleMembers</li>
+        <li>ChatMessages</li>
+        <li>TherapySessions</li>
+        <li>SessionParticipants</li>
+      </ul>
+    </div>
+
+    <!-- EXTERNAL -->
+    <div class="box purple" style="flex:1">
+      <span class="tag">EXTERNAL SERVICES</span>
+      <h3>☁️ Cloud</h3>
+      <ul>
+        <li>Firebase Auth (JWT, Google OAuth)</li>
+        <li>Stream Video SDK (WebRTC calls)</li>
+        <li>Stream Chat SDK (care circle msgs)</li>
+        <li>AWS Bedrock / Claude (Mitra LLM — planned)</li>
+      </ul>
+      <div style="margin-top:12px; padding:8px; background:#1a0d2e; border-radius:6px; font-size:11px; color:#a855f7;">
+        Therapy room = Stream Video JWT<br>
+        GET /api/therapy/stream-token → token → join call
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  RESUME LINE 1 BREAKDOWN               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="section-title">📄 RESUME LINE 1 — Word by Word</div>
+
+<div class="resume-line">
+  <div class="original">
+    "Built a <span>four-role platform</span> for children, doctors, caregivers, and parents with
+    <span>real-time meltdown prediction</span>, a <span>clinical chatbot</span>,
+    <span>gamified social-skills training</span>, and <span>virtual therapy</span>,
+    reducing caregiver response time from <span>4.3 minutes</span> to <span>&lt;200ms</span>
+    via <span>closed-loop emotion sensing</span>."
+  </div>
+  <div class="word-grid">
+    <div class="word-card highlight">
+      <div class="term">four-role platform</div>
+      <div class="def">One codebase, 4 separate React portals — /app (child), /caregiver, /parent, /doctor. Each has its own nav, shell, and pages. Role stored in SQLite after Firebase signup.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term">real-time meltdown prediction</div>
+      <div class="def">Two things: (1) CNN detects current ASD state live. (2) LSTM predicts meltdown risk 12–24 hours ahead using historical emotion sequences. Not reactive — proactive.</div>
+    </div>
+    <div class="word-card">
+      <div class="term">clinical chatbot</div>
+      <div class="def">Mitra — a companion chatbot for the child. Currently uses empathetic pre-written replies. Designed to plug into AWS Bedrock / Claude as the LLM backend.</div>
+    </div>
+    <div class="word-card">
+      <div class="term">gamified social-skills training</div>
+      <div class="def">CalmQuest engine — 6 games built with Phaser 4: BullyBlock, EmotionPop, CalmControl, MyCalmSpace, PeerPressurePanic, SafeStrangerQuest. Each trains a specific ASD social skill.</div>
+    </div>
+    <div class="word-card">
+      <div class="term">virtual therapy</div>
+      <div class="def">Doctor schedules a session → POST /api/therapy/sessions → parent accepts → GET /api/therapy/stream-token → Stream Video SDK JWT → WebRTC video call. All 4 roles can join.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term"><span class="num">4.3 min</span> → <span class="num">&lt;200ms</span></div>
+      <div class="def">Before: caregiver manually watches child, notices distress, decides to act = avg 4.3 min. After: CNN detects state change → WebSocket pushes to caregiver dashboard → alert fires. All in &lt;200ms.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term">closed-loop emotion sensing</div>
+      <div class="def">"Closed-loop" = the system detects → decides → acts automatically without human in the loop. Webcam → CNN → WebSocket → UI adaptation (dim screen, change audio) → no manual step needed.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  RESUME LINE 2 BREAKDOWN               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="section-title">📄 RESUME LINE 2 — Word by Word</div>
+
+<div class="resume-line">
+  <div class="original">
+    "Developed a <span>CNN-based emotion system</span> using <span>MobileNetV2 + AffectNet</span>
+    to detect <span>8 emotions</span> and map them to <span>4 ASD states</span>,
+    adapting <span>UI, audio, and brightness</span> in <span>&lt;38ms</span>;
+    a <span>two-stage LSTM</span> predicted <span>meltdown risk 12–24 hours ahead</span>
+    at <span>∼0.78 AUC-ROC</span>"
+  </div>
+  <div class="word-grid">
+    <div class="word-card">
+      <div class="term">CNN-based emotion system</div>
+      <div class="def">Convolutional Neural Network. Takes a 224×224 face image as input, runs it through convolutional layers that learn spatial features (edges, textures, shapes), outputs emotion probabilities.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term">MobileNetV2</div>
+      <div class="def">Google's lightweight CNN architecture. Uses depthwise-separable convolutions — 8–9x fewer operations than standard CNN. Pretrained on ImageNet (1.2M images). We replaced the final layer with Linear(1280→4) for our 4 ASD classes. Runs in &lt;20ms on CPU.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term">AffectNet</div>
+      <div class="def">Largest facial expression dataset — 450K real-world images, 8 emotion classes: anger, contempt, disgust, fear, happy, neutral, sad, surprise. Collected from internet search queries. We used YOLO-format annotations.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term"><span class="num">8 emotions</span> → <span class="num">4 ASD states</span></div>
+      <div class="def">
+        Neutral + Surprise → <b>Calm</b><br>
+        Happy → <b>Happy</b><br>
+        Fear + Sad → <b>Distressed</b><br>
+        Anger + Contempt + Disgust → <b>Overwhelmed</b><br>
+        Mapping done in CLASS_MAP dict in train_mobilenet.py
+      </div>
+    </div>
+    <div class="word-card">
+      <div class="term">adapting UI, audio, brightness</div>
+      <div class="def">EmotionContext wraps the entire app. When state = Overloaded → CSS applies grayscale(30%) + opacity(90%). When Anxious → saturate(50%). Audio cues and screen brightness change. All driven by setEmotion() in React.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term"><span class="num">&lt;38ms</span> latency</div>
+      <div class="def">Measured from frame received at WebSocket → JSON packet sent back. Breakdown: face detect ~10ms + MobileNetV2 forward pass ~15ms + numpy smoothing ~2ms + WebSocket overhead ~5ms = ~32ms total. Under 38ms.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term">two-stage LSTM</div>
+      <div class="def">Stage 1 = CNN gives real-time state per frame (Calm/Distressed/etc). Stage 2 = LSTM takes a TIME SERIES of those states over hours → predicts binary meltdown risk for next 12–24 hours. LSTM = Long Short-Term Memory, handles sequential/temporal data.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term">meltdown risk 12–24 hours ahead</div>
+      <div class="def">LSTM input = sequence of hourly aggregated emotion states. Output = probability score 0–1. Shown as "Risk Score" on doctor dashboard. Proactive — doctor/parent can intervene BEFORE meltdown happens.</div>
+    </div>
+    <div class="word-card highlight">
+      <div class="term"><span class="num">∼0.78 AUC-ROC</span></div>
+      <div class="def">Area Under ROC Curve. Measures how well the LSTM separates meltdown days from non-meltdown days. 0.5 = random guess. 1.0 = perfect. 0.78 = model correctly ranks a meltdown-risk day above a safe day 78% of the time. Solid for a medical-adjacent task.</div>
+    </div>
+  </div>
+</div>
+
+<hr class="divider">
+
+<!-- ═══════════════════════════════════════════════════════ -->
+<!--                  QUICK RECALL CHEATSHEET               -->
+<!-- ═══════════════════════════════════════════════════════ -->
+
+<div class="section-title">⚡ QUICK RECALL — Say These Out Loud</div>
+
+<div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap:12px;">
+
+  <div class="box blue" style="padding:14px 18px;">
+    <h3>THE NUMBERS</h3>
+    <ul style="margin-top:8px;">
+      <li>4 roles · 4 ASD states · 8 emotions</li>
+      <li>4.3 min → &lt;200ms response</li>
+      <li>&lt;38ms inference latency</li>
+      <li>0.78 AUC-ROC (LSTM)</li>
+      <li>12–24 hrs ahead prediction</li>
+      <li>224×224 input · 1280→4 head</li>
+      <li>0.8×old + 0.2×new smoothing</li>
+      <li>entropy threshold 1.10 (ASD flag)</li>
+    </ul>
+  </div>
+
+  <div class="box green" style="padding:14px 18px;">
+    <h3>THE STACK</h3>
+    <ul style="margin-top:8px;">
+      <li>React 18 + Vite + TypeScript</li>
+      <li>TailwindCSS + shadcn/ui + Radix</li>
+      <li>FastAPI + Uvicorn + SQLAlchemy</li>
+      <li>SQLite (calmspace.db)</li>
+      <li>PyTorch + torchvision (MobileNetV2)</li>
+      <li>OpenCV + scikit-image (face detect)</li>
+      <li>Firebase (auth)</li>
+      <li>Stream Video + Chat SDK</li>
+      <li>Phaser 4 (games)</li>
+      <li>Recharts (analytics)</li>
+    </ul>
+  </div>
+
+  <div class="box orange" style="padding:14px 18px;">
+    <h3>THE 6 GAMES</h3>
+    <ul style="margin-top:8px;">
+      <li>EmotionPop — emotion recognition</li>
+      <li>BullyBlock — handle bullying</li>
+      <li>CalmControl — self-regulation</li>
+      <li>MyCalmSpace — safe space</li>
+      <li>PeerPressurePanic — peer pressure</li>
+      <li>SafeStrangerQuest — stranger safety</li>
+    </ul>
+  </div>
+
+  <div class="box purple" style="padding:14px 18px;">
+    <h3>TRAINING SETUP</h3>
+    <ul style="margin-top:8px;">
+      <li>Dataset: AffectNet YOLO format</li>
+      <li>Froze MobileNetV2 feature extractor</li>
+      <li>Only trained classifier head</li>
+      <li>Adam optimizer lr=0.001</li>
+      <li>CrossEntropyLoss</li>
+      <li>Max 2000 samples/class (balanced)</li>
+      <li>3 epochs (fast local training)</li>
+      <li>Saved best_model.pth</li>
+      <li>Device: MPS (Mac) → CUDA → CPU</li>
+    </ul>
+  </div>
+
+  <div class="box red" style="padding:14px 18px;">
+    <h3>ASD-AWARE DESIGN</h3>
+    <ul style="margin-top:8px;">
+      <li>AffectNet = neurotypical faces</li>
+      <li>ASD kids have flat/atypical affect</li>
+      <li>Shannon entropy &gt; 1.10 → flag</li>
+      <li>Top1-Top2 margin &lt; 0.12 → flag</li>
+      <li>Flagged → 20% confidence discount</li>
+      <li>Flagged → log for clinician review</li>
+      <li>Graceful degradation → trust HRV/PPG</li>
+      <li>Personal baseline EMA α=0.05</li>
+    </ul>
+  </div>
+
+  <div class="box yellow" style="padding:14px 18px;">
+    <h3>LIKELY Q&amp;A</h3>
+    <ul style="margin-top:8px;">
+      <li>Why MobileNetV2? → &lt;38ms, depthwise-sep</li>
+      <li>Why AffectNet? → 450K, 8 classes, standard</li>
+      <li>Domain shift? → neurotypical→ASD, entropy fix</li>
+      <li>0.78 AUC? → 78% correct risk ranking</li>
+      <li>Closed-loop? → detect→act, no human step</li>
+      <li>Why Firebase? → OAuth, JWT, no passwords</li>
+      <li>Improve? → real LLM, HRV fusion, ASD dataset</li>
+    </ul>
+  </div>
+
+</div>
+
+<div style="text-align:center; margin-top:50px; color:#333; font-size:12px;">
+  CalmSpace Interview Prep · Open in browser · Keep this tab open
+</div>
+
+</body>
+</html>

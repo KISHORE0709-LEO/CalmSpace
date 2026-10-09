@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Boolean
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -72,3 +72,46 @@ class ChatMessage(Base):
     circle = relationship("CareCircle", back_populates="messages")
     sender = relationship("User", foreign_keys=[sender_user_id])
 
+
+class TherapySession(Base):
+    __tablename__ = "therapy_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_uid = Column(String, unique=True, index=True)  # e.g. "abc-defg-hij" - the Stream call/room ID
+    title = Column(String, nullable=True)
+    session_type = Column(String, default="follow-up")  # initial | follow-up | speech | behavioral | social | parent
+    status = Column(String, default="scheduled")  # scheduled | pending_acceptance | accepted | declined | live | completed | cancelled
+    scheduled_time = Column(DateTime, nullable=True)
+    duration_minutes = Column(Integer, default=45)
+    goals = Column(Text, nullable=True)
+    notes = Column(Text, nullable=True)
+    recording_url = Column(String, nullable=True)
+
+    # Doctor who created the session
+    doctor_user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    # Child the session is for
+    child_user_id = Column(Integer, ForeignKey("users.id"), index=True)
+
+    started_at = Column(DateTime, nullable=True)
+    ended_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    doctor = relationship("User", foreign_keys=[doctor_user_id])
+    child = relationship("User", foreign_keys=[child_user_id])
+    participants = relationship("TherapySessionParticipant", back_populates="session", cascade="all, delete-orphan")
+
+
+class TherapySessionParticipant(Base):
+    __tablename__ = "therapy_session_participants"
+
+    id = Column(Integer, primary_key=True, index=True)
+    session_id = Column(Integer, ForeignKey("therapy_sessions.id"), index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True)
+    role = Column(String)  # doctor | parent | caregiver | child
+    invite_status = Column(String, default="pending")  # pending | accepted | declined
+    joined_at = Column(DateTime, nullable=True)
+    left_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    session = relationship("TherapySession", back_populates="participants")
+    user = relationship("User", foreign_keys=[user_id])

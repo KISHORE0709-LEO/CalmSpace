@@ -21,3 +21,4 @@ coverage.xml
 .hg/
 *.sqlite3
 *.db
+.env
