@@ -17,8 +17,12 @@ from PIL import Image
 import numpy as np
 
 import cv2
-import torch
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn.functional as F
+except ImportError:
+    torch = None
+    F = None
 
 from .config import (
     AFFECTNET_CLASSES,
@@ -50,7 +54,7 @@ class FacialEmotionEngine:
         face_cascade_path: Optional[str] = None,
         max_review_log_size: int = 100
     ):
-        self.device = device or ("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = device or ("cpu" if torch is None else ("cuda" if torch.cuda.is_available() else "cpu"))
         self.quality_assessor = FaceQualityAssessor()
         self.callbacks: List[Callable[[Dict[str, Any]], None]] = []
         self.frame_counter = 0

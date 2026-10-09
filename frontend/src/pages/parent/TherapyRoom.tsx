@@ -12,8 +12,8 @@ import { Loader2 } from "lucide-react";
 
 const MOCK_SESSION: TherapySession = {
   id: 1,
-  session_uid: "abc-defg-hij",
-  title: "Follow-up Therapy Session",
+  session_uid: "calm-therapy-demo",
+  title: "Therapy Session",
   session_type: "follow-up",
   status: "live",
   duration_minutes: 45,
@@ -26,6 +26,7 @@ const MOCK_SESSION: TherapySession = {
     { id: 1, user_id: 1, role: "doctor", invite_status: "accepted", user_name: "Dr. Arya Sharma" },
     { id: 2, user_id: 2, role: "child", invite_status: "accepted", user_name: "Rahul Kumar" },
     { id: 3, user_id: 3, role: "parent", invite_status: "accepted", user_name: "Parent User" },
+    { id: 4, user_id: 4, role: "caregiver", invite_status: "accepted", user_name: "Caregiver" },
   ],
 };
 
@@ -34,18 +35,22 @@ export default function ParentTherapyRoom() {
   const location = useLocation();
   const { user, profile } = useAuth();
   const [streamToken, setStreamToken] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [tokenLoading, setTokenLoading] = useState(true);
 
   const session: TherapySession = location.state?.session || MOCK_SESSION;
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setTokenLoading(false);
+      return;
+    }
     fetchStreamToken(user.uid)
       .then((data) => setStreamToken(data.token))
-      .finally(() => setLoading(false));
+      .catch(() => {})
+      .finally(() => setTokenLoading(false));
   }, [user]);
 
-  if (loading) {
+  if (tokenLoading) {
     return (
       <div className="h-screen flex items-center justify-center bg-slate-900">
         <div className="text-center">
@@ -56,11 +61,14 @@ export default function ParentTherapyRoom() {
     );
   }
 
+  const userId = profile ? String(profile.id) : (user?.uid || "parent_demo");
+  const userName = profile?.name || user?.displayName || "Parent";
+
   return (
     <CalmMeetProvider
       session={session}
-      userId={profile ? String(profile.id) : "parent_1"}
-      userName={profile?.name || "Parent"}
+      userId={userId}
+      userName={userName}
       userRole="parent"
       userToken={streamToken}
     >

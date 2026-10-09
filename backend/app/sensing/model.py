@@ -11,8 +11,16 @@ import logging
 from typing import Dict, Tuple, Any
 import numpy as np
 
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+except ImportError:
+    torch = None
+    class DummyModule:
+        pass
+    class DummyNN:
+        Module = DummyModule
+    nn = DummyNN()
 
 from .config import (
     AFFECTNET_CLASSES,

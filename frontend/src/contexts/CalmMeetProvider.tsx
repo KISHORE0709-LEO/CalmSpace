@@ -1,7 +1,9 @@
 /**
  * CalmSpace Meet Provider
- * Wraps Stream Video + Chat SDK for real therapy video sessions.
- * Uses Firebase auth (no Clerk). Adapted from google-meet-clone/src/contexts/MeetProvider.tsx
+ * Wraps Stream Video SDK for real therapy video sessions.
+ * - When a valid token is provided (backend online): uses authenticated user
+ * - When no token (dev/demo mode): uses Stream guest user (no token needed)
+ *   This mirrors how the google-meet-clone works for unauthenticated access.
  */
 import React, { createContext, useContext, useEffect, useRef, useState } from "react";
 import {
@@ -42,6 +44,14 @@ interface CalmMeetProviderProps {
   children: React.ReactNode;
 }
 
+/**
+ * Build a safe Stream user ID: Stream IDs must match [a-zA-Z0-9@_-]{1,255}
+ * and cannot contain spaces or dots.
+ */
+function toStreamUserId(id: string): string {
+  return id.replace(/[^a-zA-Z0-9@_-]/g, "_").slice(0, 100) || "guest_user";
+}
+
 const CalmMeetProvider: React.FC<CalmMeetProviderProps> = ({
   session,
   userId,
@@ -56,8 +66,8 @@ const CalmMeetProvider: React.FC<CalmMeetProviderProps> = ({
   const cleanupRef = useRef<(() => void) | null>(null);
 
   useEffect(() => {
-    if (!STREAM_API_KEY || !userToken || !userId) {
-      setError(!STREAM_API_KEY ? "Stream API key not configured" : "Waiting for auth token…");
+    if (!STREAM_API_KEY) {
+      setError("Stream API key not configured — add VITE_STREAM_API_KEY to frontend/.env");
       setLoading(false);
       return;
     }
@@ -66,21 +76,40 @@ const CalmMeetProvider: React.FC<CalmMeetProviderProps> = ({
     let _call: Call | null = null;
     let cancelled = false;
 
+    const safeUserId = toStreamUserId(userId);
+
     const init = async () => {
       try {
-        const user: StreamUser = {
-          id: userId,
-          name: userName,
-        };
+        let user: StreamUser;
 
-        _client = new StreamVideoClient({
-          apiKey: STREAM_API_KEY,
-          user,
-          token: userToken,
-        });
+        if (userToken) {
+          // ── Authenticated mode (backend online) ──────────────────────────
+          user = {
+            id: safeUserId,
+            name: userName,
+          };
+          _client = new StreamVideoClient({
+            apiKey: STREAM_API_KEY,
+            user,
+            token: userToken,
+          });
+        } else {
+          // ── Guest / dev mode (backend offline or no token) ───────────────
+          // Use Stream guest user type — no token required.
+          // This is exactly how the google-meet-clone works for unauthenticated users.
+          user = {
+            id: `guest_${safeUserId}`,
+            type: "guest",
+            name: userName,
+          };
+          _client = new StreamVideoClient({
+            apiKey: STREAM_API_KEY,
+            user,
+          });
+        }
 
         // Use the session_uid as the Stream room ID.
-        // create: true means the first person to join creates the room.
+        // create: true so the first joiner creates the room.
         _call = _client.call(CALL_TYPE, session.session_uid);
         await _call.join({ create: true });
 
@@ -93,6 +122,7 @@ const CalmMeetProvider: React.FC<CalmMeetProviderProps> = ({
         if (!cancelled) {
           const msg =
             err instanceof Error ? err.message : "Failed to connect to meeting";
+          console.error("[CalmMeet] Error joining:", msg);
           setError(msg);
           setLoading(false);
         }

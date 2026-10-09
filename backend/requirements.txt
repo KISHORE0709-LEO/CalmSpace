@@ -3,9 +3,6 @@ uvicorn[standard]
 sqlalchemy
 pydantic[email]
 firebase-admin
-torch
-torchvision
-# torch 2.x was compiled against numpy 1.x; pin to avoid "Numpy is not available" at runtime
 numpy<2
 opencv-python-headless
 scikit-image

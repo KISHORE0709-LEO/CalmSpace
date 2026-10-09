@@ -1,5 +1,8 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, File, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
+import shutil
+from pathlib import Path
 from sqlalchemy.orm import Session
 try:
     import firebase_admin
@@ -24,6 +27,7 @@ from database import engine, get_db
 from app.routes.sensing_routes import router as sensing_router, handle_facial_sensing_ws
 from app.routes.care_circles import router as care_circles_router
 from app.routes.care_circle_ws import handle_care_circle_ws
+from app.routes.therapy_sessions import router as therapy_router
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -39,6 +43,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+Path("uploads").mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory="uploads"), name="uploads")
+
+@app.post("/api/upload")
+async def upload_file(file: UploadFile = File(...)):
+    file_path = f"uploads/{file.filename}"
+    with open(file_path, "wb") as buffer:
+        shutil.copyfileobj(file.file, buffer)
+    return {"url": f"http://localhost:8000/{file_path}"}
+
+
 # Sensing Layer - Facial Emotion CNN Branch
 app.include_router(sensing_router)
 app.add_api_websocket_route("/ws/facial-sensing", handle_facial_sensing_ws)
@@ -46,6 +61,9 @@ app.add_api_websocket_route("/ws/facial-sensing", handle_facial_sensing_ws)
 # Care Circle & Group Chat
 app.include_router(care_circles_router)
 app.add_api_websocket_route("/ws/care-circle/{circle_id}", handle_care_circle_ws)
+
+# Therapy Sessions
+app.include_router(therapy_router)
 
 # Firebase Admin Setup
 # You must provide the path to your Firebase service account JSON key

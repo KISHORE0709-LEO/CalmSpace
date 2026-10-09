@@ -46,14 +46,14 @@ export interface TherapySession {
 const MOCK_SESSIONS: TherapySession[] = [
   {
     id: 1,
-    session_uid: "abc-defg-hij",
-    title: "Follow-up Therapy Session",
+    session_uid: "calm-therapy-demo",   // ← same room used in all 4 TherapyRoom components
+    title: "Therapy Session",
     session_type: "follow-up",
-    status: "accepted",
-    scheduled_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+    status: "live",                     // always shows as joinable in demo
+    scheduled_time: new Date().toISOString(),
     duration_minutes: 45,
     goals: "Emotional Regulation\nEye Contact\nSocial Communication",
-    notes: "Child had a stressful school day. Focus on calming exercises first.",
+    notes: "Focus on calming exercises.",
     doctor_user_id: 1,
     child_user_id: 2,
     created_at: new Date().toISOString(),
@@ -63,28 +63,11 @@ const MOCK_SESSIONS: TherapySession[] = [
       { id: 1, user_id: 1, role: "doctor", invite_status: "accepted", user_name: "Dr. Arya Sharma" },
       { id: 2, user_id: 2, role: "child", invite_status: "accepted", user_name: "Rahul Kumar" },
       { id: 3, user_id: 3, role: "parent", invite_status: "accepted", user_name: "Parent User" },
-    ],
-  },
-  {
-    id: 2,
-    session_uid: "xyz-pqrs-lmn",
-    title: "Initial Assessment",
-    session_type: "initial",
-    status: "pending_acceptance",
-    scheduled_time: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-    duration_minutes: 60,
-    doctor_user_id: 1,
-    child_user_id: 4,
-    created_at: new Date().toISOString(),
-    doctor_name: "Dr. Arya Sharma",
-    child_name: "Mia Wong",
-    participants: [
-      { id: 4, user_id: 1, role: "doctor", invite_status: "accepted", user_name: "Dr. Arya Sharma" },
-      { id: 5, user_id: 4, role: "child", invite_status: "pending", user_name: "Mia Wong" },
-      { id: 6, user_id: 5, role: "parent", invite_status: "pending", user_name: "Parent User 2" },
+      { id: 4, user_id: 4, role: "caregiver", invite_status: "accepted", user_name: "Caregiver" },
     ],
   },
 ];
+
 
 // ─── API calls ─────────────────────────────────────────────────────────────────
 

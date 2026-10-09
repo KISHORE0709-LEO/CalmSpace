@@ -14,6 +14,8 @@ import {
   CheckCircle2,
   Wifi,
   WifiOff,
+  Paperclip,
+  Image as ImageIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -74,6 +76,8 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
 
   const socketRef = useRef<WebSocket | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   // Load circles
   const loadCircles = useCallback(async () => {
@@ -195,6 +199,45 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
+  // Image upload handler
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !activeCircleId) return;
+
+    if (!socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) {
+      toast.error("Chat is not connected. Please wait for connection.");
+      return;
+    }
+
+    setUploadingImage(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      // Find the API base URL from env, or assume same domain if relative
+      const backendUrl = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/$/, "");
+      const res = await fetch(`${backendUrl}/api/upload`, {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+      
+      const data = await res.json();
+      const imageUrl = data.url;
+      
+      // Send the image as a markdown-like tag
+      socketRef.current.send(JSON.stringify({ content: `![image](${imageUrl})` }));
+      toast.success("Image sent");
+    } catch (err) {
+      console.error(err);
+      toast.error("Failed to upload image.");
+    } finally {
+      setUploadingImage(false);
+      if (fileInputRef.current) fileInputRef.current.value = "";
+    }
+  };
 
   // Send message handler
   const handleSendMessage = (e: React.FormEvent) => {
@@ -534,7 +577,17 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
                           )}
 
                           <div className="font-medium pr-12 leading-relaxed whitespace-pre-wrap break-words">
-                            {msg.content}
+                            {msg.content.startsWith("![image](") ? (
+                              <a href={msg.content.slice(9, -1)} target="_blank" rel="noreferrer">
+                                <img 
+                                  src={msg.content.slice(9, -1)} 
+                                  alt="Shared Image" 
+                                  className="max-w-[250px] max-h-[250px] rounded-lg border-2 border-foreground mt-1 cursor-pointer hover:opacity-90" 
+                                />
+                              </a>
+                            ) : (
+                              msg.content
+                            )}
                           </div>
 
                           <div className="absolute right-2.5 bottom-1 flex items-center gap-1">
@@ -558,6 +611,22 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
                 onSubmit={handleSendMessage}
                 className="p-3.5 bg-muted/90 backdrop-blur-sm border-t-2 border-foreground flex items-center gap-2 z-10"
               >
+                <input
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  ref={fileInputRef}
+                  onChange={handleImageUpload}
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploadingImage}
+                  className="h-11 w-11 px-0 rounded-xl border-2 border-foreground shadow-pop-sm flex-shrink-0 flex items-center justify-center hover:-translate-y-0.5 transition-transform"
+                >
+                  {uploadingImage ? <Loader2 size={18} className="animate-spin text-primary" /> : <Paperclip size={18} />}
+                </Button>
                 <Input
                   value={inputValue}
                   onChange={(e) => setInputValue(e.target.value)}

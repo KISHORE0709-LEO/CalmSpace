@@ -1,5 +1,15 @@
-import { Link, NavLink } from "react-router-dom";
-import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activity, History, Users, Video } from "lucide-react";
+import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Heart, Bell, MessageCircle, TrendingUp, AlertTriangle, FileText, Activity, History, Users, Video, UserCircle, LogOut } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { auth } from "@/lib/firebase";
+import { useAuth } from "@/contexts/AuthContext";
 
 const links = [
   { to: "/parent/chat", label: "Chat", icon: MessageCircle },
@@ -11,6 +21,18 @@ const links = [
 ];
 
 export const ParentNav = () => {
+  const navigate = useNavigate();
+  const { profile } = useAuth();
+  
+  const handleLogout = async () => {
+    try {
+      await auth.signOut();
+      navigate("/");
+    } catch (error) {
+      console.error("Error signing out:", error);
+    }
+  };
+
   return (
     <header className="fixed top-6 left-0 right-0 z-50">
       <div className="w-full px-6 md:px-12 flex items-center justify-between">
@@ -46,11 +68,27 @@ export const ParentNav = () => {
           })}
         </nav>
 
-        {/* Right: Notifications */}
-        <div className="flex-1 flex justify-end">
+        {/* Right: Notifications & Profile */}
+        <div className="flex-1 flex justify-end items-center gap-3">
           <button className="w-12 h-12 rounded-full bg-background border-2 border-foreground shadow-pop-sm hover:bg-accent hover:-translate-y-[2px] hover:shadow-pop flex items-center justify-center shrink-0 transition-all">
             <Bell className="w-5 h-5 text-foreground" />
           </button>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="w-12 h-12 rounded-full bg-primary text-primary-foreground border-2 border-foreground shadow-pop-sm hover:-translate-y-[2px] hover:shadow-pop flex items-center justify-center shrink-0 transition-all">
+                <UserCircle className="w-6 h-6" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 border-2 border-foreground shadow-pop-sm">
+              <DropdownMenuLabel className="font-black">{profile?.name || "Parent"}</DropdownMenuLabel>
+              <DropdownMenuSeparator className="bg-foreground/20" />
+              <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 font-bold focus:text-red-700 focus:bg-red-50">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Log out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </header>
