@@ -51,7 +51,7 @@ export default function TherapySetup() {
   const [copiedUid, setCopiedUid] = useState<string | null>(null);
 
   // Form state
-  const [childUserId, setChildUserId] = useState("2");  // default to first child
+  const [childUserId, setChildUserId] = useState("1");  // default to first child
   const [sessionType, setSessionType] = useState("follow-up");
   const [duration, setDuration] = useState("45");
   const [scheduledDate, setScheduledDate] = useState("");
@@ -65,9 +65,14 @@ export default function TherapySetup() {
 
   useEffect(() => {
     if (!user) return;
-    fetchSessions(user.uid)
-      .then(setSessions)
-      .finally(() => setLoadingSessions(false));
+    const load = () => {
+      fetchSessions(user.uid)
+        .then(setSessions)
+        .finally(() => setLoadingSessions(false));
+    };
+    load();
+    const interval = setInterval(load, 5000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleCreate = async () => {

@@ -42,9 +42,14 @@ export default function TherapySessions() {
 
   useEffect(() => {
     if (!user) return;
-    fetchSessions(user.uid)
-      .then(setSessions)
-      .finally(() => setLoading(false));
+    const load = () => {
+      fetchSessions(user.uid)
+        .then(setSessions)
+        .finally(() => setLoading(false));
+    };
+    load();
+    const interval = setInterval(load, 5000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const handleRespond = async (session: TherapySession, response: "accepted" | "declined") => {
@@ -62,6 +67,7 @@ export default function TherapySessions() {
   };
 
   const handleJoin = (session: TherapySession) => {
+    // Navigate to the video‑call page. Ensure the route exists in your router.
     navigate("/parent/therapy/room", { state: { session } });
   };
 
@@ -103,11 +109,12 @@ export default function TherapySessions() {
                 <div className="space-y-4">
                   {upcomingSessions.map((session) => {
                     const myParticipant: TherapyParticipant | undefined = session.participants.find(
-                      (p) => p.role === "parent"
+                      (p) => p.role?.toLowerCase() === "parent"
                     );
                     const isPending = session.status === "pending_acceptance" && myParticipant?.invite_status === "pending";
                     const isLive = session.status === "live";
-                    const canJoin = myParticipant?.invite_status === "accepted" && ["accepted", "live"].includes(session.status);
+                    // const canJoin = myParticipant?.invite_status === "accepted" && ["accepted", "live"].includes(session.status);
+                    const canJoin = (myParticipant?.invite_status === "accepted" || session.status === "live") && ["accepted", "live"].includes(session.status);
 
                     return (
                       <div key={session.id} className={`calm-card border-4 transition-all ${

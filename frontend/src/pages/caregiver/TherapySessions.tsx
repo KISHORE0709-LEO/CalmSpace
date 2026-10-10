@@ -37,9 +37,14 @@ export default function TherapySessions() {
 
   useEffect(() => {
     if (!user) return;
-    fetchSessions(user.uid)
-      .then(setSessions)
-      .finally(() => setLoading(false));
+    const load = () => {
+      fetchSessions(user.uid)
+        .then(setSessions)
+        .finally(() => setLoading(false));
+    };
+    load();
+    const interval = setInterval(load, 5000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const upcomingSessions = sessions.filter((s) => !["completed", "cancelled", "declined"].includes(s.status));

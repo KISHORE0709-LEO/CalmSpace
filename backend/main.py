@@ -4,6 +4,9 @@ from fastapi.staticfiles import StaticFiles
 import shutil
 from pathlib import Path
 from sqlalchemy.orm import Session
+from dotenv import load_dotenv
+
+load_dotenv()
 try:
     import firebase_admin
     from firebase_admin import credentials, auth as firebase_auth
