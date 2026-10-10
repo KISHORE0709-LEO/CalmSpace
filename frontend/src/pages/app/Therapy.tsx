@@ -17,9 +17,14 @@ export default function ChildTherapy() {
 
   useEffect(() => {
     if (!user) return;
-    fetchSessions(user.uid)
-      .then(setSessions)
-      .finally(() => setLoading(false));
+    const load = () => {
+      fetchSessions(user.uid)
+        .then(setSessions)
+        .finally(() => setLoading(false));
+    };
+    load();
+    const interval = setInterval(load, 5000);
+    return () => clearInterval(interval);
   }, [user]);
 
   const nextSession = sessions.find((s) => ["accepted", "live", "pending_acceptance"].includes(s.status));
