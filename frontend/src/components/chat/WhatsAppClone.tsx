@@ -12,11 +12,10 @@ import {
   Loader2,
   AlertCircle,
   CheckCircle2,
-  Wifi,
   WifiOff,
   Paperclip,
-  Image as ImageIcon,
 } from "lucide-react";
+import { API_BASE_URL } from "@/lib/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,8 +40,8 @@ interface WhatsAppCloneProps {
 }
 
 export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
-  const { user, profile } = useAuth();
-  const authToken = profile?.firebase_uid || user?.uid || null;
+  const { user, profile, idToken } = useAuth();
+  const authToken = idToken || profile?.firebase_uid || user?.uid || null;
 
   // Circles and active room state
   const [circles, setCircles] = useState<CareCircle[]>([]);
@@ -68,6 +67,11 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
   const [inviteRole, setInviteRole] = useState<"caregiver" | "doctor" | "parent">("caregiver");
   const [inviting, setInviting] = useState(false);
 
+  // Doctor picker state
+  const [doctors, setDoctors] = useState<{ id: number; name: string; email: string }[]>([]);
+  const [loadingDoctors, setLoadingDoctors] = useState(false);
+  const [doctorSearch, setDoctorSearch] = useState("");
+
   // Create circle modal state (for parents without a circle)
   const [isCreateCircleOpen, setIsCreateCircleOpen] = useState(false);
   const [newChildName, setNewChildName] = useState("");
@@ -78,6 +82,17 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadingImage, setUploadingImage] = useState(false);
+
+  // Load doctors list (for parent invite picker)
+  useEffect(() => {
+    if (!isInviteModalOpen || inviteRole !== "doctor") return;
+    setLoadingDoctors(true);
+    fetch(`${API_BASE_URL}/api/doctors/list`)
+      .then(r => r.json())
+      .then(setDoctors)
+      .catch(() => setDoctors([]))
+      .finally(() => setLoadingDoctors(false));
+  }, [isInviteModalOpen, inviteRole]);
 
   // Load circles
   const loadCircles = useCallback(async () => {
@@ -304,6 +319,7 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
       toast.success(`Invite sent to ${inviteEmail}.`);
       setIsInviteModalOpen(false);
       setInviteEmail("");
+      setDoctorSearch("");
     } catch (err: any) {
       toast.error(err.message || "Failed to send invite.");
     } finally {
@@ -784,7 +800,7 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
         <div className="fixed inset-0 bg-background/80 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
           <div className="calm-card p-6 md:p-8 max-w-md w-full relative animate-scale-in">
             <button
-              onClick={() => setIsInviteModalOpen(false)}
+              onClick={() => { setIsInviteModalOpen(false); setInviteEmail(""); setDoctorSearch(""); }}
               className="absolute top-4 right-4 w-8 h-8 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
             >
               <X size={18} />
@@ -794,28 +810,17 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
               <Mail className="w-5 h-5 text-primary" /> Invite to Care Circle
             </h3>
             <p className="text-xs text-muted-foreground font-medium mb-5">
-              Send an invite by email. They will see the invite when they log in.
+              Add a caregiver by email, or pick a registered doctor from the list.
             </p>
 
             <form onSubmit={handleSendInvite} className="space-y-4">
-              <div>
-                <label className="text-xs font-bold block mb-1.5">Member Email</label>
-                <Input
-                  type="email"
-                  required
-                  placeholder="therapist@example.com"
-                  value={inviteEmail}
-                  onChange={(e) => setInviteEmail(e.target.value)}
-                  className="h-11 rounded-xl border-2 border-foreground shadow-pop-sm"
-                />
-              </div>
-
+              {/* Role selector */}
               <div>
                 <label className="text-xs font-bold block mb-1.5">Select Role</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
-                    onClick={() => setInviteRole("caregiver")}
+                    onClick={() => { setInviteRole("caregiver"); setInviteEmail(""); }}
                     className={`py-2 px-3 rounded-xl border-2 font-bold text-xs transition-all ${
                       inviteRole === "caregiver"
                         ? "border-foreground bg-secondary text-secondary-foreground shadow-pop-sm"
@@ -826,7 +831,7 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
                   </button>
                   <button
                     type="button"
-                    onClick={() => setInviteRole("doctor")}
+                    onClick={() => { setInviteRole("doctor"); setInviteEmail(""); }}
                     className={`py-2 px-3 rounded-xl border-2 font-bold text-xs transition-all ${
                       inviteRole === "doctor"
                         ? "border-foreground bg-accent text-accent-foreground shadow-pop-sm"
@@ -837,6 +842,84 @@ export const WhatsAppClone = ({ currentRole }: WhatsAppCloneProps) => {
                   </button>
                 </div>
               </div>
+
+              {/* Doctor picker — browse registered doctors */}
+              {inviteRole === "doctor" ? (
+                <div>
+                  <label className="text-xs font-bold block mb-1.5">Select Doctor</label>
+                  {loadingDoctors ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground font-bold py-3">
+                      <Loader2 size={16} className="animate-spin text-primary" /> Loading doctors...
+                    </div>
+                  ) : doctors.length === 0 ? (
+                    <p className="text-xs text-muted-foreground font-bold py-2">
+                      No registered doctors found. Ask your doctor to sign up on CalmSpace first.
+                    </p>
+                  ) : (
+                    <>
+                      <div className="relative mb-2">
+                        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+                        <Input
+                          placeholder="Search by name..."
+                          value={doctorSearch}
+                          onChange={e => setDoctorSearch(e.target.value)}
+                          className="h-9 pl-8 rounded-xl border-2 border-foreground shadow-pop-sm text-sm"
+                        />
+                      </div>
+                      <div className="max-h-48 overflow-y-auto space-y-1.5 pr-1">
+                        {doctors
+                          .filter(d =>
+                            !doctorSearch.trim() ||
+                            d.name.toLowerCase().includes(doctorSearch.toLowerCase()) ||
+                            d.email.toLowerCase().includes(doctorSearch.toLowerCase())
+                          )
+                          .map(doc => (
+                            <button
+                              key={doc.id}
+                              type="button"
+                              onClick={() => setInviteEmail(doc.email)}
+                              className={`w-full flex items-center gap-3 p-3 rounded-xl border-2 text-left transition-all ${
+                                inviteEmail === doc.email
+                                  ? "border-foreground bg-accent/20 shadow-pop-sm"
+                                  : "border-foreground/20 hover:border-foreground hover:bg-muted/50"
+                              }`}
+                            >
+                              <div className="w-9 h-9 rounded-full bg-accent text-accent-foreground border-2 border-foreground flex items-center justify-center flex-shrink-0">
+                                <Stethoscope size={16} />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-black text-sm truncate">{doc.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">{doc.email}</p>
+                              </div>
+                              {inviteEmail === doc.email && (
+                                <CheckCircle2 size={18} className="ml-auto text-primary flex-shrink-0" />
+                              )}
+                            </button>
+                          ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              ) : (
+                /* Caregiver — manual email entry */
+                <div>
+                  <label className="text-xs font-bold block mb-1.5">Caregiver Email</label>
+                  <Input
+                    type="email"
+                    required
+                    placeholder="caregiver@example.com"
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                    className="h-11 rounded-xl border-2 border-foreground shadow-pop-sm"
+                  />
+                </div>
+              )}
+
+              {inviteEmail && (
+                <p className="text-xs font-bold text-primary bg-primary/10 rounded-lg px-3 py-2">
+                  ✓ Will invite: {inviteEmail}
+                </p>
+              )}
 
               <Button
                 type="submit"

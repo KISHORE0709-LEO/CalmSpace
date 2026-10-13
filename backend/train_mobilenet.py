@@ -1,14 +1,16 @@
 import os
 import random
+import numpy as np
 from PIL import Image
 import torch
 import torch.nn as nn
 import torch.optim as optim
 from torchvision import transforms, models
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader, WeightedRandomSampler
 from collections import defaultdict
+from sklearn.metrics import classification_report, confusion_matrix
 
-# Setup Device (Use Mac GPU if available)
+# Setup Device
 if torch.backends.mps.is_available():
     device = torch.device("mps")
 elif torch.cuda.is_available():
@@ -19,8 +21,7 @@ print(f"Using device: {device}")
 
 # 1. Dataset Configuration
 DATA_DIR = "/Users/mac/Desktop/CalmSpace/backend/dataset/YOLO_format"
-# Original Classes: [0: Anger, 1: Contempt, 2: Disgust, 3: Fear, 4: Happy, 5: Neutral, 6: Sad, 7: Surprise]
-# Map 8 classes to 4 ASD states (0: Calm, 1: Happy, 2: Distressed, 3: Overwhelmed)
+# Map 8 AffectNet classes to 4 ASD states (0: Calm, 1: Happy, 2: Distressed, 3: Overwhelmed)
 CLASS_MAP = {
     5: 0, 7: 0,  # Neutral, Surprise -> Calm (0)
     4: 1,        # Happy -> Happy (1)
@@ -30,16 +31,14 @@ CLASS_MAP = {
 CLASS_NAMES = ["Calm", "Happy", "Distressed", "Overwhelmed"]
 
 class AffectNetYOLODataset(Dataset):
-    def __init__(self, split="train", transform=None, max_samples_per_class=1000):
+    def __init__(self, split="train", transform=None, max_samples_per_class=None):
         self.split = split
         self.transform = transform
         self.images_dir = os.path.join(DATA_DIR, split, "images")
         self.labels_dir = os.path.join(DATA_DIR, split, "labels")
         self.data = []
         
-        # Collect data by mapped class
         class_counts = defaultdict(list)
-        
         if not os.path.exists(self.images_dir):
             print(f"Warning: Directory not found {self.images_dir}")
             return
@@ -61,14 +60,22 @@ class AffectNetYOLODataset(Dataset):
                             img_path = os.path.join(self.images_dir, img_name)
                             class_counts[mapped_class].append((img_path, mapped_class))
                             
-        # Balance dataset by subsampling
+        # Subsample if max_samples_per_class is provided
         for cls, items in class_counts.items():
-            if len(items) > max_samples_per_class:
+            if max_samples_per_class and len(items) > max_samples_per_class:
                 items = random.sample(items, max_samples_per_class)
             self.data.extend(items)
             
         random.shuffle(self.data)
-        print(f"Loaded {split} set: {len(self.data)} images total.")
+        
+        # Calculate class weights for sampler
+        counts = [0] * 4
+        for _, label in self.data:
+            counts[label] += 1
+            
+        print(f"Loaded {split} set: {len(self.data)} images total. Distribution: {counts}")
+        self.class_counts = counts
+        self.weights = [1.0 / c if c > 0 else 0 for c in counts]
         
     def __len__(self):
         return len(self.data)
@@ -79,13 +86,18 @@ class AffectNetYOLODataset(Dataset):
         if self.transform:
             image = self.transform(image)
         return image, label
+        
+    def get_sampler(self):
+        sample_weights = [self.weights[label] for _, label in self.data]
+        return WeightedRandomSampler(weights=sample_weights, num_samples=len(sample_weights), replacement=True)
 
-# 2. Transforms
+# 2. Enhanced Transforms with Data Augmentation
 data_transforms = {
     'train': transforms.Compose([
         transforms.Resize((224, 224)),
-        transforms.RandomHorizontalFlip(),
-        transforms.ColorJitter(brightness=0.2, contrast=0.2),
+        transforms.RandomHorizontalFlip(p=0.5),
+        transforms.RandomRotation(15),
+        transforms.ColorJitter(brightness=0.3, contrast=0.3, saturation=0.2, hue=0.1),
         transforms.ToTensor(),
         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
     ]),
@@ -97,37 +109,38 @@ data_transforms = {
 }
 
 def main():
-    # Load limited datasets so it trains quickly on a Mac
     print("Preparing datasets...")
-    # Using 2000 per class for training, 500 for validation to be safe and fast on local machine
-    train_dataset = AffectNetYOLODataset(split="train", transform=data_transforms['train'], max_samples_per_class=2000)
-    val_dataset = AffectNetYOLODataset(split="valid", transform=data_transforms['val'], max_samples_per_class=500)
+    train_dataset = AffectNetYOLODataset(split="train", transform=data_transforms['train'])
+    val_dataset = AffectNetYOLODataset(split="valid", transform=data_transforms['val'], max_samples_per_class=1000)
     
     if len(train_dataset) == 0:
         print("Error: No training data found.")
         return
         
-    train_loader = DataLoader(train_dataset, batch_size=32, shuffle=True)
+    # Use WeightedRandomSampler to balance classes during training batches
+    train_loader = DataLoader(train_dataset, batch_size=32, sampler=train_dataset.get_sampler())
     val_loader = DataLoader(val_dataset, batch_size=32, shuffle=False)
     
-    # 3. Model setup (MobileNetV2)
     print("Loading MobileNetV2...")
     model = models.mobilenet_v2(weights=models.MobileNet_V2_Weights.DEFAULT)
     
-    # Freeze the feature extractor
+    # Freeze feature extractor
     for param in model.features.parameters():
         param.requires_grad = False
         
-    # Replace classifier head for 4 classes
     num_features = model.classifier[1].in_features
-    model.classifier[1] = nn.Linear(num_features, 4)
+    model.classifier[1] = nn.Sequential(
+        nn.Dropout(0.3),
+        nn.Linear(num_features, 4)
+    )
     model = model.to(device)
     
-    criterion = nn.CrossEntropyLoss()
-    optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
+    # Use Label Smoothing to reduce overconfidence
+    criterion = nn.CrossEntropyLoss(label_smoothing=0.1)
+    optimizer = optim.AdamW(model.classifier.parameters(), lr=0.001, weight_decay=1e-4)
+    scheduler = optim.lr_scheduler.ReduceLROnPlateau(optimizer, mode='max', factor=0.5, patience=1, verbose=True)
     
-    # 4. Training Loop (Just 3 epochs to get a working model quickly)
-    epochs = 3
+    epochs = 5
     best_acc = 0.0
     
     print("Starting training...")
@@ -145,30 +158,42 @@ def main():
             optimizer.step()
             
             running_loss += loss.item()
-            if i % 20 == 19:    # print every 20 mini-batches
-                print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 20:.3f}")
+            if i % 50 == 49:
+                print(f"[{epoch + 1}, {i + 1}] loss: {running_loss / 50:.3f}")
                 running_loss = 0.0
                 
         # Validation
         model.eval()
         correct = 0
         total = 0
+        all_preds = []
+        all_labels = []
+        
         with torch.no_grad():
             for inputs, labels in val_loader:
                 inputs, labels = inputs.to(device), labels.to(device)
                 outputs = model(inputs)
                 _, predicted = torch.max(outputs.data, 1)
+                
                 total += labels.size(0)
                 correct += (predicted == labels).sum().item()
                 
+                all_preds.extend(predicted.cpu().numpy())
+                all_labels.extend(labels.cpu().numpy())
+                
         val_acc = 100 * correct / total
         print(f"Epoch {epoch + 1} Validation Accuracy: {val_acc:.2f}%")
+        
+        scheduler.step(val_acc)
         
         if val_acc > best_acc:
             best_acc = val_acc
             torch.save(model.state_dict(), '/Users/mac/Desktop/CalmSpace/backend/best_mobilenet_v2.pth')
             print(f"Saved new best model with accuracy: {best_acc:.2f}%")
             
+    # Final Evaluation Report
+    print("\n--- Final Model Evaluation ---")
+    print(classification_report(all_labels, all_preds, target_names=CLASS_NAMES, zero_division=0))
     print("Training finished! Model saved to backend/best_mobilenet_v2.pth")
 
 if __name__ == '__main__':

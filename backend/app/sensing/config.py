@@ -42,9 +42,9 @@ AFFECTNET_CLASS_NAME_TO_ID: Dict[str, int] = {name: i for i, name in enumerate(A
 # CalmSpace target operational states
 CALMSPACE_STATES: List[str] = [
     "Calm",
-    "Mildly_Stressed",
-    "Anxious",
-    "Overloaded"
+    "Happy",
+    "Distressed",
+    "Overwhelmed"
 ]
 
 # Explicit, calibrated mapping matrix from AffectNet 8-class probabilities to CalmSpace 4-states.

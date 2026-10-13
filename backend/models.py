@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Boolean
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, Text, Boolean, Float
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from database import Base
@@ -11,11 +11,12 @@ class User(Base):
     email = Column(String, unique=True, index=True)
     name = Column(String)
     role = Column(String)
+    age = Column(Integer, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationships for links
     children_links = relationship("Link", foreign_keys="[Link.guardian_id]", back_populates="guardian")
     guardian_links = relationship("Link", foreign_keys="[Link.child_id]", back_populates="child")
+
 
 class Link(Base):
     __tablename__ = "links"
@@ -23,11 +24,32 @@ class Link(Base):
     id = Column(Integer, primary_key=True, index=True)
     child_id = Column(Integer, ForeignKey("users.id"))
     guardian_id = Column(Integer, ForeignKey("users.id"))
-    guardian_role = Column(String)
+    guardian_role = Column(String)  # parent | caregiver | doctor
+    status = Column(String, default="active")  # active | pending | removed
+    invited_email = Column(String, nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     child = relationship("User", foreign_keys=[child_id], back_populates="guardian_links")
     guardian = relationship("User", foreign_keys=[guardian_id], back_populates="children_links")
+
+
+class EmotionLog(Base):
+    """Persisted emotion events from the CNN sensing pipeline."""
+    __tablename__ = "emotion_logs"
+
+    id = Column(Integer, primary_key=True, index=True)
+    child_id = Column(Integer, ForeignKey("users.id"), index=True)
+    calmspace_state = Column(String)          # Calm | Happy | Distressed | Overwhelmed
+    dominant_emotion = Column(String)         # raw AffectNet label
+    confidence = Column(Float, default=0.0)
+    prob_calm = Column(Float, default=0.0)
+    prob_happy = Column(Float, default=0.0)
+    prob_distressed = Column(Float, default=0.0)
+    prob_overwhelmed = Column(Float, default=0.0)
+    is_crisis = Column(Boolean, default=False)  # True when Overwhelmed > 0.65
+    logged_at = Column(DateTime, default=datetime.utcnow, index=True)
+
+    child = relationship("User", foreign_keys=[child_id])
 
 
 class CareCircle(Base):

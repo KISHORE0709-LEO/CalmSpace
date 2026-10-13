@@ -12,7 +12,7 @@ RAW_CLS  = ['Calm','Happy','Distressed','Overwhelmed']
 CS_CLS   = ['Calm','Mildly_Stressed','Anxious','Overloaded']
 
 # CalmSpace state the model SHOULD output for each raw class
-EXPECTED = {0:'Calm', 1:'Calm', 2:'Mildly_Stressed', 3:'Overloaded'}
+EXPECTED = {0:'Calm', 1:'Happy', 2:'Distressed', 3:'Overwhelmed'}
 
 def b64(path):
     img = Image.open(path).convert('RGB').resize((320,240))
@@ -56,7 +56,7 @@ async def main():
         for path, gt in imgs:
             dom, stable = await test_image(path)
             expected = EXPECTED[cls_id]
-            ok = dom == expected or (cls_id==0 and dom in ['Calm','Mildly_Stressed'])
+            ok = dom == expected
             icon = '✅' if ok else '❌'
             stab = '🔒stable' if stable else '⚠️ flicker'
             print(f"  {icon} GT={RAW_CLS[cls_id]:12s} → Expected={expected:15s} Got={dom:15s} {stab}")

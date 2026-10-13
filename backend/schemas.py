@@ -7,6 +7,7 @@ class SignupRequest(BaseModel):
     name: str
     email: EmailStr
     role: str
+    age: Optional[int] = None
     child_email: Optional[EmailStr] = None
 
 class UserResponse(BaseModel):
@@ -15,15 +16,35 @@ class UserResponse(BaseModel):
     email: str
     name: str
     role: str
+    age: Optional[int] = None
     created_at: datetime
-
     model_config = ConfigDict(from_attributes=True)
 
 class ChildDataResponse(BaseModel):
     id: int
     name: str
     email: str
-    # Here you can add fields for session reports/progress data
+
+class LinkChildRequest(BaseModel):
+    firebase_uid: str
+    child_email: EmailStr
+
+
+class InviteCareTeamRequest(BaseModel):
+    firebase_uid: str
+    child_id: int
+    email: EmailStr
+    role: str  # caregiver | doctor
+
+class EmotionLogRequest(BaseModel):
+    firebase_uid: str
+    calmspace_state: str
+    dominant_emotion: str
+    confidence: float
+    prob_calm: float = 0.0
+    prob_happy: float = 0.0
+    prob_distressed: float = 0.0
+    prob_overwhelmed: float = 0.0
 
 
 class CreateCareCircleRequest(BaseModel):

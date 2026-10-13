@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useRef, ReactNode, useCallback } from "react";
+import { careTeamApi } from "@/lib/careTeamApi";
+import { auth } from "@/lib/firebase";
 
-export type EmotionState = "Calm" | "Mildly_Stressed" | "Anxious" | "Overloaded" | "Unknown";
+export type EmotionState = "Calm" | "Happy" | "Distressed" | "Overwhelmed" | "Unknown";
 
 export interface GracefulDegradationInfo {
   active: boolean;
@@ -45,9 +47,9 @@ export interface FacialTelemetryPacket {
   raw_emotion_probabilities: Record<string, number>;
   calmspace_mapped_probabilities: {
     Calm: number;
-    Mildly_Stressed: number;
-    Anxious: number;
-    Overloaded: number;
+    Happy: number;
+    Distressed: number;
+    Overwhelmed: number;
     [key: string]: number;
   };
   dominant_emotion: string;
@@ -88,9 +90,9 @@ export interface EmotionContextType {
 
 const defaultMappedProbabilities = {
   Calm: 0.25,
-  Mildly_Stressed: 0.25,
-  Anxious: 0.25,
-  Overloaded: 0.25,
+  Happy: 0.25,
+  Distressed: 0.25,
+  Overwhelmed: 0.25,
 };
 
 const defaultRawProbabilities = {
@@ -178,6 +180,15 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
 
           if (packet.calmspace_state) {
             setEmotion(packet.calmspace_state);
+            // Persist emotion log every ~10 frames (avoid flooding DB)
+            if (packet.frame_id % 10 === 0 && auth.currentUser) {
+              careTeamApi.logEmotion(auth.currentUser.uid, {
+                state: packet.calmspace_state,
+                dominant_emotion: packet.dominant_emotion || packet.calmspace_state,
+                confidence: packet.detection_confidence || 0,
+                probs: packet.calmspace_mapped_probabilities || { Calm:0.25, Happy:0.25, Distressed:0.25, Overwhelmed:0.25 }
+              }).catch(() => {});
+            }
           }
           if (packet.calmspace_mapped_probabilities) {
             setCalmspaceMappedProbabilities(packet.calmspace_mapped_probabilities);
@@ -320,17 +331,7 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
         sendFrame,
       }}
     >
-      <div
-        className={`transition-all duration-700 ease-in-out w-full h-full ${
-          emotion === "Overloaded"
-            ? "grayscale-[30%] opacity-90 backdrop-blur-[2px]"
-            : emotion === "Anxious"
-            ? "saturate-50 bg-background/50"
-            : ""
-        }`}
-      >
-        {children}
-      </div>
+      {children}
     </EmotionContext.Provider>
   );
 };

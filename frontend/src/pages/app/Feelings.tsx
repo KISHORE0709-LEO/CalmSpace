@@ -27,9 +27,9 @@ import { API_BASE_URL } from "@/lib/api";
 
 const emotionEmojis: Record<string, string> = {
   Calm: "😌",
-  Mildly_Stressed: "😐",
-  Anxious: "😰",
-  Overloaded: "🤯",
+  Happy: "😊",
+  Distressed: "😰",
+  Overwhelmed: "🤯",
   Unknown: "🌫️",
 };
 
@@ -48,11 +48,11 @@ const getDynamicInsightText = (
   switch (state) {
     case "Calm":
       return `Facial affect analysis shows balanced neuromuscular tension (${(confidence * 100).toFixed(0)}% confidence). Ocular and zygomatic features align with emotional equilibrium and low sensory distress.`;
-    case "Mildly_Stressed":
+    case "Happy":
+      return `Positive affect and zygomatic activation detected. The child is exhibiting signs of enjoyment and engagement.`;
+    case "Distressed":
       return `Subtle brow furrowing and micro-expressive tension detected. Early affective elevation observed; proactive sensory adjustments can prevent transition to anxiety.`;
-    case "Anxious":
-      return `Elevated autonomic facial tension and sustained affective strain detected. Emotional arousal is elevated above baseline regulation threshold.`;
-    case "Overloaded":
+    case "Overwhelmed":
       return `Acute sensory overload patterns detected across facial landmark analysis. Immediate stimulus dampening and calming protocols recommended.`;
     default:
       return "Analyzing live facial expression stream. Awaiting model convergence.";
@@ -66,11 +66,11 @@ const getDynamicSuggestion = (state: string, isDegraded: boolean) => {
   switch (state) {
     case "Calm":
       return "Maintain current environmental lighting and auditory settings.";
-    case "Mildly_Stressed":
+    case "Happy":
+      return "Reinforce current positive stimulus and continue engagement.";
+    case "Distressed":
       return "Consider soft background music or dimming bright screen contrasts.";
-    case "Anxious":
-      return "Engage guided 4-7-8 breathing or activate cool air purifying.";
-    case "Overloaded":
+    case "Overwhelmed":
       return "Sanctuary Mode recommended: reduce sensory stimuli and rest.";
     default:
       return "Monitoring active expression stream.";
@@ -344,44 +344,44 @@ const Feelings = () => {
                     </div>
                   </div>
 
-                  {/* Mildly Stressed */}
+                  {/* Happy */}
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1">
-                      <span>Mild Stress</span>
-                      <span className="text-amber-500">{Math.round((calmspaceMappedProbabilities.Mildly_Stressed || 0) * 100)}%</span>
+                      <span>Happy</span>
+                      <span className="text-green-500">{Math.round((calmspaceMappedProbabilities.Happy || 0) * 100)}%</span>
                     </div>
                     <div className="h-2 w-full bg-accent rounded-full overflow-hidden border border-foreground/10">
                       <div 
-                        className="h-full bg-amber-500 rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.round((calmspaceMappedProbabilities.Mildly_Stressed || 0) * 100)}%` }}
+                        className="h-full bg-green-500 rounded-full transition-all duration-300" 
+                        style={{ width: `${Math.round((calmspaceMappedProbabilities.Happy || 0) * 100)}%` }}
                       />
                     </div>
                   </div>
 
-                  {/* Anxious */}
+                  {/* Distressed */}
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1">
-                      <span>Anxious</span>
-                      <span className="text-orange-500">{Math.round((calmspaceMappedProbabilities.Anxious || 0) * 100)}%</span>
+                      <span>Distressed</span>
+                      <span className="text-orange-500">{Math.round((calmspaceMappedProbabilities.Distressed || 0) * 100)}%</span>
                     </div>
                     <div className="h-2 w-full bg-accent rounded-full overflow-hidden border border-foreground/10">
                       <div 
                         className="h-full bg-orange-500 rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.round((calmspaceMappedProbabilities.Anxious || 0) * 100)}%` }}
+                        style={{ width: `${Math.round((calmspaceMappedProbabilities.Distressed || 0) * 100)}%` }}
                       />
                     </div>
                   </div>
 
-                  {/* Overloaded */}
+                  {/* Overwhelmed */}
                   <div>
                     <div className="flex justify-between text-xs font-bold mb-1">
-                      <span>Overloaded</span>
-                      <span className="text-destructive">{Math.round((calmspaceMappedProbabilities.Overloaded || 0) * 100)}%</span>
+                      <span>Overwhelmed</span>
+                      <span className="text-destructive">{Math.round((calmspaceMappedProbabilities.Overwhelmed || 0) * 100)}%</span>
                     </div>
                     <div className="h-2 w-full bg-accent rounded-full overflow-hidden border border-foreground/10">
                       <div 
                         className="h-full bg-destructive rounded-full transition-all duration-300" 
-                        style={{ width: `${Math.round((calmspaceMappedProbabilities.Overloaded || 0) * 100)}%` }}
+                        style={{ width: `${Math.round((calmspaceMappedProbabilities.Overwhelmed || 0) * 100)}%` }}
                       />
                     </div>
                   </div>
@@ -491,15 +491,15 @@ const Feelings = () => {
                       {(() => {
                         const boxColor =
                           emotion === "Calm"           ? { border: "#22c55e", shadow: "rgba(34,197,94,0.5)",  label: "#22c55e", bg: "rgba(34,197,94,0.08)"  } :
-                          emotion === "Mildly_Stressed"? { border: "#eab308", shadow: "rgba(234,179,8,0.5)",  label: "#eab308", bg: "rgba(234,179,8,0.08)"  } :
-                          emotion === "Anxious"        ? { border: "#f97316", shadow: "rgba(249,115,22,0.5)", label: "#f97316", bg: "rgba(249,115,22,0.08)" } :
-                          emotion === "Overloaded"     ? { border: "#ef4444", shadow: "rgba(239,68,68,0.5)",  label: "#ef4444", bg: "rgba(239,68,68,0.08)"  } :
+                          emotion === "Happy"          ? { border: "#3b82f6", shadow: "rgba(59,130,246,0.5)", label: "#3b82f6", bg: "rgba(59,130,246,0.08)" } :
+                          emotion === "Distressed"     ? { border: "#f97316", shadow: "rgba(249,115,22,0.5)", label: "#f97316", bg: "rgba(249,115,22,0.08)" } :
+                          emotion === "Overwhelmed"    ? { border: "#ef4444", shadow: "rgba(239,68,68,0.5)",  label: "#ef4444", bg: "rgba(239,68,68,0.08)"  } :
                                                          { border: "#94a3b8", shadow: "rgba(148,163,184,0.3)",label: "#94a3b8", bg: "rgba(148,163,184,0.05)"};
                         const emotionLabel =
                           emotion === "Calm"            ? "CALM"
-                          : emotion === "Mildly_Stressed"? "MILD STRESS"
-                          : emotion === "Anxious"        ? "ANXIOUS"
-                          : emotion === "Overloaded"     ? "OVERLOADED"
+                          : emotion === "Happy"         ? "HAPPY"
+                          : emotion === "Distressed"    ? "DISTRESSED"
+                          : emotion === "Overwhelmed"   ? "OVERWHELMED"
                           : "DETECTING";
                         return (
                           <div

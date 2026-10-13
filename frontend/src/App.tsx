@@ -22,6 +22,7 @@ import ParentLiveEmotion from "./pages/parent/LiveEmotion.tsx";
 import ParentChat from "./pages/parent/Chat.tsx";
 import ParentEmotionalTrend from "./pages/parent/EmotionalTrend.tsx";
 import ParentCrisisAlerts from "./pages/parent/CrisisAlerts.tsx";
+import ManageCareTeam from "./pages/parent/ManageCareTeam.tsx";
 import ParentSessionReports from "./pages/parent/SessionReports.tsx";
 import ParentSocialConfidence from "./pages/parent/SocialConfidence.tsx";
 import ParentHistory from "./pages/parent/History.tsx";
@@ -32,6 +33,7 @@ import ParentTherapySummary from "./pages/parent/TherapySummary.tsx";
 // Caregiver Pages
 import CaregiverChat from "./pages/caregiver/Chat.tsx";
 import CaregiverLiveEmotion from "./pages/caregiver/LiveEmotion.tsx";
+import MyCareTeam from "./pages/app/MyCareTeam.tsx";
 import CaregiverCrisisAlerts from "./pages/caregiver/CrisisAlerts.tsx";
 import CaregiverAssignedTasks from "./pages/caregiver/AssignedTasks.tsx";
 import CaregiverHandoffNotes from "./pages/caregiver/HandoffNotes.tsx";
@@ -72,12 +74,14 @@ const App = () => (
               <Route path="/app/therapy" element={<Therapy />} />
               <Route path="/app/therapy/room" element={<ChildTherapyRoom />} />
               <Route path="/app/therapy/summary" element={<ChildTherapySummary />} />
+              <Route path="/app/care-team" element={<MyCareTeam />} />
               
               {/* Parent Routes */}
               <Route path="/parent/live-emotion" element={<ParentLiveEmotion />} />
               <Route path="/parent/chat" element={<ParentChat />} />
               <Route path="/parent/emotional-trend" element={<ParentEmotionalTrend />} />
               <Route path="/parent/crisis-alerts" element={<ParentCrisisAlerts />} />
+              <Route path="/parent/manage-care-team" element={<ManageCareTeam />} />
               <Route path="/parent/therapy" element={<ParentTherapySessions />} />
               <Route path="/parent/therapy/room" element={<ParentTherapyRoom />} />
               <Route path="/parent/therapy/summary" element={<ParentTherapySummary />} />
