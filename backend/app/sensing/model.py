@@ -14,13 +14,11 @@ import numpy as np
 try:
     import torch
     import torch.nn as nn
+    TORCH_AVAILABLE = True
 except ImportError:
     torch = None
-    class DummyModule:
-        pass
-    class DummyNN:
-        Module = DummyModule
-    nn = DummyNN()
+    nn = None
+    TORCH_AVAILABLE = False
 
 from .config import (
     AFFECTNET_CLASSES,
@@ -32,7 +30,10 @@ from .config import (
 logger = logging.getLogger(__name__)
 
 
-class CalmSpaceLightFaceCNN(nn.Module):
+# Only define the model class when torch is actually available
+_BaseModule = nn.Module if TORCH_AVAILABLE else object
+
+class CalmSpaceLightFaceCNN(_BaseModule):
     """
     Ultra-lightweight depthwise-separable CNN for real-time facial affect prediction.
     Zero external weight dependencies; runs effortlessly on low-power edge CPUs at 60+ FPS.
@@ -66,7 +67,7 @@ class CalmSpaceLightFaceCNN(nn.Module):
 
         self._init_weights()
 
-    def _make_ds_block(self, in_ch: int, out_ch: int, stride: int = 1) -> nn.Sequential:
+    def _make_ds_block(self, in_ch: int, out_ch: int, stride: int = 1):
         return nn.Sequential(
             # Depthwise conv
             nn.Conv2d(in_ch, in_ch, kernel_size=3, stride=stride, padding=1, groups=in_ch, bias=False),

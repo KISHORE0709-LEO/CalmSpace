@@ -1,259 +1,213 @@
 import { ParentShell } from "@/components/ParentShell";
-import { 
-  Activity, HeartPulse, Lightbulb, AlertTriangle, ArrowRight, 
-  History, MessageSquare, Phone, CheckCircle2, TrendingUp, ShieldCheck
-} from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useEmotion } from "@/context/EmotionContext";
+import { Activity, Lightbulb, CheckCircle2, ShieldCheck, History, Loader2, Users } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { careTeamApi, LinkedChild } from "@/lib/careTeamApi";
+
+const EMOTION_CONFIG = {
+  Calm:       { emoji: "😌", label: "Calm",       bg: "from-green-100 to-emerald-100",  text: "text-green-900",  badge: "bg-green-100 border-green-400 text-green-800",   actions: ["✅ Continue current activity", "🎵 Keep ambient music low", "💡 Maintain current lighting"] },
+  Happy:      { emoji: "😊", label: "Happy",      bg: "from-yellow-100 to-amber-100",   text: "text-yellow-900", badge: "bg-yellow-100 border-yellow-400 text-yellow-800", actions: ["🎉 Encourage play or sharing", "🎨 Offer creative activities", "🗣️ Engage in conversation"] },
+  Distressed: { emoji: "😰", label: "Distressed", bg: "from-orange-100 to-amber-100",   text: "text-orange-900", badge: "bg-orange-100 border-orange-400 text-orange-800", actions: ["💡 Dim the lights", "🎧 Offer calming sounds", "🛋️ Guide to a quiet space"] },
+  Overwhelmed:{ emoji: "🤯", label: "Overwhelmed",bg: "from-red-100 to-rose-100",        text: "text-red-900",    badge: "bg-red-100 border-red-400 text-red-800",           actions: ["🚨 Activate Sanctuary Mode", "🔇 Reduce all noise", "🤝 Offer physical comfort"] },
+  Unknown:    { emoji: "🌫️", label: "Detecting…", bg: "from-gray-100 to-slate-100",     text: "text-gray-900",   badge: "bg-gray-100 border-gray-300 text-gray-700",        actions: [] },
+};
+
+const MAX_HISTORY = 8;
 
 const LiveEmotion = () => {
-  const navigate = useNavigate();
+  const { user } = useAuth();
+  // Live WebSocket emotion (from child's active session)
+  const { emotion: wsEmotion, detectionConfidence: wsConf, calmspaceMappedProbabilities: wsProbs, isLive, faceDetected } = useEmotion();
+
+  const [children, setChildren] = useState<LinkedChild[]>([]);
+  const [selectedChild, setSelectedChild] = useState<LinkedChild | null>(null);
+  const [loadingChildren, setLoadingChildren] = useState(true);
+
+  // Persisted latest emotion from DB (when child not actively streaming)
+  const [dbEmotion, setDbEmotion] = useState<any>(null);
+  const [history, setHistory] = useState<{ emotion: string; time: string }[]>([]);
+  const lastEmotionRef = useRef<string>("");
+
+  useEffect(() => {
+    if (!user) return;
+    careTeamApi.getMyChildren(user.uid).then(data => {
+      setChildren(data);
+      if (data.length > 0) setSelectedChild(data[0]);
+    }).finally(() => setLoadingChildren(false));
+  }, [user]);
+
+  // Poll DB for latest emotion every 5s when child is not live
+  useEffect(() => {
+    if (!user || !selectedChild) return;
+    const poll = () => {
+      careTeamApi.getLatest(selectedChild.id, user.uid).then(setDbEmotion).catch(() => {});
+    };
+    poll();
+    const t = setInterval(poll, 5000);
+    return () => clearInterval(t);
+  }, [user, selectedChild]);
+
+  // Use live WS emotion if streaming, else fall back to DB
+  const emotion = (isLive && faceDetected ? wsEmotion : dbEmotion?.state) || "Unknown";
+  const confidence = isLive && faceDetected ? wsConf : (dbEmotion?.confidence || 0);
+  const probs = isLive && faceDetected ? wsProbs : (dbEmotion?.probs || { Calm:0.25, Happy:0.25, Distressed:0.25, Overwhelmed:0.25 });
+
+  const cfg = EMOTION_CONFIG[emotion as keyof typeof EMOTION_CONFIG] ?? EMOTION_CONFIG.Unknown;
+
+  useEffect(() => {
+    if (emotion !== "Unknown" && emotion !== lastEmotionRef.current) {
+      lastEmotionRef.current = emotion;
+      const now = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+      setHistory(prev => [{ emotion, time: now }, ...prev].slice(0, MAX_HISTORY));
+    }
+  }, [emotion]);
+
+  const historyColors: Record<string, string> = {
+    Calm: "bg-green-200 border-green-400", Happy: "bg-yellow-200 border-yellow-400",
+    Distressed: "bg-orange-200 border-orange-400", Overwhelmed: "bg-red-200 border-red-400",
+    Unknown: "bg-gray-200 border-gray-300",
+  };
+
+  if (loadingChildren) return (
+    <ParentShell title="Live Emotion View" subtitle="Real-time emotion monitoring" fullWidth>
+      <div className="flex justify-center py-20"><Loader2 className="w-8 h-8 animate-spin text-primary" /></div>
+    </ParentShell>
+  );
+
+  if (children.length === 0) return (
+    <ParentShell title="Live Emotion View" subtitle="Real-time emotion monitoring" fullWidth>
+      <div className="calm-card p-12 text-center border-4 border-foreground shadow-pop max-w-lg mx-auto mt-10">
+        <Users className="w-14 h-14 mx-auto mb-4 text-muted-foreground" />
+        <h2 className="text-2xl font-black mb-2">No child linked</h2>
+        <p className="text-muted-foreground font-bold">Go to Manage Care Team to link your child.</p>
+      </div>
+    </ParentShell>
+  );
 
   return (
-    <ParentShell title="Live Session View" subtitle="Real-time monitoring and immediate guidance" fullWidth>
+    <ParentShell title="Live Emotion View" subtitle={`Monitoring ${selectedChild?.name || "your child"}`} fullWidth>
       <div className="grid lg:grid-cols-12 gap-6 pb-12 animate-fade-up items-start max-w-[1800px] mx-auto px-4">
-        
-        {/* ================= LEFT COLUMN (Stats & Vitals) ================= */}
+
+        {/* LEFT */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          
-          {/* Profile & Live Status */}
-          <div className="calm-card bg-white border-4 border-foreground shadow-pop rounded-2xl p-6 flex flex-col gap-6">
-            <div className="flex items-center justify-between border-b-2 border-foreground/10 pb-4">
-               <div className="flex flex-col items-end w-full">
-                  <div className="flex items-center gap-2 bg-green-100 border-2 border-green-400 text-green-800 px-3 py-1.5 rounded-full font-black text-sm shadow-sm w-full justify-center">
-                    <div className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
-                    Live Monitoring
-                  </div>
-                  <div className="text-xs font-bold text-muted-foreground mt-2 w-full text-center uppercase tracking-widest">
-                    Last updated 2:18 PM
-                  </div>
-               </div>
+
+          {/* Child selector */}
+          {children.length > 1 && (
+            <div className="calm-card border-4 border-foreground shadow-pop p-4">
+              <p className="text-xs font-black uppercase tracking-widest text-muted-foreground mb-3">Select Child</p>
+              <div className="flex flex-col gap-2">
+                {children.map(c => (
+                  <button key={c.id} onClick={() => setSelectedChild(c)}
+                    className={`px-4 py-2 rounded-xl font-black border-4 text-left transition-all ${selectedChild?.id === c.id ? "bg-primary text-primary-foreground border-foreground shadow-pop-sm" : "bg-background border-foreground/30 hover:border-foreground"}`}>
+                    {c.name}
+                  </button>
+                ))}
+              </div>
             </div>
-            
-            <div className="flex items-center gap-4">
+          )}
+
+          {/* Live status */}
+          <div className="calm-card bg-white border-4 border-foreground shadow-pop rounded-2xl p-6 flex flex-col gap-4">
+            <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full font-black text-sm shadow-sm justify-center border-2 ${isLive && faceDetected ? "bg-green-100 border-green-400 text-green-800" : "bg-amber-100 border-amber-400 text-amber-800"}`}>
+              <div className={`w-2.5 h-2.5 rounded-full animate-pulse ${isLive && faceDetected ? "bg-green-500" : "bg-amber-500"}`} />
+              {isLive && faceDetected ? "🔴 Live Stream" : dbEmotion ? "📊 Last Known State" : "Waiting…"}
+            </div>
+            <div className="flex items-center gap-4 pt-2">
               <div className="w-14 h-14 rounded-full bg-blue-100 border-4 border-foreground shadow-pop-sm flex items-center justify-center text-xl font-black text-blue-900 shrink-0">
-                RK
+                {selectedChild?.name?.charAt(0) || "👦"}
               </div>
               <div>
-                <h2 className="text-xl font-black text-foreground leading-tight">Rahul Kumar</h2>
-                <p className="text-xs font-bold text-muted-foreground">Age 8 • Spectrum A</p>
+                <h2 className="text-lg font-black">{selectedChild?.name || "Your Child"}</h2>
+                <p className="text-xs font-bold text-muted-foreground">
+                  {dbEmotion?.logged_at ? `Last seen: ${new Date(dbEmotion.logged_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"})}` : "No data yet"}
+                </p>
               </div>
             </div>
           </div>
 
-          {/* Heart Rate Strip */}
-          <div className="calm-card bg-white border-4 border-foreground shadow-pop p-6 flex flex-col">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-black flex items-center gap-2">
-                <HeartPulse className="w-5 h-5 text-red-500" /> Heart Rate
-              </h3>
-            </div>
-            
-            <style>{`
-              @keyframes ecg-scroll {
-                0% { transform: translateX(0); }
-                100% { transform: translateX(-50%); }
-              }
-              .animate-ecg {
-                animation: ecg-scroll 3s linear infinite;
-              }
-            `}</style>
-            <div className="h-24 relative overflow-hidden flex items-center bg-red-50 rounded-xl border-4 border-foreground shadow-inner">
-              <svg viewBox="0 0 400 100" preserveAspectRatio="none" className="absolute left-0 h-[85%] w-[200%] stroke-red-500 fill-transparent stroke-[4px] animate-ecg drop-shadow-sm">
-                <path d="M0 50 L10 50 L15 20 L20 80 L25 50 L40 50 L45 10 L55 90 L65 50 L80 50 L85 30 L90 70 L95 50 L110 50 
-                         L125 50 L130 20 L135 80 L140 50 L155 50 L160 10 L170 90 L180 50 L195 50 L200 30 L205 70 L210 50 L220 50
-                         M220 50 L230 50 L235 20 L240 80 L245 50 L260 50 L265 10 L275 90 L285 50 L300 50 L305 30 L310 70 L315 50 L330 50 
-                         L345 50 L350 20 L355 80 L360 50 L375 50 L380 10 L390 90 L400 50 L415 50 L420 30 L425 70 L430 50 L440 50" 
-                      strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div className="absolute right-0 bottom-2 bg-white/95 backdrop-blur-md pl-3 pr-2 py-1 rounded-l-xl border-y-4 border-l-4 border-foreground shadow-pop-sm flex items-end gap-1">
-                <div className="text-2xl font-black text-red-600 leading-none">94</div>
-                <div className="text-[10px] font-black text-muted-foreground tracking-widest uppercase pb-0.5">BPM</div>
-              </div>
-            </div>
-          </div>
-
-          {/* AI Metrics: Confidence & Trend */}
-          <div className="calm-card bg-white border-4 border-foreground shadow-pop p-6 flex flex-col gap-5">
+          {/* Confidence + bars */}
+          <div className="calm-card bg-white border-4 border-foreground shadow-pop p-6 flex flex-col gap-4">
             <div>
               <div className="flex justify-between items-end mb-2">
                 <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider flex items-center gap-2">
-                  <ShieldCheck className="w-4 h-4 text-primary" /> Emotion Confidence
+                  <ShieldCheck className="w-4 h-4 text-primary" /> Confidence
                 </h3>
-                <span className="font-black text-primary">92%</span>
+                <span className="font-black text-primary">{Math.round(confidence * 100)}%</span>
               </div>
               <div className="h-3 w-full bg-muted rounded-full overflow-hidden border-2 border-foreground/10">
-                <div className="h-full bg-primary w-[92%] rounded-full" />
+                <div className="h-full bg-primary rounded-full transition-all duration-500" style={{ width: `${Math.round(confidence * 100)}%` }} />
               </div>
             </div>
-
-            <div className="pt-4 border-t-2 border-foreground/10">
-              <h3 className="text-sm font-black text-muted-foreground uppercase tracking-wider mb-2">Stress Trend</h3>
-              <div className="flex items-center gap-2 text-orange-600 bg-orange-50 border-2 border-orange-200 px-3 py-2 rounded-xl">
-                <TrendingUp className="w-5 h-5" />
-                <span className="font-bold text-sm">Slightly Increasing</span>
-              </div>
+            <div className="pt-3 border-t-2 border-foreground/10 flex flex-col gap-2">
+              {Object.entries(EMOTION_CONFIG).filter(([k]) => k !== "Unknown").map(([key, c]) => {
+                const pct = Math.round((probs[key] || 0) * 100);
+                const barColor = key === "Calm" ? "bg-green-400" : key === "Happy" ? "bg-yellow-400" : key === "Distressed" ? "bg-orange-400" : "bg-red-400";
+                return (
+                  <div key={key}>
+                    <div className="flex justify-between text-xs font-bold mb-0.5"><span>{c.emoji} {c.label}</span><span>{pct}%</span></div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div className={`h-full rounded-full transition-all duration-500 ${barColor}`} style={{ width: `${pct}%` }} />
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
-
         </div>
 
-        {/* ================= CENTER COLUMN (Hero & Guidance) ================= */}
+        {/* CENTER */}
         <div className="lg:col-span-6 flex flex-col gap-6">
-          
-          {/* HERO: Current Emotion State */}
-          <div className="calm-card bg-gradient-to-br from-yellow-100 to-orange-100 border-4 border-foreground shadow-pop-xl p-8 lg:p-12 relative overflow-hidden flex flex-col items-center justify-center text-center">
-            <div className="absolute -top-20 -right-20 w-64 h-64 bg-orange-300/30 rounded-full blur-3xl pointer-events-none" />
-            <div className="absolute -bottom-20 -left-20 w-64 h-64 bg-yellow-300/30 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="inline-flex items-center gap-2 bg-white/90 backdrop-blur border-4 border-foreground shadow-pop px-6 py-2 rounded-full font-black uppercase tracking-widest text-orange-900 mb-8 relative z-10 text-sm">
-              Status <span className="mx-2 text-foreground/20">|</span> 🟡 Attention Recommended
+          <div className={`calm-card bg-gradient-to-br ${cfg.bg} border-4 border-foreground shadow-pop-xl p-8 lg:p-12 relative overflow-hidden flex flex-col items-center justify-center text-center`}>
+            <div className={`inline-flex items-center gap-2 bg-white/90 backdrop-blur border-4 border-foreground shadow-pop px-6 py-2 rounded-full font-black uppercase tracking-widest ${cfg.text} mb-8 relative z-10 text-sm`}>
+              {isLive && faceDetected ? "🟢 Live" : "📊 Last Known"} &nbsp;|&nbsp; {cfg.label}
             </div>
-            
-            <div className="text-[120px] leading-none animate-wiggle drop-shadow-2xl relative z-10 mb-6">
-              😟
-            </div>
-            
-            <h1 className="text-5xl lg:text-6xl font-black text-orange-900 tracking-tight relative z-10 mb-4">
-              Mildly Stressed
-            </h1>
-            <p className="text-2xl font-bold text-orange-800/80 relative z-10">
-              Elevated physiological signs detected.
-            </p>
+            <div className="text-[120px] leading-none drop-shadow-2xl relative z-10 mb-6 transition-all duration-500">{cfg.emoji}</div>
+            <h1 className={`text-5xl lg:text-6xl font-black ${cfg.text} tracking-tight relative z-10 mb-4`}>{cfg.label}</h1>
           </div>
 
-          {/* What this means */}
-          <div className="calm-card bg-blue-50 border-4 border-foreground shadow-pop-lg p-8 flex-1 flex flex-col relative overflow-hidden">
-            <div className="absolute -bottom-10 -right-10 w-40 h-40 bg-blue-200/50 rounded-full blur-3xl pointer-events-none" />
-            
-            <div className="flex items-center gap-3 mb-6 relative z-10">
-              <div className="w-12 h-12 bg-blue-100 rounded-full border-2 border-blue-300 flex items-center justify-center">
-                <Lightbulb className="w-6 h-6 text-blue-600" />
+          {cfg.actions.length > 0 && (
+            <div className="calm-card bg-blue-50 border-4 border-foreground shadow-pop-lg p-8 flex flex-col">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-12 h-12 bg-blue-100 rounded-full border-2 border-blue-300 flex items-center justify-center">
+                  <Lightbulb className="w-6 h-6 text-blue-600" />
+                </div>
+                <h3 className="text-2xl font-black text-blue-900">Suggested Actions</h3>
               </div>
-              <h3 className="text-3xl font-black text-blue-900">What this means</h3>
+              <ul className="space-y-3">
+                {cfg.actions.map((a, i) => (
+                  <li key={i} className="flex items-center gap-4 bg-white p-4 rounded-2xl border-2 border-blue-200 shadow-sm font-bold text-blue-900 text-lg">{a}</li>
+                ))}
+              </ul>
             </div>
-
-            <div className="bg-white rounded-3xl border-4 border-foreground shadow-pop-sm p-6 lg:p-8 relative z-10">
-              <p className="text-xl font-bold text-foreground mb-6">
-                Child may be feeling overwhelmed and needs a proactive sensory break to prevent escalation.
-              </p>
-              <div className="space-y-4">
-                <h4 className="font-black text-sm text-muted-foreground uppercase tracking-widest">Suggested Immediate Actions</h4>
-                <ul className="space-y-3">
-                  <li className="flex items-center gap-4 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer p-4 rounded-2xl border-2 border-blue-200 shadow-sm">
-                    <span className="text-2xl">💡</span>
-                    <span className="font-bold text-blue-900 text-lg">Dim the lights</span>
-                  </li>
-                  <li className="flex items-center gap-4 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer p-4 rounded-2xl border-2 border-blue-200 shadow-sm">
-                    <span className="text-2xl">🎧</span>
-                    <span className="font-bold text-blue-900 text-lg">Offer calming sounds or headphones</span>
-                  </li>
-                  <li className="flex items-center gap-4 bg-blue-50 hover:bg-blue-100 transition-colors cursor-pointer p-4 rounded-2xl border-2 border-blue-200 shadow-sm">
-                    <span className="text-2xl">🛋️</span>
-                    <span className="font-bold text-blue-900 text-lg">Guide to the Quiet Corner</span>
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-
+          )}
         </div>
 
-        {/* ================= RIGHT COLUMN (History & Actions) ================= */}
+        {/* RIGHT */}
         <div className="lg:col-span-3 flex flex-col gap-6">
-          
-          {/* Positive Observation */}
-          <div className="calm-card bg-green-50 border-4 border-foreground shadow-pop p-6">
-            <h3 className="text-sm font-black text-green-800 uppercase tracking-wider mb-4 flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-green-600" /> Positive Observation
-            </h3>
-            <div className="bg-white border-2 border-green-200 p-4 rounded-xl shadow-sm text-green-900 font-bold text-sm leading-relaxed">
-              ✓ Child remains responsive to verbal prompts.
-            </div>
-          </div>
-
-          {/* Recent State Changes */}
           <div className="calm-card bg-white border-4 border-foreground shadow-pop p-6 flex-1">
-            <div className="flex items-center justify-between mb-6">
-              <h3 className="text-base font-black flex items-center gap-2">
-                <History className="w-5 h-5 text-blue-500" /> Recent Transitions
-              </h3>
-            </div>
-            
-            <div className="space-y-4 relative before:absolute before:inset-0 before:ml-4 before:-translate-x-px before:h-full before:w-1 before:bg-gradient-to-b before:from-blue-500 before:via-blue-200 before:to-transparent">
-              
-              {/* Timeline Item 1 */}
-              <div className="relative flex items-center group is-active">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full border-4 border-foreground bg-orange-200 shadow-sm shrink-0 z-10 relative">
-                  <div className="w-2 h-2 bg-orange-600 rounded-full animate-ping"></div>
-                </div>
-                <div className="w-[calc(100%-3rem)] bg-orange-50 p-3 rounded-xl border-2 border-orange-200 shadow-sm ml-4">
-                  <div className="flex flex-col gap-0.5 mb-1">
-                    <span className="font-black text-sm text-orange-900">Mildly Stressed</span>
-                    <time className="text-xs font-bold text-orange-600">2:15 PM</time>
-                  </div>
-                </div>
+            <h3 className="text-base font-black flex items-center gap-2 mb-6"><History className="w-5 h-5 text-blue-500" /> Emotion History</h3>
+            {history.length === 0 ? (
+              <p className="text-sm text-muted-foreground text-center py-8">No transitions yet</p>
+            ) : (
+              <div className="space-y-3">
+                {history.map((h, i) => {
+                  const hcfg = EMOTION_CONFIG[h.emotion as keyof typeof EMOTION_CONFIG] ?? EMOTION_CONFIG.Unknown;
+                  return (
+                    <div key={i} className="flex items-center gap-3">
+                      <div className={`w-8 h-8 rounded-full border-4 border-foreground ${historyColors[h.emotion] ?? "bg-gray-200"} flex items-center justify-center text-sm shrink-0`}>
+                        {i === 0 && <div className="w-2 h-2 rounded-full bg-current animate-ping" />}
+                      </div>
+                      <div className={`flex-1 p-2 rounded-xl border-2 ${historyColors[h.emotion] ?? "border-gray-200"}`}>
+                        <div className="font-black text-sm">{hcfg.emoji} {hcfg.label}</div>
+                        <div className="text-xs text-muted-foreground">{h.time}</div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
-
-              {/* Timeline Item 2 */}
-              <div className="relative flex items-center group">
-                <div className="flex items-center justify-center w-8 h-8 rounded-full border-4 border-foreground bg-green-200 shadow-sm shrink-0 z-10 relative">
-                </div>
-                <div className="w-[calc(100%-3rem)] bg-green-50 p-3 rounded-xl border-2 border-green-200 shadow-sm ml-4">
-                  <div className="flex flex-col gap-0.5 mb-1">
-                    <span className="font-black text-sm text-green-900">Calm</span>
-                    <time className="text-xs font-bold text-green-600">12:30 PM</time>
-                  </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
-
-          {/* Action Buttons */}
-          <div className="flex flex-col gap-4">
-            <button 
-              onClick={() => navigate("/parent/crisis-alerts")}
-              className="w-full flex items-center justify-between bg-red-100 hover:bg-red-200 border-4 border-foreground shadow-pop hover:shadow-pop-md hover:-translate-y-1 transition-all rounded-2xl p-5 group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-full border-2 border-red-300 flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform">
-                  <AlertTriangle className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <h4 className="font-black text-lg text-red-900">Go to Alerts</h4>
-                </div>
-              </div>
-              <ArrowRight className="w-6 h-6 text-red-500 group-hover:translate-x-1 transition-transform" />
-            </button>
-
-            <button 
-              onClick={() => navigate("/parent/chat")}
-              className="w-full flex items-center justify-between bg-purple-100 hover:bg-purple-200 border-4 border-foreground shadow-pop hover:shadow-pop-md hover:-translate-y-1 transition-all rounded-2xl p-5 group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-full border-2 border-purple-300 flex items-center justify-center text-purple-600 group-hover:scale-110 transition-transform">
-                  <MessageSquare className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <h4 className="font-black text-lg text-purple-900">Message Caregiver</h4>
-                </div>
-              </div>
-            </button>
-
-            <button 
-              onClick={() => navigate("/parent/chat")}
-              className="w-full flex items-center justify-between bg-blue-100 hover:bg-blue-200 border-4 border-foreground shadow-pop hover:shadow-pop-md hover:-translate-y-1 transition-all rounded-2xl p-5 group cursor-pointer"
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-white rounded-full border-2 border-blue-300 flex items-center justify-center text-blue-600 group-hover:scale-110 transition-transform">
-                  <Phone className="w-5 h-5" />
-                </div>
-                <div className="text-left">
-                  <h4 className="font-black text-lg text-blue-900">Message Doctor</h4>
-                </div>
-              </div>
-            </button>
-          </div>
-
         </div>
 
       </div>

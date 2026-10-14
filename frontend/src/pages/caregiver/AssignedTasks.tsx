@@ -1,15 +1,20 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { CaregiverShell } from "@/components/CaregiverShell";
 import { 
   CheckCircle2, Circle, Clock, MessageSquare, Send, Calendar, 
-  CheckSquare, AlertCircle, ListTodo, Search, Filter
+  CheckSquare, AlertCircle, ListTodo, Search, Filter, Plus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { db } from "@/lib/firebase";
+import { collection, query, onSnapshot, addDoc, updateDoc, doc, serverTimestamp, orderBy } from "firebase/firestore";
+import { useAuth } from "@/contexts/AuthContext";
+import { toast } from "sonner";
 
 type Priority = "High" | "Medium" | "Low";
-type Role = "Parent" | "Doctor";
+type Role = "Parent" | "Doctor" | "Caregiver";
 type TaskStatus = "pending" | "completing" | "completed";
 
 interface Task {
@@ -20,78 +25,78 @@ interface Task {
   priority: Priority;
   status: TaskStatus;
   note?: string;
+  createdAt?: any;
 }
 
-const initialTasks: Task[] = [
-  {
-    id: "1",
-    title: "Practice Social Practice — World 1, Level 3",
-    assignedBy: { name: "Dr. Mehta", role: "Doctor" },
-    dueWindow: "Today",
-    priority: "High",
-    status: "pending",
-  },
-  {
-    id: "2",
-    title: "Encourage 10 min outdoor sensory time",
-    assignedBy: { name: "Mr. Jenkins", role: "Parent" },
-    dueWindow: "Today",
-    priority: "Medium",
-    status: "pending",
-  },
-  {
-    id: "3",
-    title: "Complete one breathing exercise before lunch",
-    assignedBy: { name: "Dr. Mehta", role: "Doctor" },
-    dueWindow: "Today",
-    priority: "High",
-    status: "completed",
-    note: "Completed successfully. Rahul was very calm.",
-  },
-  {
-    id: "4",
-    title: "Try the new Emotion Match game",
-    assignedBy: { name: "Dr. Mehta", role: "Doctor" },
-    dueWindow: "This week",
-    priority: "Low",
-    status: "pending",
-  },
-  {
-    id: "5",
-    title: "Review daily schedule visually",
-    assignedBy: { name: "Mr. Jenkins", role: "Parent" },
-    dueWindow: "This week",
-    priority: "Medium",
-    status: "pending",
-  },
-];
-
 const AssignedTasks = () => {
-  const [tasks, setTasks] = useState<Task[]>(initialTasks);
+  const { user } = useAuth();
+  const [tasks, setTasks] = useState<Task[]>([]);
   const [tempNotes, setTempNotes] = useState<Record<string, string>>({});
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("all");
+  
+  // Add task state
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newTask, setNewTask] = useState({ title: "", priority: "Medium" as Priority, dueWindow: "Today" as "Today"|"This week" });
+  const [isAdding, setIsAdding] = useState(false);
 
-  const handleToggleCheckbox = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) => {
-        if (t.id === taskId) {
-          if (t.status === "pending") return { ...t, status: "completing" };
-          if (t.status === "completing") return { ...t, status: "pending" };
-        }
-        return t;
-      })
-    );
+  useEffect(() => {
+    if (!user) return;
+    const q = query(collection(db, "tasks"), orderBy("createdAt", "desc"));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const fetchedTasks = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Task));
+      setTasks(fetchedTasks);
+    });
+    return () => unsubscribe();
+  }, [user]);
+
+  const handleToggleCheckbox = async (taskId: string, currentStatus: TaskStatus) => {
+    const newStatus = currentStatus === "pending" ? "completing" : "pending";
+    try {
+      await updateDoc(doc(db, "tasks", taskId), { status: newStatus });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to update status");
+    }
   };
 
-  const handleSaveNoteAndComplete = (taskId: string) => {
-    setTasks((prev) =>
-      prev.map((t) =>
-        t.id === taskId
-          ? { ...t, status: "completed", note: tempNotes[taskId] || "" }
-          : t
-      )
-    );
+  const handleSaveNoteAndComplete = async (taskId: string) => {
+    try {
+      await updateDoc(doc(db, "tasks", taskId), {
+        status: "completed",
+        note: tempNotes[taskId] || ""
+      });
+      toast.success("Task completed!");
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to complete task");
+    }
+  };
+
+  const handleAddTask = async () => {
+    if (!newTask.title) {
+      toast.error("Please enter a task title");
+      return;
+    }
+    setIsAdding(true);
+    try {
+      await addDoc(collection(db, "tasks"), {
+        title: newTask.title,
+        assignedBy: { name: user?.displayName || "Caregiver", role: "Caregiver" },
+        dueWindow: newTask.dueWindow,
+        priority: newTask.priority,
+        status: "pending",
+        createdAt: serverTimestamp()
+      });
+      toast.success("Task added successfully");
+      setIsAddModalOpen(false);
+      setNewTask({ title: "", priority: "Medium", dueWindow: "Today" });
+    } catch (e) {
+      console.error(e);
+      toast.error("Failed to add task");
+    } finally {
+      setIsAdding(false);
+    }
   };
 
   const filteredTasks = useMemo(() => {
@@ -105,11 +110,9 @@ const AssignedTasks = () => {
     if (filterType === "pending") result = result.filter(t => t.status !== "completed");
     if (filterType === "completed") result = result.filter(t => t.status === "completed");
 
-    // Sort: Pending first, then completed. Then High priority first.
     result.sort((a, b) => {
       if (a.status === "completed" && b.status !== "completed") return 1;
       if (a.status !== "completed" && b.status === "completed") return -1;
-      
       const priorityWeight = { High: 3, Medium: 2, Low: 1 };
       return priorityWeight[b.priority] - priorityWeight[a.priority];
     });
@@ -145,7 +148,7 @@ const AssignedTasks = () => {
 
         <div className="flex items-start gap-4 mb-4 pr-16">
           <button 
-            onClick={() => !isCompleted && handleToggleCheckbox(task.id)}
+            onClick={() => !isCompleted && handleToggleCheckbox(task.id, task.status)}
             disabled={isCompleted}
             className="mt-1 flex-shrink-0 focus:outline-none transition-transform hover:scale-110 active:scale-95 disabled:hover:scale-100 disabled:opacity-50"
           >
@@ -169,9 +172,9 @@ const AssignedTasks = () => {
           <div className="flex items-center justify-between p-3 rounded-xl bg-background border-2 border-border/50">
             <span className="text-sm font-bold text-muted-foreground">Assigned By</span>
             <span className={`px-3 py-1 rounded-full text-xs font-bold border-2 ${
-              task.assignedBy.role === 'Doctor' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-orange-100 text-orange-800 border-orange-300'
+              task.assignedBy?.role === 'Doctor' ? 'bg-purple-100 text-purple-800 border-purple-300' : 'bg-orange-100 text-orange-800 border-orange-300'
             }`}>
-              {task.assignedBy.name} ({task.assignedBy.role})
+              {task.assignedBy?.name || 'Unknown'} ({task.assignedBy?.role || 'Unknown'})
             </span>
           </div>
 
@@ -206,7 +209,7 @@ const AssignedTasks = () => {
                 type="text" 
                 value={tempNotes[task.id] || ""}
                 onChange={(e) => setTempNotes({ ...tempNotes, [task.id]: e.target.value })}
-                placeholder="How did Rahul do?"
+                placeholder="How did they do?"
                 className="w-full h-10 border-2 border-foreground rounded-lg px-3 py-1.5 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-primary shadow-sm"
               />
               <Button 
@@ -234,6 +237,12 @@ const AssignedTasks = () => {
     <CaregiverShell title="Assigned Tasks" subtitle="Tasks and goals for the current session" fullWidth>
       <div className="pt-8 pb-12 animate-fade-up max-w-[1800px] mx-auto px-4">
         
+        <div className="flex justify-end mb-4">
+            <Button onClick={() => setIsAddModalOpen(true)} className="h-12 rounded-xl font-black shadow-pop-sm border-2 border-foreground bg-primary hover:-translate-y-1 transition-all">
+                <Plus className="w-5 h-5 mr-2" /> Add Task
+            </Button>
+        </div>
+
         {/* Top Summary Strip */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
           <div className="calm-card p-6 flex items-center gap-4 bg-white">
@@ -320,6 +329,61 @@ const AssignedTasks = () => {
           )}
         </div>
         
+        {/* Add Task Modal */}
+        <Dialog open={isAddModalOpen} onOpenChange={setIsAddModalOpen}>
+          <DialogContent className="sm:max-w-md bg-card border-2 border-foreground shadow-pop sm:rounded-[1.5rem]">
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-black">Add New Task</DialogTitle>
+              <DialogDescription className="font-bold text-muted-foreground">
+                Assign a new task or goal.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4 py-4">
+              <div className="space-y-2">
+                <label className="text-sm font-bold">Task Title</label>
+                <Input 
+                  value={newTask.title}
+                  onChange={e => setNewTask({...newTask, title: e.target.value})}
+                  placeholder="e.g. 10 min sensory break"
+                  className="border-2 border-foreground h-12 rounded-xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold">Priority</label>
+                <Select value={newTask.priority} onValueChange={(val: Priority) => setNewTask({...newTask, priority: val})}>
+                  <SelectTrigger className="border-2 border-foreground h-12 rounded-xl font-bold bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Low">Low</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="High">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold">Due Window</label>
+                <Select value={newTask.dueWindow} onValueChange={(val: "Today" | "This week") => setNewTask({...newTask, dueWindow: val})}>
+                  <SelectTrigger className="border-2 border-foreground h-12 rounded-xl font-bold bg-background">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Today">Today</SelectItem>
+                    <SelectItem value="This week">This week</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-3 mt-4">
+              <Button variant="outline" onClick={() => setIsAddModalOpen(false)} className="font-black border-2 border-foreground h-12 rounded-xl">Cancel</Button>
+              <Button onClick={handleAddTask} disabled={isAdding} className="font-black border-2 border-foreground bg-primary h-12 rounded-xl shadow-pop-sm hover:-translate-y-1">
+                {isAdding ? "Adding..." : "Add Task"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </CaregiverShell>
   );

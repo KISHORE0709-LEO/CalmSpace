@@ -7,9 +7,8 @@ import { useNavigate } from "react-router-dom";
 import { DoctorShell } from "@/components/DoctorShell";
 import {
   Calendar, Clock, Users, Target, Video, Link as LinkIcon,
-  CheckCircle2, Activity, FileText, ClipboardList, Plus,
-  Brain, MessageCircle, Heart, PenTool, Wind, Copy, Check,
-  AlertCircle, Loader2, X
+  CheckCircle2, Activity, FileText, Copy, Check,
+  Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -19,6 +18,7 @@ import {
   fetchSessions, createSession, updateSessionStatus,
   TherapySession
 } from "@/lib/therapyApi";
+import { careTeamApi, LinkedChild } from "@/lib/careTeamApi";
 import { toast } from "sonner";
 
 const STATUS_COLORS: Record<string, string> = {
@@ -49,9 +49,10 @@ export default function TherapySetup() {
   const [loadingSessions, setLoadingSessions] = useState(true);
   const [creating, setCreating] = useState(false);
   const [copiedUid, setCopiedUid] = useState<string | null>(null);
+  const [linkedChildren, setLinkedChildren] = useState<LinkedChild[]>([]);
 
   // Form state
-  const [childUserId, setChildUserId] = useState("1");  // default to first child
+  const [childUserId, setChildUserId] = useState("");
   const [sessionType, setSessionType] = useState("follow-up");
   const [duration, setDuration] = useState("45");
   const [scheduledDate, setScheduledDate] = useState("");
@@ -72,6 +73,11 @@ export default function TherapySetup() {
     };
     load();
     const interval = setInterval(load, 5000);
+    // Load linked children for the dropdown
+    careTeamApi.getMyChildren(user.uid).then(children => {
+      setLinkedChildren(children);
+      if (children.length > 0 && !childUserId) setChildUserId(String(children[0].id));
+    });
     return () => clearInterval(interval);
   }, [user]);
 
@@ -261,14 +267,25 @@ export default function TherapySetup() {
                 </label>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <label className="text-sm font-black text-muted-foreground">Patient (Child ID)</label>
-                    <Input
-                      type="number"
-                      value={childUserId}
-                      onChange={(e) => setChildUserId(e.target.value)}
-                      className="border-2 border-foreground/20 font-bold h-12 rounded-xl"
-                      placeholder="Child user ID"
-                    />
+                    <label className="text-sm font-black text-muted-foreground">Patient</label>
+                    {linkedChildren.length === 0 ? (
+                      <div className="h-12 border-2 border-foreground/20 rounded-xl flex items-center px-4 text-sm text-muted-foreground font-bold">
+                        No patients linked yet
+                      </div>
+                    ) : (
+                      <Select value={childUserId} onValueChange={setChildUserId}>
+                        <SelectTrigger className="border-2 border-foreground/20 font-bold h-12 rounded-xl">
+                          <SelectValue placeholder="Select patient" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {linkedChildren.map(c => (
+                            <SelectItem key={c.id} value={String(c.id)}>
+                              {c.name}{c.age ? ` (Age ${c.age})` : ""}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
                   </div>
                   <div className="space-y-2">
                     <label className="text-sm font-black text-muted-foreground">Session Title (optional)</label>

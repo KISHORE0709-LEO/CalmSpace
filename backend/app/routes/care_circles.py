@@ -216,6 +216,17 @@ def invite_member(
 
     invited_email = request.email.strip().lower()
 
+    # Children cannot be added to Care Circle group chats
+    invited_user_check = db.query(models.User).filter(
+        models.User.email == invited_email
+    ).first()
+    if invited_user_check and invited_user_check.role == "child":
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Children are not part of the Care Circle group chat. Only parents, caregivers, and doctors are included."
+        )
+
+
     # Check for existing member
     existing = db.query(models.CareCircleMember).filter(
         models.CareCircleMember.circle_id == circle_id,

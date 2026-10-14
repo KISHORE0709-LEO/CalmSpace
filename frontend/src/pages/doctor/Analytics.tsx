@@ -8,16 +8,16 @@ import { Activity, Download, Brain, Clock, AlertTriangle } from "lucide-react";
 // Colors for emotion states
 const COLORS = {
   Calm: "#22c55e", // green-500
-  Mild: "#eab308", // yellow-500
-  Anxious: "#f97316", // orange-500
-  Overloaded: "#ef4444", // red-500
+  Happy: "#3b82f6", // blue-500
+  Distressed: "#f97316", // orange-500
+  Overwhelmed: "#ef4444", // red-500
 };
 
 const EMOTION_MAP = {
   Calm: { color: COLORS.Calm, icon: "😌" },
-  Mild: { color: COLORS.Mild, icon: "😐" },
-  Anxious: { color: COLORS.Anxious, icon: "😰" },
-  Overloaded: { color: COLORS.Overloaded, icon: "🤯" },
+  Happy: { color: COLORS.Happy, icon: "😊" },
+  Distressed: { color: COLORS.Distressed, icon: "😰" },
+  Overwhelmed: { color: COLORS.Overwhelmed, icon: "🤯" },
 };
 
 // Mock data generation function based on date range

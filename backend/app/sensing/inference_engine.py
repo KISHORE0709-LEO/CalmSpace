@@ -71,7 +71,15 @@ class FacialEmotionEngine:
         self._baseline_smile: float = 0.05
         self._baseline_furrow: float = 0.10
         self._baseline_mouth_open: float = 0.05
-        self._baseline_alpha: float = 0.05  # Slow EMA adaptation for user's unique resting face
+        self._baseline_alpha: float = 0.01  # Very slow EMA — don't absorb real expressions
+
+        # Hysteresis lock: state only changes after HYSTERESIS_FRAMES consecutive wins
+        # with a lead margin >= HYSTERESIS_MARGIN over the current locked state.
+        self._locked_state: str = "Unknown"
+        self._candidate_state: str = "Unknown"
+        self._candidate_frames: int = 0
+        self._HYSTERESIS_FRAMES: int = 6   # ~1.5s at 4fps
+        self._HYSTERESIS_MARGIN: float = 0.12  # challenger must lead by 12pp
 
         # Initialize face detector
         self.face_cascade = None
@@ -350,8 +358,11 @@ class FacialEmotionEngine:
 
         # 4. Handle Graceful Degradation (no face, or face occluded/poor quality)
         if primary_bbox is None or not quality.face_detected or not quality.face_visible or quality.quality_score < 0.20:
-            # Reset smoothed probabilities on face loss
-            self._smoothed_raw_probs = None
+            # Reset smoothed probabilities and hysteresis lock on face loss
+            self._smoothed_raw_probs   = None
+            self._locked_state         = "Unknown"
+            self._candidate_state      = "Unknown"
+            self._candidate_frames     = 0
             result = {
                 "timestamp": timestamp,
                 "frame_id": self.frame_counter,
@@ -363,7 +374,7 @@ class FacialEmotionEngine:
                 "multiple_faces_events_count": len(self.multiple_faces_log),
                 "quality_score": quality.quality_score,
                 "quality_diagnostics": quality.to_dict(),
-                "raw_emotion_probabilities": {e: round(1.0 / len(AFFECTNET_CLASSES), 4) for e in AFFECTNET_CLASSES},
+                "raw_emotion_probabilities": {e: round(1.0 / 4, 4) for e in ["Calm", "Happy", "Distressed", "Overwhelmed"]},
                 "calmspace_mapped_probabilities": {s: round(1.0 / len(CALMSPACE_STATES), 4) for s in CALMSPACE_STATES},
                 "dominant_emotion": "unknown",
                 "calmspace_state": "Unknown",
@@ -426,7 +437,7 @@ class FacialEmotionEngine:
                 # 4 Classes: 0: Calm, 1: Happy, 2: Distressed, 3: Overwhelmed
                 cur_probs = F.softmax(logits, dim=0).cpu().numpy()
                 
-                # Temporal smoothing — 0.80 history weight keeps state stable on live camera
+                # Temporal smoothing — 0.20 new / 0.80 history → ~10s to fully shift at 4fps
                 if self._smoothed_raw_probs is None:
                     self._smoothed_raw_probs = cur_probs
                 else:
@@ -452,21 +463,29 @@ class FacialEmotionEngine:
         # Only apply expression correction when signal is strong enough to be meaningful
         # delta_smile > 0.12 → a real smile is happening → boost Happy, suppress Overwhelmed
         # delta_furrow > 0.18 → real brow furrow → gentle boost to Distressed
-        smile_strength   = max(0.0, delta_smile - 0.12)   # dead-zone below 0.12
-        furrow_strength  = max(0.0, delta_furrow - 0.18)  # dead-zone below 0.18
+        smile_strength   = max(0.0, delta_smile - 0.05)   # dead-zone below 0.05
+        furrow_strength  = max(0.0, delta_furrow - 0.08)  # dead-zone below 0.08
 
-        smile_correction  = min(smile_strength * 2.0, 0.35)   # max 35% correction
-        furrow_correction = min(furrow_strength * 1.5, 0.20)   # max 20% correction
+        smile_correction  = min(smile_strength * 4.0, 0.60)   # max 60% correction
+        furrow_correction = min(furrow_strength * 3.0, 0.50)   # max 50% correction
 
-        # Apply: smile pulls probability FROM Overwhelmed INTO Happy
-        transfer = min(smile_correction, cnn_overwhelmed * 0.8)
-        fused_happy       = cnn_happy + transfer
-        fused_overwhelmed = max(0.0, cnn_overwhelmed - transfer)
+        # Smile -> boost Happy, pull from Calm + Overwhelmed
+        smile_from_calm = min(smile_correction * 0.6, cnn_calm * 0.8)
+        smile_from_over = min(smile_correction * 0.4, cnn_overwhelmed * 0.8)
+        fused_happy       = cnn_happy + smile_from_calm + smile_from_over
+        fused_overwhelmed = max(0.0, cnn_overwhelmed - smile_from_over)
+        fused_calm_s      = max(0.0, cnn_calm - smile_from_calm)
 
-        # Furrow gently shifts some Calm → Distressed
-        furrow_transfer = min(furrow_correction, cnn_calm * 0.5)
-        fused_calm       = max(0.0, cnn_calm - furrow_transfer)
+        # Furrow -> shift Calm into Distressed
+        furrow_transfer  = min(furrow_correction, fused_calm_s * 0.8)
+        fused_calm       = max(0.0, fused_calm_s - furrow_transfer)
         fused_distressed = cnn_distressed + furrow_transfer
+
+        # Mouth open -> boost Overwhelmed from Calm
+        mouth_boost      = min(delta_mouth_open * 0.5, 0.35)
+        mouth_transfer   = min(mouth_boost, fused_calm * 0.5)
+        fused_calm       = max(0.0, fused_calm - mouth_transfer)
+        fused_overwhelmed = fused_overwhelmed + mouth_transfer
 
         fused = {
             "Calm":        fused_calm,
@@ -478,17 +497,16 @@ class FacialEmotionEngine:
         if total_f > 0:
             fused = {k: round(v / total_f, 4) for k, v in fused.items()}
 
-        # Map fused 4-class → CalmSpace states
+        # Map fused 4-class -> CalmSpace states (must match frontend EmotionState type)
         mapped_probs = {
-            "Calm":           fused["Calm"] + fused["Happy"],
-            "Mildly_Stressed": fused["Distressed"] * 0.5,
-            "Anxious":        fused["Distressed"] * 0.5,
-            "Overloaded":     fused["Overwhelmed"],
+            "Calm":        fused.get("Calm", 0.0),
+            "Happy":       fused.get("Happy", 0.0),
+            "Distressed":  fused.get("Distressed", 0.0),
+            "Overwhelmed": fused.get("Overwhelmed", 0.0),
         }
-        total = sum(mapped_probs.values())
-        if total > 0:
-            for k in mapped_probs:
-                mapped_probs[k] = round(mapped_probs[k] / total, 4)
+        total_m = sum(mapped_probs.values())
+        if total_m > 0:
+            mapped_probs = {k: round(v / total_m, 4) for k, v in mapped_probs.items()}
 
         # Update raw_probs to fused values (used for entropy/confidence below)
         raw_probs = fused
@@ -496,10 +514,39 @@ class FacialEmotionEngine:
         # 9. Autism atypical affect and entropy evaluation
         entropy, is_ambiguous, ambiguity_reason = evaluate_autism_ambiguity(raw_probs)
 
-        # 10. Compute detection confidence for multimodal fusion weighting
-        dominant_affectnet = max(raw_probs, key=lambda k: raw_probs[k])
-        dominant_calmspace = max(mapped_probs, key=lambda k: mapped_probs[k])
-        top_prob = raw_probs[dominant_affectnet]
+        # 10. Hysteresis-locked dominant state
+        instant_dominant = max(mapped_probs, key=lambda k: mapped_probs[k])
+        instant_prob      = mapped_probs[instant_dominant]
+        locked_prob       = mapped_probs.get(self._locked_state, 0.0)
+
+        if self._locked_state == "Unknown":
+            # Bootstrap: accept first confident read immediately
+            self._locked_state    = instant_dominant
+            self._candidate_state = instant_dominant
+            self._candidate_frames = self._HYSTERESIS_FRAMES
+        elif instant_dominant == self._locked_state:
+            # Challenger is same as locked — reset candidate streak
+            self._candidate_state  = instant_dominant
+            self._candidate_frames = 0
+        else:
+            # A different state is leading — only commit after enough consecutive frames
+            # AND it must lead the locked state by the margin threshold
+            if instant_dominant == self._candidate_state:
+                self._candidate_frames += 1
+            else:
+                self._candidate_state  = instant_dominant
+                self._candidate_frames = 1
+
+            if (
+                self._candidate_frames >= self._HYSTERESIS_FRAMES
+                and (instant_prob - locked_prob) >= self._HYSTERESIS_MARGIN
+            ):
+                self._locked_state     = self._candidate_state
+                self._candidate_frames = 0
+
+        dominant_calmspace = self._locked_state
+        dominant_trained   = max(raw_probs, key=lambda k: raw_probs[k])
+        top_prob           = raw_probs[dominant_trained]
 
         # Detection confidence = quality_score * top_class_probability
         confidence = quality.quality_score * top_prob
@@ -518,7 +565,7 @@ class FacialEmotionEngine:
                 "timestamp": timestamp,
                 "frame_id": self.frame_counter,
                 "entropy": round(entropy, 3),
-                "dominant_emotion": dominant_affectnet,
+                "dominant_emotion": dominant_trained,
                 "confidence": detection_confidence,
                 "ambiguity_reason": ambiguity_reason
             })
@@ -541,7 +588,7 @@ class FacialEmotionEngine:
             "quality_diagnostics": quality.to_dict(),
             "raw_emotion_probabilities": raw_probs,
             "calmspace_mapped_probabilities": mapped_probs,
-            "dominant_emotion": dominant_affectnet,
+            "dominant_emotion": dominant_trained,
             "calmspace_state": dominant_calmspace,
             "detection_confidence": detection_confidence,
             "graceful_degradation": {
