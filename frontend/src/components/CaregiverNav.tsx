@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { HandHeart, Bell, MessageCircle, Activity, CheckSquare, ClipboardList, NotebookPen, Video, ShieldAlert, UserCircle, LogOut } from "lucide-react";
+import { HandHeart, MessageCircle, Activity, CheckSquare, ClipboardList, NotebookPen, Video, ShieldAlert, UserCircle, LogOut } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -70,9 +71,7 @@ export const CaregiverNav = () => {
 
         {/* Right: Notifications & Profile */}
         <div className="flex-1 flex justify-end items-center gap-3">
-          <button className="w-12 h-12 rounded-full bg-background border-2 border-foreground shadow-pop-sm hover:bg-accent hover:-translate-y-[2px] hover:shadow-pop flex items-center justify-center shrink-0 transition-all">
-            <Bell className="w-5 h-5 text-foreground" />
-          </button>
+          <NotificationBell role="caregiver" />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

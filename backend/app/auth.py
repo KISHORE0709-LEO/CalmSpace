@@ -36,12 +36,25 @@ def resolve_user_from_token(token_val: str, db: Session) -> Optional[models.User
         except Exception:
             pass
 
-    # 2. Try standard JWT decode
+    # 2. Try decoding as Firebase ID token (JWT) without verification
+    # This handles the case where Firebase Admin SDK is not configured
+    if len(token_val) > 100 and "." in token_val:
+        try:
+            # Decode without verification to extract uid from sub claim
+            payload = jwt.decode(token_val, options={"verify_signature": False}, algorithms=["RS256", "HS256"])
+            uid = payload.get("user_id") or payload.get("sub")
+            if uid:
+                user = db.query(models.User).filter(models.User.firebase_uid == uid).first()
+                if user:
+                    return user
+        except Exception:
+            pass
+
+    # 3. Try standard JWT decode with local secret
     try:
         payload = jwt.decode(token_val, SECRET_KEY, algorithms=[ALGORITHM])
         sub = payload.get("sub")
         if sub:
-            # sub could be user_id or firebase_uid
             if str(sub).isdigit():
                 user = db.query(models.User).filter(models.User.id == int(sub)).first()
                 if user:
@@ -52,17 +65,17 @@ def resolve_user_from_token(token_val: str, db: Session) -> Optional[models.User
     except Exception:
         pass
 
-    # 3. Direct match with firebase_uid
+    # 4. Direct match with firebase_uid
     user = db.query(models.User).filter(models.User.firebase_uid == token_val).first()
     if user:
         return user
 
-    # 4. Direct match with email
+    # 5. Direct match with email
     user = db.query(models.User).filter(models.User.email == token_val).first()
     if user:
         return user
 
-    # 5. Direct match with integer user id
+    # 6. Direct match with integer user id
     if token_val.isdigit():
         user = db.query(models.User).filter(models.User.id == int(token_val)).first()
         if user:

@@ -31,6 +31,7 @@ from app.routes.sensing_routes import router as sensing_router, handle_facial_se
 from app.routes.care_circles import router as care_circles_router
 from app.routes.care_circle_ws import handle_care_circle_ws
 from app.routes.therapy_sessions import router as therapy_router
+from app.routes.emotion_watch_ws import handle_emotion_watch_ws, broadcast_emotion
 
 # Create database tables
 models.Base.metadata.create_all(bind=engine)
@@ -60,6 +61,9 @@ async def upload_file(file: UploadFile = File(...)):
 # Sensing Layer - Facial Emotion CNN Branch
 app.include_router(sensing_router)
 app.add_api_websocket_route("/ws/facial-sensing", handle_facial_sensing_ws)
+
+# Emotion Watch WebSocket — parent/caregiver/doctor watches child's live emotion
+app.add_api_websocket_route("/ws/emotion-watch/{child_id}", handle_emotion_watch_ws)
 
 # Care Circle & Group Chat
 app.include_router(care_circles_router)
@@ -167,6 +171,55 @@ def signup(request: schemas.SignupRequest, db: Session = Depends(get_db)):
             )
             db.add(link)
             db.commit()
+
+        # Auto-create Care Circle when caregiver joins and parent already exists
+        if request.role == "caregiver":
+            parent_link = db.query(models.Link).filter(
+                models.Link.child_id == child_user.id,
+                models.Link.guardian_role == "parent",
+                models.Link.status == "active"
+            ).first()
+            if parent_link and parent_link.guardian:
+                parent_user = parent_link.guardian
+                # Check if a circle already exists for this child owned by this parent
+                existing_circle = db.query(models.CareCircle).filter(
+                    models.CareCircle.owner_user_id == parent_user.id,
+                    models.CareCircle.child_name == child_user.name
+                ).first()
+                if not existing_circle:
+                    circle = models.CareCircle(
+                        name=f"{child_user.name}'s Care Circle",
+                        child_name=child_user.name,
+                        owner_user_id=parent_user.id
+                    )
+                    db.add(circle)
+                    db.flush()
+                    # Add parent as active member
+                    db.add(models.CareCircleMember(
+                        circle_id=circle.id, user_id=parent_user.id,
+                        invited_email=parent_user.email.lower(),
+                        role="parent", status="active"
+                    ))
+                    # Add caregiver as active member
+                    db.add(models.CareCircleMember(
+                        circle_id=circle.id, user_id=new_user.id,
+                        invited_email=new_user.email.lower(),
+                        role="caregiver", status="active"
+                    ))
+                    db.commit()
+                else:
+                    # Circle exists — add caregiver if not already a member
+                    already = db.query(models.CareCircleMember).filter(
+                        models.CareCircleMember.circle_id == existing_circle.id,
+                        models.CareCircleMember.invited_email == new_user.email.lower()
+                    ).first()
+                    if not already:
+                        db.add(models.CareCircleMember(
+                            circle_id=existing_circle.id, user_id=new_user.id,
+                            invited_email=new_user.email.lower(),
+                            role="caregiver", status="active"
+                        ))
+                        db.commit()
 
     # Auto-link pending Care Circle invites
     pending_invites = db.query(models.CareCircleMember).filter(
@@ -338,16 +391,17 @@ def remove_care_member(link_id: int, firebase_uid: str, db: Session = Depends(ge
 # ─── EMOTION LOG ROUTES ───────────────────────────────────────────────────────
 
 @app.post("/api/emotion/log")
-def log_emotion(request: schemas.EmotionLogRequest, db: Session = Depends(get_db)):
+async def log_emotion(request: schemas.EmotionLogRequest, db: Session = Depends(get_db)):
     """Child's frontend logs each significant emotion state change."""
     user = db.query(models.User).filter(models.User.firebase_uid == request.firebase_uid).first()
     if not user or user.role != "child":
         raise HTTPException(status_code=403, detail="Only children can log emotions")
 
+    resolved_state = request.resolved_state
     is_crisis = request.prob_overwhelmed > 0.65
     log = models.EmotionLog(
         child_id=user.id,
-        calmspace_state=request.calmspace_state,
+        calmspace_state=resolved_state,
         dominant_emotion=request.dominant_emotion,
         confidence=request.confidence,
         prob_calm=request.prob_calm,
@@ -358,6 +412,24 @@ def log_emotion(request: schemas.EmotionLogRequest, db: Session = Depends(get_db
     )
     db.add(log)
     db.commit()
+
+    # Broadcast live emotion to all connected watchers (parent, caregiver, doctor)
+    await broadcast_emotion(user.id, {
+        "type": "live",
+        "child_id": user.id,
+        "state": resolved_state,
+        "dominant_emotion": request.dominant_emotion,
+        "confidence": request.confidence,
+        "probs": {
+            "Calm": request.prob_calm,
+            "Happy": request.prob_happy,
+            "Distressed": request.prob_distressed,
+            "Overwhelmed": request.prob_overwhelmed,
+        },
+        "is_crisis": is_crisis,
+        "logged_at": log.logged_at.isoformat(),
+    })
+
     return {"logged": True, "is_crisis": is_crisis}
 
 
@@ -527,6 +599,13 @@ def list_doctors(db: Session = Depends(get_db)):
     """Returns all registered doctors so parents can browse and invite them."""
     doctors = db.query(models.User).filter(models.User.role == "doctor").all()
     return [{"id": d.id, "name": d.name, "email": d.email} for d in doctors]
+
+
+@app.get("/api/caregivers/list")
+def list_caregivers(db: Session = Depends(get_db)):
+    """Returns all registered caregivers so parents can browse and invite them."""
+    caregivers = db.query(models.User).filter(models.User.role == "caregiver").all()
+    return [{"id": c.id, "name": c.name, "email": c.email} for c in caregivers]
 
 @app.get("/api/doctor/families")
 def get_doctor_families(firebase_uid: str, db: Session = Depends(get_db)):

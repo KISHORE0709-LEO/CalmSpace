@@ -37,33 +37,35 @@ export interface ChatMessage {
 }
 
 function getAuthHeaders(token?: string | null): HeadersInit {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (token) headers["Authorization"] = `Bearer ${token}`;
   return headers;
+}
+
+function authQuery(token?: string | null): string {
+  // Also pass as query param for backends without Firebase Admin configured
+  if (!token) return "";
+  return `?firebase_uid=${encodeURIComponent(token)}`;
+}
+
+function authQueryAppend(existing: string, token?: string | null): string {
+  if (!token) return existing;
+  const sep = existing.includes("?") ? "&" : "?";
+  return `${existing}${sep}firebase_uid=${encodeURIComponent(token)}`;
 }
 
 export async function fetchMyCircles(token?: string | null): Promise<CareCircle[]> {
   if (!API_BASE_URL) return [];
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/mine`, {
+  const res = await fetch(authQueryAppend(`${API_BASE_URL}/api/care-circles/mine`, token), {
     headers: getAuthHeaders(token),
   });
-  if (!res.ok) {
-    throw new Error("Failed to fetch care circles");
-  }
+  if (!res.ok) throw new Error("Failed to fetch care circles");
   return res.json();
 }
 
-export async function createCareCircle(
-  childName: string,
-  name?: string,
-  token?: string | null
-): Promise<CareCircle> {
+export async function createCareCircle(childName: string, name?: string, token?: string | null): Promise<CareCircle> {
   if (!API_BASE_URL) throw new Error("Backend URL not configured");
-  const res = await fetch(`${API_BASE_URL}/api/care-circles`, {
+  const res = await fetch(authQueryAppend(`${API_BASE_URL}/api/care-circles`, token), {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ child_name: childName, name }),
@@ -75,12 +77,9 @@ export async function createCareCircle(
   return res.json();
 }
 
-export async function fetchCircleMembers(
-  circleId: number,
-  token?: string | null
-): Promise<CareCircleMember[]> {
+export async function fetchCircleMembers(circleId: number, token?: string | null): Promise<CareCircleMember[]> {
   if (!API_BASE_URL) return [];
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/${circleId}/members`, {
+  const res = await fetch(authQueryAppend(`${API_BASE_URL}/api/care-circles/${circleId}/members`, token), {
     headers: getAuthHeaders(token),
   });
   if (!res.ok) {
@@ -90,14 +89,9 @@ export async function fetchCircleMembers(
   return res.json();
 }
 
-export async function inviteMember(
-  circleId: number,
-  email: string,
-  role: "parent" | "caregiver" | "doctor",
-  token?: string | null
-): Promise<CareCircleMember> {
+export async function inviteMember(circleId: number, email: string, role: "parent" | "caregiver" | "doctor", token?: string | null): Promise<CareCircleMember> {
   if (!API_BASE_URL) throw new Error("Backend URL not configured");
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/${circleId}/invite`, {
+  const res = await fetch(authQueryAppend(`${API_BASE_URL}/api/care-circles/${circleId}/invite`, token), {
     method: "POST",
     headers: getAuthHeaders(token),
     body: JSON.stringify({ email, role }),
@@ -109,13 +103,9 @@ export async function inviteMember(
   return res.json();
 }
 
-export async function cancelInvite(
-  circleId: number,
-  memberId: number,
-  token?: string | null
-): Promise<void> {
+export async function cancelInvite(circleId: number, memberId: number, token?: string | null): Promise<void> {
   if (!API_BASE_URL) throw new Error("Backend URL not configured");
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/${circleId}/invite/${memberId}/cancel`, {
+  const res = await fetch(authQueryAppend(`${API_BASE_URL}/api/care-circles/${circleId}/invite/${memberId}/cancel`, token), {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -125,13 +115,9 @@ export async function cancelInvite(
   }
 }
 
-export async function revokeMember(
-  circleId: number,
-  memberId: number,
-  token?: string | null
-): Promise<void> {
+export async function revokeMember(circleId: number, memberId: number, token?: string | null): Promise<void> {
   if (!API_BASE_URL) throw new Error("Backend URL not configured");
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/${circleId}/members/${memberId}/revoke`, {
+  const res = await fetch(authQueryAppend(`${API_BASE_URL}/api/care-circles/${circleId}/members/${memberId}/revoke`, token), {
     method: "POST",
     headers: getAuthHeaders(token),
   });
@@ -141,50 +127,35 @@ export async function revokeMember(
   }
 }
 
-export async function acceptInvite(
-  circleId: number,
-  memberId: number,
-  token?: string | null
-): Promise<void> {
+export async function acceptInvite(circleId: number, memberId: number, token?: string | null): Promise<void> {
   if (!API_BASE_URL) throw new Error("Backend URL not configured");
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/${circleId}/invite/${memberId}/accept`, {
-    method: "POST",
-    headers: getAuthHeaders(token),
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/api/care-circles/${circleId}/invite/${memberId}/accept?firebase_uid=${encodeURIComponent(token || "")}`,
+    { method: "POST", headers: { "Content-Type": "application/json" } }
+  );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Failed to accept invite");
   }
 }
 
-export async function declineInvite(
-  circleId: number,
-  memberId: number,
-  token?: string | null
-): Promise<void> {
+export async function declineInvite(circleId: number, memberId: number, token?: string | null): Promise<void> {
   if (!API_BASE_URL) throw new Error("Backend URL not configured");
-  const res = await fetch(`${API_BASE_URL}/api/care-circles/${circleId}/invite/${memberId}/decline`, {
-    method: "POST",
-    headers: getAuthHeaders(token),
-  });
+  const res = await fetch(
+    `${API_BASE_URL}/api/care-circles/${circleId}/invite/${memberId}/decline?firebase_uid=${encodeURIComponent(token || "")}`,
+    { method: "POST", headers: { "Content-Type": "application/json" } }
+  );
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Failed to decline invite");
   }
 }
 
-export async function fetchChatMessages(
-  circleId: number,
-  token?: string | null,
-  before?: string
-): Promise<ChatMessage[]> {
+export async function fetchChatMessages(circleId: number, token?: string | null, before?: string): Promise<ChatMessage[]> {
   if (!API_BASE_URL) return [];
-  const url = new URL(`${API_BASE_URL}/api/care-circles/${circleId}/messages`);
-  if (before) url.searchParams.set("before", before);
-
-  const res = await fetch(url.toString(), {
-    headers: getAuthHeaders(token),
-  });
+  let url = authQueryAppend(`${API_BASE_URL}/api/care-circles/${circleId}/messages`, token);
+  if (before) url += `&before=${encodeURIComponent(before)}`;
+  const res = await fetch(url, { headers: getAuthHeaders(token) });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.detail || "Failed to fetch chat messages");
@@ -193,21 +164,18 @@ export async function fetchChatMessages(
 }
 
 export function getCareCircleWsUrl(circleId: number, token?: string | null): string | null {
-  if (import.meta.env.VITE_WS_URL) {
-    const base = import.meta.env.VITE_WS_URL.replace("/ws/facial-sensing", "");
-    return `${base}/ws/care-circle/${circleId}${token ? `?token=${encodeURIComponent(token)}` : ""}`;
-  }
+  const base = import.meta.env.VITE_WS_URL
+    ? import.meta.env.VITE_WS_URL.replace("/ws/facial-sensing", "")
+    : (() => {
+        const isLocal =
+          typeof window !== "undefined" &&
+          (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
+        if (!isLocal) return null;
+        const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
+        return `${protocol}//${window.location.hostname}:8000`;
+      })();
 
-  const isLocal =
-    typeof window !== "undefined" &&
-    (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1");
-
-  if (isLocal) {
-    const protocol = window.location.protocol === "https:" ? "wss:" : "ws:";
-    return `${protocol}//${window.location.hostname}:8000/ws/care-circle/${circleId}${
-      token ? `?token=${encodeURIComponent(token)}` : ""
-    }`;
-  }
-
-  return null;
+  if (!base) return null;
+  // Pass firebase_uid as query param — matches what the WS server reads
+  return `${base}/ws/care-circle/${circleId}${token ? `?firebase_uid=${encodeURIComponent(token)}` : ""}`;
 }

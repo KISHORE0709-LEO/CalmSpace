@@ -26,17 +26,12 @@ export const PendingInviteBanner = ({
   const handleAction = async (circle: CareCircle, action: "accept" | "decline") => {
     setProcessingId(circle.id);
     try {
-      // Find the member record for this user
-      const members = await fetchCircleMembers(circle.id, authToken);
-      const myMember = members.find(
-        (m) =>
-          (currentUserEmail && m.invited_email.toLowerCase() === currentUserEmail.toLowerCase()) ||
-          m.status === "pending"
+      // Use the dedicated self-lookup endpoint that works for pending members
+      const res = await fetch(
+        `${(await import("@/lib/api")).API_BASE_URL}/api/care-circles/${circle.id}/my-invite?firebase_uid=${encodeURIComponent(authToken || "")}`,
       );
-
-      if (!myMember) {
-        throw new Error("Could not find your invite record for this Care Circle");
-      }
+      if (!res.ok) throw new Error("Could not find your invite record");
+      const myMember = await res.json();
 
       if (action === "accept") {
         await acceptInvite(circle.id, myMember.id, authToken);

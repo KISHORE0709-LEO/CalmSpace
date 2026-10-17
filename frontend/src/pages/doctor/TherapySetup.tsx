@@ -7,7 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { DoctorShell } from "@/components/DoctorShell";
 import {
   Calendar, Clock, Users, Target, Video, Link as LinkIcon,
-  CheckCircle2, Activity, FileText, Copy, Check,
+  CheckCircle2, Activity, FileText, Copy, Check, Plus,
   Loader2
 } from "lucide-react";
 import { Input } from "@/components/ui/input";

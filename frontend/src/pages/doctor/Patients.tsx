@@ -1,28 +1,33 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { DoctorShell } from "@/components/DoctorShell";
-import { Users, Search, AlertCircle, Loader2, FileText, BarChart3, Heart, UserCog, Baby } from "lucide-react";
+import { Users, Search, Loader2, FileText, BarChart3, Heart, UserCog, Baby, RefreshCw } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { careTeamApi, LinkedChild, TeamMember } from "@/lib/careTeamApi";
 import { API_BASE_URL } from "@/lib/api";
-
-interface FamilyMemberInfo {
-  id: number;
-  name: string;
-  email: string;
-}
-
-interface FamilyChild extends FamilyMemberInfo {
-  age?: number;
-  link_id: number;
-}
+import { toast } from "sonner";
 
 interface Family {
   family_name: string;
-  child: FamilyChild;
-  parent: FamilyMemberInfo | null;
-  caregiver: FamilyMemberInfo | null;
+  child: { id: number; name: string; email: string; age?: number; link_id: number };
+  parent: { name: string; email: string } | null;
+  caregiver: { name: string; email: string } | null;
+}
+
+function toFamilies(children: LinkedChild[]): Family[] {
+  return children.map(c => {
+    const parent   = c.team.find((m: TeamMember) => m.role === "parent")   || null;
+    const caregiver = c.team.find((m: TeamMember) => m.role === "caregiver") || null;
+    const lastName = c.name.split(" ").slice(-1)[0] || c.name;
+    return {
+      family_name: `The ${lastName} Family`,
+      child: { id: c.id, name: c.name, email: c.email, age: c.age, link_id: c.link_id },
+      parent:   parent   ? { name: parent.name   || "Pending", email: parent.email   } : null,
+      caregiver: caregiver ? { name: caregiver.name || "Pending", email: caregiver.email } : null,
+    };
+  });
 }
 
 const Patients = () => {
@@ -31,20 +36,25 @@ const Patients = () => {
   const [families, setFamilies] = useState<Family[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [error, setError] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
+  const load = async (showSpinner = false) => {
     if (!user) return;
-    setLoading(true);
-    fetch(`${API_BASE_URL}/api/doctor/families?firebase_uid=${user.uid}`)
-      .then(r => {
-        if (!r.ok) throw new Error("Failed to load families");
-        return r.json();
-      })
-      .then(setFamilies)
-      .catch(e => setError(e.message))
-      .finally(() => setLoading(false));
-  }, [user]);
+    if (showSpinner) setRefreshing(true);
+    else setLoading(true);
+    // Trigger auto-heal by hitting the care-circles/mine endpoint first
+    try {
+      await fetch(`${API_BASE_URL}/api/care-circles/mine?firebase_uid=${user.uid}`, {
+        headers: { Authorization: `Bearer ${user.uid}` },
+      });
+    } catch {}
+    careTeamApi.getMyChildren(user.uid)
+      .then(children => setFamilies(toFamilies(children)))
+      .catch(() => {})
+      .finally(() => { setLoading(false); setRefreshing(false); });
+  };
+
+  useEffect(() => { load(); }, [user]);
 
   const filtered = useMemo(() => {
     if (!search.trim()) return families;
@@ -56,6 +66,11 @@ const Patients = () => {
     );
   }, [families, search]);
 
+  const handleRefresh = () => {
+    load(true);
+    toast.info("Refreshing patient list…");
+  };
+
   return (
     <DoctorShell fullWidth>
       <div className="pt-8">
@@ -64,6 +79,14 @@ const Patients = () => {
             <h1 className="text-4xl font-black tracking-tight mb-2">My Families</h1>
             <p className="text-muted-foreground font-bold text-lg">All families connected to your care</p>
           </div>
+          <Button
+            onClick={handleRefresh}
+            disabled={refreshing}
+            className="h-12 rounded-xl font-black shadow-pop-sm border-2 border-foreground bg-primary hover:-translate-y-1 transition-all"
+          >
+            {refreshing ? <Loader2 className="w-5 h-5 mr-2 animate-spin" /> : <RefreshCw className="w-5 h-5 mr-2" />}
+            Refresh
+          </Button>
         </div>
 
         {/* Stats */}
@@ -114,23 +137,23 @@ const Patients = () => {
           <div className="flex justify-center py-20">
             <Loader2 className="w-8 h-8 animate-spin text-primary" />
           </div>
-        ) : error ? (
-          <div className="calm-card p-16 text-center border-4 border-red-300 shadow-pop">
-            <AlertCircle className="w-16 h-16 mx-auto mb-4 text-red-500" />
-            <h2 className="text-2xl font-black mb-2">Error loading families</h2>
-            <p className="text-muted-foreground font-bold">{error}</p>
-          </div>
         ) : filtered.length === 0 ? (
           <div className="calm-card p-16 text-center border-4 border-foreground shadow-pop">
             <Users className="w-16 h-16 mx-auto mb-4 text-muted-foreground" />
             <h2 className="text-2xl font-black mb-2">
               {families.length === 0 ? "No families linked yet" : "No families match your search"}
             </h2>
-            <p className="text-muted-foreground font-bold">
+            <p className="text-muted-foreground font-bold mb-6">
               {families.length === 0
-                ? "Ask a parent to invite you as the doctor for their child from the Manage Care Team section."
+                ? "Once a parent adds you to their Care Circle, click Refresh to see your patients."
                 : "Try a different search term."}
             </p>
+            {families.length === 0 && (
+              <Button onClick={handleRefresh} disabled={refreshing} className="font-black border-2 border-foreground shadow-pop-sm">
+                {refreshing ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <RefreshCw className="w-4 h-4 mr-2" />}
+                Refresh Now
+              </Button>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-6">
@@ -175,7 +198,7 @@ const Patients = () => {
                     </div>
                   ) : (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-muted/30 border-2 border-dashed border-border">
-                      <div className="w-9 h-9 rounded-full bg-muted border-2 border-foreground/30 flex items-center justify-center text-sm font-black flex-shrink-0">
+                      <div className="w-9 h-9 rounded-full bg-muted border-2 border-foreground/30 flex items-center justify-center flex-shrink-0">
                         <Heart className="w-4 h-4 text-muted-foreground" />
                       </div>
                       <p className="text-xs text-muted-foreground font-bold">No parent linked yet</p>
@@ -183,7 +206,7 @@ const Patients = () => {
                   )}
 
                   {/* Caregiver */}
-                  {family.caregiver ? (
+                  {family.caregiver && (
                     <div className="flex items-center gap-3 p-3 rounded-xl bg-amber-50 border-2 border-amber-200">
                       <div className="w-9 h-9 rounded-full bg-amber-400 text-white border-2 border-foreground flex items-center justify-center text-sm font-black flex-shrink-0">
                         <UserCog className="w-4 h-4" />
@@ -193,7 +216,7 @@ const Patients = () => {
                         <p className="text-xs text-muted-foreground font-bold">Caregiver</p>
                       </div>
                     </div>
-                  ) : null}
+                  )}
                 </div>
 
                 {/* Actions */}

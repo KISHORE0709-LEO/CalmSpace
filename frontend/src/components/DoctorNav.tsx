@@ -1,5 +1,6 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Stethoscope, Bell, MessageCircle, BarChart3, ActivitySquare, Download, ClipboardEdit, Users, Video, UserCircle, LogOut } from "lucide-react";
+import { Stethoscope, MessageCircle, BarChart3, ActivitySquare, Download, ClipboardEdit, Users, Video, UserCircle, LogOut } from "lucide-react";
+import { NotificationBell } from "@/components/NotificationBell";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -67,9 +68,7 @@ export const DoctorNav = () => {
 
         {/* Right: Notifications & Profile */}
         <div className="flex-1 flex justify-end items-center gap-3">
-          <button className="w-12 h-12 rounded-full bg-background border-2 border-foreground shadow-pop-sm hover:bg-muted hover:-translate-y-[2px] hover:shadow-pop flex items-center justify-center shrink-0 transition-all">
-            <Bell className="w-5 h-5 text-foreground" />
-          </button>
+          <NotificationBell role="doctor" />
           
           <DropdownMenu>
             <DropdownMenuTrigger asChild>

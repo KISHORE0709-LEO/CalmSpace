@@ -96,6 +96,43 @@ def get_my_care_circles(
     current_user: models.User = Depends(get_current_user)
 ):
     """Circles the current user belongs to (any status: active, pending, or owned)."""
+    # Auto-heal: if this user has pending invites matched by email, activate them
+    pending_mine = db.query(models.CareCircleMember).filter(
+        models.CareCircleMember.invited_email == current_user.email.lower(),
+        models.CareCircleMember.status == "pending"
+    ).all()
+    healed = False
+    for pm in pending_mine:
+        pm.status = "active"
+        pm.user_id = current_user.id
+        pm.responded_at = datetime.utcnow()
+        # Also create Link if doctor/caregiver
+        if pm.role in ["doctor", "caregiver"]:
+            circle = db.query(models.CareCircle).filter(models.CareCircle.id == pm.circle_id).first()
+            if circle:
+                parent_link = db.query(models.Link).filter(
+                    models.Link.guardian_id == circle.owner_user_id,
+                    models.Link.guardian_role == "parent",
+                    models.Link.status == "active"
+                ).first()
+                if parent_link and parent_link.child_id:
+                    existing_link = db.query(models.Link).filter(
+                        models.Link.child_id == parent_link.child_id,
+                        models.Link.guardian_id == current_user.id,
+                        models.Link.status == "active"
+                    ).first()
+                    if not existing_link:
+                        db.add(models.Link(
+                            child_id=parent_link.child_id,
+                            guardian_id=current_user.id,
+                            guardian_role=pm.role,
+                            status="active",
+                            invited_email=current_user.email.lower()
+                        ))
+        healed = True
+    if healed:
+        db.commit()
+
     # Find all memberships
     memberships = db.query(models.CareCircleMember).filter(
         or_(
@@ -195,6 +232,37 @@ def get_circle_members(
     return result
 
 
+@router.get("/{circle_id}/my-invite")
+def get_my_invite(
+    circle_id: int,
+    firebase_uid: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    """Returns the calling user's own member record (pending or active) — no active-only restriction."""
+    user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    member = db.query(models.CareCircleMember).filter(
+        models.CareCircleMember.circle_id == circle_id,
+        or_(
+            models.CareCircleMember.user_id == user.id,
+            models.CareCircleMember.invited_email == user.email.lower()
+        )
+    ).first()
+
+    if not member:
+        raise HTTPException(status_code=404, detail="No invite found for this user in this circle")
+
+    return {
+        "id": member.id,
+        "circle_id": member.circle_id,
+        "status": member.status,
+        "role": member.role,
+        "invited_email": member.invited_email
+    }
+
+
 @router.post("/{circle_id}/invite", response_model=schemas.CareCircleMemberResponse)
 def invite_member(
     circle_id: int,
@@ -239,11 +307,13 @@ def invite_member(
         elif existing.status == "pending":
             raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Member with this email already has a pending invite")
         elif existing.status == "revoked":
-            # Re-invite
-            existing.status = "pending"
+            # Re-invite — auto-activate if user already exists
+            re_user = db.query(models.User).filter(models.User.email == invited_email).first()
+            existing.status = "active" if re_user else "pending"
             existing.role = request.role
+            existing.user_id = re_user.id if re_user else existing.user_id
             existing.invited_at = datetime.utcnow()
-            existing.responded_at = None
+            existing.responded_at = datetime.utcnow() if re_user else None
             db.commit()
             db.refresh(existing)
             return schemas.CareCircleMemberResponse(
@@ -257,25 +327,54 @@ def invite_member(
                 invited_at=existing.invited_at,
                 responded_at=existing.responded_at,
                 is_owner=False,
-                can_revoke=False,
-                can_cancel=True
+                can_revoke=re_user is not None,
+                can_cancel=re_user is None
             )
 
     # Check if a user with this email already exists
     matching_user = db.query(models.User).filter(models.User.email == invited_email).first()
     user_id = matching_user.id if matching_user else None
 
+    # If the user already exists on the platform, activate them immediately (no accept step needed)
+    auto_active = matching_user is not None
+    member_status = "active" if auto_active else "pending"
+    responded_now = datetime.utcnow() if auto_active else None
+
     member = models.CareCircleMember(
         circle_id=circle_id,
         user_id=user_id,
         invited_email=invited_email,
         role=request.role,
-        status="pending",
-        invited_at=datetime.utcnow()
+        status=member_status,
+        invited_at=datetime.utcnow(),
+        responded_at=responded_now
     )
     db.add(member)
     db.commit()
     db.refresh(member)
+
+    # If the invited user already exists and is a doctor/caregiver, auto-create Link
+    if matching_user and request.role in ["doctor", "caregiver"]:
+        parent_link = db.query(models.Link).filter(
+            models.Link.guardian_id == current_user.id,
+            models.Link.guardian_role == "parent",
+            models.Link.status == "active"
+        ).first()
+        if parent_link and parent_link.child_id:
+            existing_link = db.query(models.Link).filter(
+                models.Link.child_id == parent_link.child_id,
+                models.Link.guardian_id == matching_user.id,
+                models.Link.status == "active"
+            ).first()
+            if not existing_link:
+                db.add(models.Link(
+                    child_id=parent_link.child_id,
+                    guardian_id=matching_user.id,
+                    guardian_role=request.role,
+                    status="active",
+                    invited_email=invited_email
+                ))
+                db.commit()
 
     return schemas.CareCircleMemberResponse(
         id=member.id,
@@ -288,8 +387,8 @@ def invite_member(
         invited_at=member.invited_at,
         responded_at=member.responded_at,
         is_owner=False,
-        can_revoke=False,
-        can_cancel=True
+        can_revoke=auto_active,  # owner can revoke active members
+        can_cancel=not auto_active  # only pending can be cancelled
     )
 
 
@@ -362,29 +461,57 @@ def revoke_member(
 def accept_invite(
     circle_id: int,
     member_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    firebase_uid: str = Query(...),
+    db: Session = Depends(get_db)
 ):
     """Invited user accepts the pending invite."""
+    user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     member = db.query(models.CareCircleMember).filter(
         models.CareCircleMember.id == member_id,
         models.CareCircleMember.circle_id == circle_id
     ).first()
     if not member:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invite not found")
+        raise HTTPException(status_code=404, detail="Invite not found")
 
-    # Caller must match invited email or assigned user_id
-    is_authorized = (member.user_id == current_user.id) or (member.invited_email.lower() == current_user.email.lower())
+    is_authorized = (member.user_id == user.id) or (member.invited_email.lower() == user.email.lower())
     if not is_authorized:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This invite was not sent to your account")
+        raise HTTPException(status_code=403, detail="This invite was not sent to your account")
 
     if member.status != "pending":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Cannot accept invite with status '{member.status}'")
+        raise HTTPException(status_code=400, detail=f"Cannot accept invite with status '{member.status}'")
 
     member.status = "active"
-    member.user_id = current_user.id
+    member.user_id = user.id
     member.responded_at = datetime.utcnow()
     db.commit()
+
+    # Auto-create a Link so doctor/caregiver can see the child in their patient list
+    circle = db.query(models.CareCircle).filter(models.CareCircle.id == circle_id).first()
+    if circle and member.role in ["doctor", "caregiver"]:
+        # Find the child linked to the circle owner (parent)
+        parent_link = db.query(models.Link).filter(
+            models.Link.guardian_id == circle.owner_user_id,
+            models.Link.guardian_role == "parent",
+            models.Link.status == "active"
+        ).first()
+        if parent_link and parent_link.child_id:
+            existing_link = db.query(models.Link).filter(
+                models.Link.child_id == parent_link.child_id,
+                models.Link.guardian_id == user.id,
+                models.Link.status == "active"
+            ).first()
+            if not existing_link:
+                db.add(models.Link(
+                    child_id=parent_link.child_id,
+                    guardian_id=user.id,
+                    guardian_role=member.role,
+                    status="active",
+                    invited_email=user.email.lower()
+                ))
+                db.commit()
 
     return {"message": "Invite accepted. You are now an active member of this Care Circle.", "circle_id": circle_id}
 
@@ -393,28 +520,31 @@ def accept_invite(
 def decline_invite(
     circle_id: int,
     member_id: int,
-    db: Session = Depends(get_db),
-    current_user: models.User = Depends(get_current_user)
+    firebase_uid: str = Query(...),
+    db: Session = Depends(get_db)
 ):
     """Invited user declines the pending invite."""
+    user = db.query(models.User).filter(models.User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
     member = db.query(models.CareCircleMember).filter(
         models.CareCircleMember.id == member_id,
         models.CareCircleMember.circle_id == circle_id
     ).first()
     if not member:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Invite not found")
+        raise HTTPException(status_code=404, detail="Invite not found")
 
-    is_authorized = (member.user_id == current_user.id) or (member.invited_email.lower() == current_user.email.lower())
+    is_authorized = (member.user_id == user.id) or (member.invited_email.lower() == user.email.lower())
     if not is_authorized:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="This invite was not sent to your account")
+        raise HTTPException(status_code=403, detail="This invite was not sent to your account")
 
     if member.status != "pending":
-        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=f"Cannot decline invite with status '{member.status}'")
+        raise HTTPException(status_code=400, detail=f"Cannot decline invite with status '{member.status}'")
 
     member.status = "revoked"
     member.responded_at = datetime.utcnow()
     db.commit()
-
     return {"message": "Invite declined.", "circle_id": circle_id}
 
 

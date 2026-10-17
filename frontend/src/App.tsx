@@ -46,6 +46,10 @@ import DoctorChat from "./pages/doctor/Chat.tsx";
 import DoctorPatients from "./pages/doctor/Patients.tsx";
 import PatientInfo from "./pages/doctor/PatientInfo.tsx";
 import PatientAnalytics from "./pages/doctor/PatientAnalytics.tsx";
+import DoctorAnalytics from "./pages/doctor/Analytics.tsx";
+import RiskScore from "./pages/doctor/RiskScore.tsx";
+import CarePlan from "./pages/doctor/CarePlan.tsx";
+import Export from "./pages/doctor/Export.tsx";
 import TherapySetup from "./pages/doctor/TherapySetup.tsx";
 import TherapyRoom from "./pages/doctor/TherapyRoom.tsx";
 import TherapyReport from "./pages/doctor/TherapyReport.tsx";
@@ -104,6 +108,10 @@ const App = () => (
               <Route path="/doctor/patients" element={<DoctorPatients />} />
               <Route path="/doctor/patients/:id/info" element={<PatientInfo />} />
               <Route path="/doctor/patients/:id/analytics" element={<PatientAnalytics />} />
+              <Route path="/doctor/analytics" element={<DoctorAnalytics />} />
+              <Route path="/doctor/risk-score" element={<RiskScore />} />
+              <Route path="/doctor/care-plan" element={<CarePlan />} />
+              <Route path="/doctor/export" element={<Export />} />
               <Route path="/doctor/therapy/setup" element={<TherapySetup />} />
               <Route path="/doctor/therapy/room" element={<TherapyRoom />} />
               <Route path="/doctor/therapy/report" element={<TherapyReport />} />
