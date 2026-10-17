@@ -141,28 +141,36 @@ const Auth = () => {
     e.preventDefault();
     if (!selectedRole) return;
     setSubmitting(true);
+    let firebaseCred: any = null;
     try {
-      // Pre-check: email-role uniqueness
-      if (selectedRole !== "child") {
-        const emailCheck = await checkEmailRole(email.trim().toLowerCase());
-        if (emailCheck.exists && emailCheck.role === "child") {
-          throw new Error("This email is registered as a child account and cannot be used for another role.");
+      // Step 1: Pre-checks BEFORE creating Firebase account
+      const emailCheck = await checkEmailRole(email.trim().toLowerCase());
+      if (emailCheck.exists && emailCheck.role === "child" && selectedRole !== "child") {
+        throw new Error("This email is registered as a child account and cannot be used for another role.");
+      }
+      if (emailCheck.exists) {
+        throw new Error(`This email is already registered as '${emailCheck.role}'. Please log in instead.`);
+      }
+
+      if (selectedRole === "parent") {
+        if (!childEmail.trim()) throw new Error("Please enter your child's CalmSpace email address.");
+        // Verify child exists BEFORE creating Firebase account
+        const childCheck = await checkEmailRole(childEmail.trim().toLowerCase());
+        if (!childCheck.exists) {
+          throw new Error(`No CalmSpace account found for '${childEmail.trim()}'. The child must sign up first — ask them to create a Child account, then come back here.`);
         }
-        if (emailCheck.exists) {
-          throw new Error(`This email is already registered as '${emailCheck.role}'. Please log in instead.`);
+        if (childCheck.role !== "child") {
+          throw new Error(`The email '${childEmail.trim()}' is registered as '${childCheck.role}', not as a child account.`);
         }
       }
 
+      // Step 2: Create Firebase account
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      const cred = await createUserWithEmailAndPassword(auth, email, password);
+      firebaseCred = await createUserWithEmailAndPassword(auth, email, password);
 
-      const needsChildEmail = selectedRole === "parent";
-      if (needsChildEmail && !childEmail.trim()) {
-        throw new Error("Please enter your child's CalmSpace email address.");
-      }
-
+      // Step 3: Register in backend
       await registerInBackend({
-        firebase_uid: cred.user.uid,
+        firebase_uid: firebaseCred.user.uid,
         name,
         email,
         role: selectedRole,
@@ -174,6 +182,12 @@ const Auth = () => {
       toast.success("Account created! Welcome to CalmSpace 🌿");
       navigate(ROLE_REDIRECT[selectedRole]);
     } catch (err: any) {
+      // If Firebase account was created but backend failed, delete the Firebase account
+      // so the user can try again cleanly
+      if (firebaseCred?.user) {
+        await firebaseCred.user.delete().catch(() => {});
+        await auth.signOut().catch(() => {});
+      }
       if (err instanceof TypeError && err.message === "Failed to fetch") {
         toast.error("Cannot reach the server. Make sure the backend is running on port 8000.");
       } else if (err.code === "auth/weak-password") {
@@ -306,13 +320,32 @@ const Auth = () => {
     }
   };
 
-  // ── GOOGLE NEW USER COMPLETE REGISTRATION ──────────────────────────────────
+
+  // ── GOOGLE NEW USER COMPLETE REGISTRATION ──────────────────────────────────────────
   const handleGoogleComplete = async () => {
     if (!googleUser || !googleRole) return;
-    if (googleRole === "parent" && !googleChildEmail.trim()) {
-      toast.error("Please enter your child's CalmSpace email.");
-      return;
+
+    if (googleRole === "parent") {
+      if (!googleChildEmail.trim()) {
+        toast.error("Please enter your child's CalmSpace email.");
+        return;
+      }
+      const childCheck = await checkEmailRole(googleChildEmail.trim().toLowerCase());
+      if (!childCheck.exists) {
+        toast.error(
+          "No CalmSpace account found for '" + googleChildEmail.trim() + "'. " +
+          "The child must sign up first — ask them to create a Child account, then come back here."
+        );
+        return;
+      }
+      if (childCheck.role !== "child") {
+        toast.error(
+          "The email '" + googleChildEmail.trim() + "' is registered as '" + childCheck.role + "', not as a child account."
+        );
+        return;
+      }
     }
+
     setGoogleSubmitting(true);
     try {
       await registerInBackend({
@@ -324,10 +357,12 @@ const Auth = () => {
           ? googleChildEmail.trim()
           : null,
       });
-      toast.success("Account created! Welcome to CalmSpace 🌿");
+      toast.success("Account created! Welcome to CalmSpace");
       navigate(ROLE_REDIRECT[googleRole]);
     } catch (err: any) {
       toast.error(err.message || "Registration failed");
+      await auth.signOut().catch(() => {});
+      setGoogleUser(null);
     } finally {
       setGoogleSubmitting(false);
     }

@@ -180,8 +180,8 @@ export const EmotionProvider = ({ children }: { children: ReactNode }) => {
 
           if (packet.calmspace_state) {
             setEmotion(packet.calmspace_state);
-            // Persist emotion log every ~10 frames (avoid flooding DB)
-            if (packet.frame_id % 10 === 0 && auth.currentUser) {
+            // Persist emotion log every 5 frames to keep parent/caregiver dashboard live
+            if (packet.frame_id % 5 === 0 && auth.currentUser) {
               careTeamApi.logEmotion(auth.currentUser.uid, {
                 state: packet.calmspace_state,
                 dominant_emotion: packet.dominant_emotion || packet.calmspace_state,

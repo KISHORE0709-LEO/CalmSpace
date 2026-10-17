@@ -6,11 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Activity, Download, Brain, Clock, AlertTriangle } from "lucide-react";
 
 // Colors for emotion states
-const COLORS = {
-  Calm: "#22c55e", // green-500
-  Happy: "#3b82f6", // blue-500
-  Distressed: "#f97316", // orange-500
-  Overwhelmed: "#ef4444", // red-500
+const COLORS: Record<string, string> = {
+  Calm: "#22c55e",
+  Happy: "#3b82f6",
+  Distressed: "#f97316",
+  Overwhelmed: "#ef4444",
+  Mild: "#eab308",
+  Anxious: "#f97316",
+  Overloaded: "#ef4444",
 };
 
 const EMOTION_MAP = {

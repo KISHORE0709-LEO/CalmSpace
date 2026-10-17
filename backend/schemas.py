@@ -38,13 +38,18 @@ class InviteCareTeamRequest(BaseModel):
 
 class EmotionLogRequest(BaseModel):
     firebase_uid: str
-    calmspace_state: str
+    calmspace_state: Optional[str] = None
+    state: Optional[str] = None  # alias sent by frontend
     dominant_emotion: str
     confidence: float
     prob_calm: float = 0.0
     prob_happy: float = 0.0
     prob_distressed: float = 0.0
     prob_overwhelmed: float = 0.0
+
+    @property
+    def resolved_state(self) -> str:
+        return self.calmspace_state or self.state or "Unknown"
 
 
 class CreateCareCircleRequest(BaseModel):
